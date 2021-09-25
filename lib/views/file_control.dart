@@ -5,7 +5,9 @@
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'tree_view.dart';
+import '../model/structure.dart';
 
 /// Provides a simple view with buttons to open files.
 ///
@@ -32,10 +34,20 @@ class _FileControlState extends State<FileControl> {
                     await FilePicker.platform.pickFiles();
                 if (result != null) {
                   PlatformFile fileObj = result.files.single;
+                  var fileRootName = fileObj.name;
+                  var ext = fileObj.extension;
+                  if (ext != null) {
+                    var endPos = fileRootName.length - ext.length - 1;
+                    if (endPos > 0)
+                      fileRootName = fileRootName.substring(0, endPos);
+                  }
+                  var model = Provider.of<Structure>(context, listen: false);
+                  model.openFile(fileObj.path);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TreeView(fileObj: fileObj),
+                      builder: (context) =>
+                          TreeView(fileRootName: fileRootName),
                     ),
                   );
                 }

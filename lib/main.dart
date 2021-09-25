@@ -4,11 +4,18 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'model/structure.dart';
 import 'views/file_control.dart';
 
 void main() {
-  runApp(MaterialApp(
-    title: 'TreeTag',
-    home: FileControl(),
-  ));
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => Structure(),
+      child: MaterialApp(
+        title: 'TreeTag',
+        home: FileControl(),
+      ),
+    ),
+  );
 }

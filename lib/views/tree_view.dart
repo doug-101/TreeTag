@@ -5,36 +5,21 @@
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../model/nodes.dart';
-import '../model/struct.dart';
+import '../model/structure.dart';
 import '../views/detail_view.dart';
 
 /// The main indented tree view.
-class TreeView extends StatefulWidget {
-  final PlatformFile fileObj;
-
-  TreeView({Key? key, required this.fileObj}) : super(key: key);
-
-  @override
-  State<TreeView> createState() => _TreeViewState();
-}
-
-class _TreeViewState extends State<TreeView> {
+class TreeView extends StatelessWidget {
   final _closedIcon = Icon(Icons.arrow_right, size: 24.0, color: Colors.blue);
   final _openIcon = Icon(Icons.arrow_drop_down, size: 24.0, color: Colors.blue);
   final _leafIcon = Icon(Icons.circle, size: 8.0, color: Colors.blue);
-  late final headerName;
-  void initState() {
-    super.initState();
-    openFile(widget.fileObj.path);
-    var fileName = widget.fileObj.name;
-    var ext = widget.fileObj.extension;
-    if (ext != null) {
-      var endPos = fileName.length - ext.length - 1;
-      if (endPos > 0) fileName = fileName.substring(0, endPos);
-    }
-    headerName = 'TreeTag - ' + fileName;
-    FilePicker.platform.clearTemporaryFiles();
+  late final String headerName;
+
+  TreeView({Key? key, required String fileRootName}) : super(key: key) {
+    headerName = 'TreeTag - ' + fileRootName;
+    // FilePicker.platform.clearTemporaryFiles();
   }
 
   @override
@@ -53,25 +38,29 @@ class _TreeViewState extends State<TreeView> {
           ),
         ],
       ),
-      body: ListView(
-        children: _itemRows(),
+      body: Consumer<Structure>(
+        builder: (context, model, child) {
+          return ListView(
+            children: _itemRows(model, context),
+          );
+        },
       ),
     );
   }
 
   /// The widgets for each node in the tree.
-  List<Widget> _itemRows() {
+  List<Widget> _itemRows(Structure model, BuildContext context) {
     final items = <Widget>[];
-    for (var root in rootNodes) {
+    for (var root in model.rootNodes) {
       for (var leveledNode in nodeGenerator(root)) {
-        items.add(_row(leveledNode));
+        items.add(_row(leveledNode, context));
       }
     }
     return items;
   }
 
   /// A single widget for a tree node.
-  Widget _row(LeveledNode leveledNode) {
+  Widget _row(LeveledNode leveledNode, BuildContext context) {
     final node = leveledNode.node;
     return Container(
       padding:
@@ -79,9 +68,7 @@ class _TreeViewState extends State<TreeView> {
       child: GestureDetector(
         onTap: () {
           if (node.hasChildren) {
-            setState(() {
-              node.isOpen = !node.isOpen;
-            });
+            node.modelRef.toggleNodeOpen(node);
           }
         },
         onLongPress: () {

@@ -5,17 +5,19 @@
 
 import 'fields.dart';
 import 'parsed_line.dart';
-import 'struct.dart' show leafNodes, fieldMap, titleLine, outputLines;
+import 'structure.dart' show Structure;
 
 /// Interface definition for multiple types of tree nodes.
 abstract class Node {
+  late Structure modelRef;
   Node? parent;
 
-  factory Node(Map<String, dynamic> jsonData, [Node? parent]) {
+  factory Node(Map<String, dynamic> jsonData, Structure modelRef,
+      [Node? parent]) {
     if (jsonData.containsKey('title'))
-      return TitleNode._fromJson(jsonData, parent);
+      return TitleNode._fromJson(jsonData, modelRef, parent);
     if (jsonData.containsKey('rule'))
-      return RuleNode._fromJson(jsonData, parent);
+      return RuleNode._fromJson(jsonData, modelRef, parent);
     throw FormatException('Node does not match a title or a rule node');
   }
 
@@ -23,6 +25,8 @@ abstract class Node {
   bool get hasChildren;
   bool get isOpen;
   void set isOpen(bool value);
+  bool get isStale;
+  void set isStale(bool value);
   List<LeafNode> get availableNodes;
   String get title;
   // Needed for sorting GroupNodes as well as in LeafNode.
@@ -34,17 +38,20 @@ abstract class Node {
 }
 
 class TitleNode implements Node {
+  late Structure modelRef;
   Node? parent;
   late String title;
   var _children = <Node>[];
   RuleNode? _childRuleNode;
   var isOpen = false;
+  var isStale = false;
   var data = <String, String>{};
 
-  TitleNode._fromJson(Map<String, dynamic> jsonData, [this.parent]) {
+  TitleNode._fromJson(Map<String, dynamic> jsonData, this.modelRef,
+      [this.parent]) {
     title = jsonData['title']!;
     for (var childData in jsonData['children'] ?? []) {
-      _children.add(Node(childData, this));
+      _children.add(Node(childData, modelRef, this));
     }
     if (_children.length == 1 && _children[0] is RuleNode) {
       _childRuleNode = _children[0] as RuleNode?;
@@ -53,11 +60,11 @@ class TitleNode implements Node {
   }
 
   bool get hasChildren => _children.isNotEmpty || _childRuleNode != null;
-  List<LeafNode> get availableNodes => leafNodes;
+  List<LeafNode> get availableNodes => modelRef.leafNodes;
 
   List<Node> childNodes({bool forceUpdate = false}) {
     if (_childRuleNode != null && (forceUpdate || _children.length == 0)) {
-      _children = _childRuleNode!.createGroups(leafNodes, this);
+      _children = _childRuleNode!.createGroups(modelRef.leafNodes, this);
     }
     return _children;
   }
@@ -69,22 +76,26 @@ class TitleNode implements Node {
 }
 
 class RuleNode implements Node {
+  late Structure modelRef;
   Node? parent;
   late ParsedLine _ruleLine;
   late List<SortKey> sortFields;
   late List<SortKey> childSortFields;
   RuleNode? _childRuleNode;
   var isOpen = false;
+  var isStale = false;
   var availableNodes = <LeafNode>[];
   var title = '';
   var data = <String, String>{};
 
-  RuleNode._fromJson(Map<String, dynamic> jsonData, [this.parent]) {
-    _ruleLine = ParsedLine(jsonData['rule']!, fieldMap);
+  RuleNode._fromJson(Map<String, dynamic> jsonData, this.modelRef,
+      [this.parent]) {
+    _ruleLine = ParsedLine(jsonData['rule']!, modelRef.fieldMap);
     var sortData = jsonData['sortfields'];
     if (sortData != null) {
       sortFields = [
-        for (var fieldName in sortData) SortKey.fromString(fieldName)
+        for (var fieldName in sortData)
+          SortKey.fromString(fieldName, modelRef.fieldMap)
       ];
     } else {
       sortFields = [for (var field in _ruleLine.lineFields) SortKey(field)];
@@ -92,14 +103,17 @@ class RuleNode implements Node {
     var childSortData = jsonData['childsortfields'];
     if (childSortData != null) {
       childSortFields = [
-        for (var fieldName in childSortData) SortKey.fromString(fieldName)
+        for (var fieldName in childSortData)
+          SortKey.fromString(fieldName, modelRef.fieldMap)
       ];
     } else {
-      childSortFields = [for (var field in fieldMap.values) SortKey(field)];
+      childSortFields = [
+        for (var field in modelRef.fieldMap.values) SortKey(field)
+      ];
     }
     var childData = jsonData['child'];
     if (childData != null) {
-      _childRuleNode = RuleNode._fromJson(childData, this);
+      _childRuleNode = RuleNode._fromJson(childData, modelRef, this);
     }
   }
 
@@ -120,10 +134,23 @@ class RuleNode implements Node {
           _ruleLine.formattedLine(node), (List<LeafNode> list) => list + [node],
           ifAbsent: () => [node]);
     }
+    var oldGroups = <String, GroupNode>{};
+    if (parentRef is GroupNode) {
+      for (var grp in parentRef.childGroups) {
+        oldGroups[grp.title] = grp;
+      }
+    } else if (parentRef is TitleNode) {
+      for (var node in parentRef._children) {
+        if (node is GroupNode) oldGroups[node.title] = node;
+      }
+    }
     var groups = <GroupNode>[];
     for (var line in nodeData.keys) {
-      var groupNode = GroupNode(line, this, parentRef);
+      var groupNode =
+          oldGroups[line] ?? GroupNode(line, modelRef, this, parentRef);
+      groupNode._ruleRef = this;
       groupNode.matchingNodes = nodeData[line]!;
+      groupNode.data.clear();
       for (var field in _ruleLine.lineFields) {
         groupNode.data[field.name] =
             groupNode.matchingNodes[0].data[field.name]!;
@@ -136,6 +163,7 @@ class RuleNode implements Node {
 }
 
 class GroupNode implements Node {
+  late Structure modelRef;
   Node? parent;
   late String title;
   late RuleNode _ruleRef;
@@ -143,10 +171,11 @@ class GroupNode implements Node {
   var childGroups = <GroupNode>[];
   var hasChildren = true;
   var isOpen = false;
+  var isStale = false;
   var data = <String, String>{};
   var nodesSorted = false;
 
-  GroupNode(this.title, this._ruleRef, this.parent);
+  GroupNode(this.title, this.modelRef, this._ruleRef, this.parent);
 
   List<LeafNode> get availableNodes => matchingNodes;
 
@@ -170,14 +199,16 @@ class GroupNode implements Node {
 }
 
 class LeafNode implements Node {
+  late Structure modelRef;
   // parent is ambiguous; not used for leaves
   Node? parent;
   late Map<String, String> data;
   final hasChildren = false;
   var isOpen = false;
+  var isStale = false;
   var availableNodes = <LeafNode>[];
 
-  LeafNode(Map<String, dynamic> jsonData) {
+  LeafNode(Map<String, dynamic> jsonData, this.modelRef) {
     data = jsonData.cast<String, String>();
   }
 
@@ -185,10 +216,10 @@ class LeafNode implements Node {
 
   List<Node> storedChildren() => [];
 
-  String get title => titleLine.formattedLine(this);
+  String get title => modelRef.titleLine.formattedLine(this);
 
   List<String> outputs() {
-    return [for (var line in outputLines) line.formattedLine(this)];
+    return [for (var line in modelRef.outputLines) line.formattedLine(this)];
   }
 }
 
@@ -198,7 +229,7 @@ class SortKey {
 
   SortKey(this.keyField, [this.isAscend = true]);
 
-  SortKey.fromString(String fieldName) {
+  SortKey.fromString(String fieldName, Map<String, Field> fieldMap) {
     if (fieldName[0] == '+' || fieldName[0] == '-') {
       if (fieldName[0] == '-') isAscend = false;
       fieldName = fieldName.substring(1);

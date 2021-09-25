@@ -4,44 +4,48 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../model/nodes.dart';
+import '../model/structure.dart';
 
 /// A detail view that shows node and child output after a long press.
-class DetailView extends StatefulWidget {
+class DetailView extends StatelessWidget {
   final Node node;
 
   DetailView({Key? key, required this.node}) : super(key: key);
 
   @override
-  State<DetailView> createState() => _DetailViewState();
-}
-
-class _DetailViewState extends State<DetailView> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.node.title),
+        title: Text(node.title),
         actions: <Widget>[
-          if (widget.node is LeafNode)
+          if (node is LeafNode)
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {},
             ),
-          if (widget.node is LeafNode)
+          if (node is LeafNode)
             IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: () {},
+              onPressed: () {
+                var model = Provider.of<Structure>(context, listen: false);
+                model.testChange();
+              },
             ),
         ],
       ),
-      body: ListView(
-        children: _detailRows(widget.node),
+      body: Consumer<Structure>(
+        builder: (context, model, child) {
+          return ListView(
+            children: _detailRows(node, context),
+          );
+        },
       ),
     );
   }
 
-  List<Widget> _detailRows(Node node) {
+  List<Widget> _detailRows(Node node, BuildContext context) {
     var items = <Widget>[];
     if (node is LeafNode) {
       items.add(
