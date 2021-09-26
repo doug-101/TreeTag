@@ -43,13 +43,8 @@ class _FileControlState extends State<FileControl> {
                   }
                   var model = Provider.of<Structure>(context, listen: false);
                   model.openFile(fileObj.path);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          TreeView(fileRootName: fileRootName),
-                    ),
-                  );
+                  Navigator.pushNamed(context, '/treeView',
+                      arguments: fileRootName);
                 }
               },
             ),

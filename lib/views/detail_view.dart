@@ -64,12 +64,8 @@ class DetailView extends StatelessWidget {
             Card(
               child: InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DetailView(node: childNode),
-                    ),
-                  );
+                  Navigator.pushNamed(context, '/detailView',
+                      arguments: childNode);
                 },
                 child: Container(
                   margin: const EdgeInsets.all(10.0),

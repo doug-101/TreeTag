@@ -74,12 +74,7 @@ class TreeView extends StatelessWidget {
         onLongPress: () {
           if (node is LeafNode ||
               (node.hasChildren && node.childNodes()[0] is LeafNode)) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DetailView(node: node),
-              ),
-            );
+            Navigator.pushNamed(context, '/detailView', arguments: node);
           }
         },
         child: Row(children: <Widget>[
