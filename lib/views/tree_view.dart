@@ -72,10 +72,7 @@ class TreeView extends StatelessWidget {
           }
         },
         onLongPress: () {
-          if (node is LeafNode ||
-              (node.hasChildren && node.childNodes()[0] is LeafNode)) {
-            Navigator.pushNamed(context, '/detailView', arguments: node);
-          }
+          Navigator.pushNamed(context, '/detailView', arguments: node);
         },
         child: Row(children: <Widget>[
           node.hasChildren

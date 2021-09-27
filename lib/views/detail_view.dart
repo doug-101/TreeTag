@@ -57,25 +57,25 @@ class DetailView extends StatelessWidget {
         ),
       );
     } else {
-      // node is GroupNode
+      // node is GroupNode ot TitleNode
       for (var childNode in node.childNodes()) {
-        if (childNode is LeafNode) {
-          items.add(
-            Card(
-              child: InkWell(
-                onTap: () {
-                  Navigator.pushNamed(context, '/detailView',
-                      arguments: childNode);
-                },
-                child: Container(
-                  margin: const EdgeInsets.all(10.0),
-                  child: Text(childNode.outputs().join('\n')),
-                ),
+        items.add(
+          Card(
+            child: InkWell(
+              onTap: () {
+                Navigator.pushNamed(context, '/detailView',
+                    arguments: childNode);
+              },
+              child: Container(
+                margin: const EdgeInsets.all(10.0),
+                child: childNode is LeafNode
+                    ? Text(childNode.outputs().join('\n'))
+                    : Text(childNode.title),
               ),
-              margin: EdgeInsets.all(5.0),
             ),
-          );
-        }
+            margin: EdgeInsets.all(5.0),
+          ),
+        );
       }
     }
     return items;
