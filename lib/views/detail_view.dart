@@ -30,7 +30,7 @@ class DetailView extends StatelessWidget {
               icon: const Icon(Icons.delete),
               onPressed: () {
                 var model = Provider.of<Structure>(context, listen: false);
-                model.testChange();
+                model.deleteNode(node);
               },
             ),
         ],
@@ -47,7 +47,17 @@ class DetailView extends StatelessWidget {
 
   List<Widget> _detailRows(Node node, BuildContext context) {
     var items = <Widget>[];
-    if (node is LeafNode) {
+    if (node.modelRef.obsoleteNodes.contains(node)) {
+      items.add(
+        Card(
+          child: Container(
+            margin: const EdgeInsets.all(10.0),
+            child: Text(node is LeafNode ? 'Node Deleted' : 'Group Removed',
+                style: TextStyle(color: Colors.red)),
+          ),
+        ),
+      );
+    } else if (node is LeafNode) {
       items.add(
         Card(
           child: Container(
@@ -57,7 +67,7 @@ class DetailView extends StatelessWidget {
         ),
       );
     } else {
-      // node is GroupNode ot TitleNode
+      // node is GroupNode or TitleNode
       for (var childNode in node.childNodes()) {
         items.add(
           Card(

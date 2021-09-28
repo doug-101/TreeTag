@@ -15,6 +15,7 @@ import 'parsed_line.dart';
 class Structure extends ChangeNotifier {
   var rootNodes = <Node>[];
   var leafNodes = <LeafNode>[];
+  var obsoleteNodes = <Node>{};
   var fieldMap = <String, Field>{};
   late ParsedLine titleLine;
   var outputLines = <ParsedLine>[];
@@ -56,12 +57,20 @@ class Structure extends ChangeNotifier {
     notifyListeners();
   }
 
+  void deleteNode(Node node) {
+    leafNodes.remove(node);
+    updateAllChildren();
+    obsoleteNodes.add(node);
+    notifyListeners();
+  }
+
   void testChange() {
     updateAllChildren();
     notifyListeners();
   }
 
   void updateAllChildren({bool forceUpdate = true}) {
+    obsoleteNodes.clear();
     for (var root in rootNodes) {
       updateChildren(root, forceUpdate: forceUpdate);
     }

@@ -148,6 +148,7 @@ class RuleNode implements Node {
     for (var line in nodeData.keys) {
       var groupNode =
           oldGroups[line] ?? GroupNode(line, modelRef, this, parentRef);
+      oldGroups.remove(line);
       groupNode._ruleRef = this;
       groupNode.matchingNodes = nodeData[line]!;
       groupNode.data.clear();
@@ -157,6 +158,7 @@ class RuleNode implements Node {
       }
       groups.add(groupNode);
     }
+    modelRef.obsoleteNodes.addAll(oldGroups.values);
     nodeFullSort(groups, sortFields);
     return groups;
   }
