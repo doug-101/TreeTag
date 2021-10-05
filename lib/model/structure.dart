@@ -57,6 +57,19 @@ class Structure extends ChangeNotifier {
     notifyListeners();
   }
 
+  LeafNode newNode({Node? copyFromNode}) {
+    var data = Map<String, String>.of(copyFromNode?.data ?? <String, String>{});
+    if (copyFromNode is GroupNode) {
+      while (copyFromNode?.parent is GroupNode) {
+        copyFromNode = copyFromNode?.parent;
+        data.addAll(copyFromNode?.data ?? {});
+      }
+    }
+    var newNode = LeafNode(data, this);
+    leafNodes.add(newNode);
+    return newNode;
+  }
+
   void deleteNode(Node node) {
     leafNodes.remove(node);
     updateAllChildren();
@@ -64,7 +77,7 @@ class Structure extends ChangeNotifier {
     notifyListeners();
   }
 
-  void testChange() {
+  void updateAll() {
     updateAllChildren();
     notifyListeners();
   }

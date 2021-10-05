@@ -27,6 +27,12 @@ class Field {
     return _prefix + storedText + _suffix;
   }
 
+  String? validateMessage(String? text) {
+    // should return error message if invalid
+    //if (text?.isEmpty ?? false) return '$name field should not be empty';
+    return null;
+  }
+
   int compareNodes(Node firstNode, Node secondNode) {
     var firstValue = firstNode.data[name] ?? '';
     var secondValue = secondNode.data[name] ?? '';

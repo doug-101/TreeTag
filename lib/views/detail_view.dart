@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
+import '../views/edit_view.dart';
 
 /// A detail view that shows node and child output after a long press.
 class DetailView extends StatelessWidget {
@@ -20,10 +21,28 @@ class DetailView extends StatelessWidget {
       appBar: AppBar(
         title: Text(node.title),
         actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.add_circle),
+            onPressed: () {
+              var model = Provider.of<Structure>(context, listen: false);
+              var newNode = model.newNode(copyFromNode: node);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => EditView(node: newNode, isNew: true)),
+              );
+            },
+          ),
           if (node is LeafNode)
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => EditView(node: node as LeafNode)),
+                );
+              },
             ),
           if (node is LeafNode)
             IconButton(
