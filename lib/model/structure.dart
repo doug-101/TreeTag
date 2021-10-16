@@ -24,9 +24,9 @@ class Structure extends ChangeNotifier {
     titleLine = ParsedLine('', fieldMap);
   }
 
-  void openFile(String filename) {
+  void openFile(File fileObj) {
     clearModel();
-    var jsonData = jsonDecode(File(filename).readAsStringSync());
+    var jsonData = jsonDecode(fileObj.readAsStringSync());
     for (var fieldData in jsonData['fields'] ?? []) {
       var field = Field(fieldData);
       fieldMap[field.name] = field;
@@ -129,7 +129,7 @@ Iterable<LeveledNode> nodeGenerator(Node node,
 
 void main(List<String> args) {
   var struct = Structure();
-  struct.openFile(args[0]);
+  struct.openFile(File(args[0]));
   for (var root in struct.rootNodes) {
     for (var leveledNode in nodeGenerator(root)) {
       print('   ' * leveledNode.level + leveledNode.node.title);

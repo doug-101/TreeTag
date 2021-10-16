@@ -3,7 +3,6 @@
 // Copyright (c) 2021, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../model/nodes.dart';
@@ -19,7 +18,6 @@ class TreeView extends StatelessWidget {
 
   TreeView({Key? key, required String fileRootName}) : super(key: key) {
     headerName = 'TreeTag - ' + fileRootName;
-    // FilePicker.platform.clearTemporaryFiles();
   }
 
   @override
