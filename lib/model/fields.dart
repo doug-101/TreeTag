@@ -9,7 +9,18 @@ import 'nodes.dart';
 class Field {
   late String name, _type, _format, _prefix, _suffix;
 
-  Field(Map<String, dynamic> jsonData) {
+  Field(
+      {required this.name,
+      type = 'Text',
+      format = '',
+      prefix = '',
+      suffix = ''})
+      : _type = type,
+        _format = format,
+        _prefix = prefix,
+        _suffix = suffix;
+
+  Field.fromJson(Map<String, dynamic> jsonData) {
     name = jsonData['fieldname'] ?? '';
     _type = jsonData['fieldtype'] ?? 'Text';
     _format = jsonData['format'] ?? '';

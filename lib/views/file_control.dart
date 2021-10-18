@@ -65,8 +65,18 @@ class _FileControlState extends State<FileControl> {
         actions: <Widget>[
           if (selectFiles.isEmpty)
             IconButton(
+              // New file command.
               icon: const Icon(Icons.add_box),
-              onPressed: () {},
+              onPressed: () async {
+                var filename =
+                    await filenameDialog(label: 'Nane for the new file:');
+                if (filename != null) {
+                  var model = Provider.of<Structure>(context, listen: false);
+                  model.newFile();
+                  Navigator.pushNamed(context, '/treeView',
+                      arguments: filename);
+                }
+              },
             ),
           if (selectFiles.length == 1)
             IconButton(

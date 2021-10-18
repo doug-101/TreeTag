@@ -28,7 +28,7 @@ class Structure extends ChangeNotifier {
     clearModel();
     var jsonData = jsonDecode(fileObj.readAsStringSync());
     for (var fieldData in jsonData['fields'] ?? []) {
-      var field = Field(fieldData);
+      var field = Field.fromJson(fieldData);
       fieldMap[field.name] = field;
     }
     for (var nodeData in jsonData['template'] ?? []) {
@@ -40,13 +40,34 @@ class Structure extends ChangeNotifier {
       outputLines.add(ParsedLine(lineString ?? '', fieldMap));
     }
     for (var leaf in jsonData['leaves'] ?? []) {
-      leafNodes.add(LeafNode(leaf, this));
+      leafNodes.add(LeafNode.fromJson(leaf, this));
     }
+  }
+
+  void newFile() {
+    clearModel();
+    const mainFieldName = 'Name';
+    fieldMap[mainFieldName] = Field(name: mainFieldName);
+    const categoryFieldName = 'Category';
+    fieldMap[categoryFieldName] = Field(name: categoryFieldName);
+    var root = TitleNode(title: 'Root', modelRef: this);
+    root.isOpen = true;
+    rootNodes.add(root);
+    root.childRuleNode =
+        RuleNode(rule: '{*$categoryFieldName*}', modelRef: this, parent: root);
+    leafNodes.add(LeafNode(data: {
+      mainFieldName: 'Sample Node',
+      categoryFieldName: 'First Category',
+    }, modelRef: this));
+    titleLine = ParsedLine('{*$mainFieldName*}', fieldMap);
+    outputLines.add(
+        ParsedLine('{*$mainFieldName*}\n{*$categoryFieldName*}', fieldMap));
   }
 
   void clearModel() {
     rootNodes = [];
     leafNodes = [];
+    obsoleteNodes = {};
     fieldMap = {};
     titleLine = ParsedLine('', fieldMap);
     outputLines = [];
@@ -65,7 +86,7 @@ class Structure extends ChangeNotifier {
         data.addAll(copyFromNode?.data ?? {});
       }
     }
-    var newNode = LeafNode(data, this);
+    var newNode = LeafNode(data: data, modelRef: this);
     leafNodes.add(newNode);
     return newNode;
   }

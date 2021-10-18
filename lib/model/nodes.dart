@@ -42,10 +42,12 @@ class TitleNode implements Node {
   Node? parent;
   late String title;
   var _children = <Node>[];
-  RuleNode? _childRuleNode;
+  RuleNode? childRuleNode;
   var isOpen = false;
   var isStale = false;
   var data = <String, String>{};
+
+  TitleNode({required this.title, required this.modelRef, this.parent});
 
   TitleNode._fromJson(Map<String, dynamic> jsonData, this.modelRef,
       [this.parent]) {
@@ -54,23 +56,23 @@ class TitleNode implements Node {
       _children.add(Node(childData, modelRef, this));
     }
     if (_children.length == 1 && _children[0] is RuleNode) {
-      _childRuleNode = _children[0] as RuleNode?;
+      childRuleNode = _children[0] as RuleNode?;
       _children = [];
     }
   }
 
-  bool get hasChildren => _children.isNotEmpty || _childRuleNode != null;
+  bool get hasChildren => _children.isNotEmpty || childRuleNode != null;
   List<LeafNode> get availableNodes => modelRef.leafNodes;
 
   List<Node> childNodes({bool forceUpdate = false}) {
-    if (_childRuleNode != null && (forceUpdate || _children.length == 0)) {
-      _children = _childRuleNode!.createGroups(modelRef.leafNodes, this);
+    if (childRuleNode != null && (forceUpdate || _children.length == 0)) {
+      _children = childRuleNode!.createGroups(modelRef.leafNodes, this);
     }
     return _children;
   }
 
   List<Node> storedChildren() {
-    if (_childRuleNode != null) return [_childRuleNode!];
+    if (childRuleNode != null) return [childRuleNode!];
     return _children;
   }
 }
@@ -81,12 +83,20 @@ class RuleNode implements Node {
   late ParsedLine _ruleLine;
   late List<SortKey> sortFields;
   late List<SortKey> childSortFields;
-  RuleNode? _childRuleNode;
+  RuleNode? childRuleNode;
   var isOpen = false;
   var isStale = false;
   var availableNodes = <LeafNode>[];
   var title = '';
   var data = <String, String>{};
+
+  RuleNode({required String rule, required this.modelRef, this.parent}) {
+    _ruleLine = ParsedLine(rule, modelRef.fieldMap);
+    sortFields = [for (var field in _ruleLine.lineFields) SortKey(field)];
+    childSortFields = [
+      for (var field in modelRef.fieldMap.values) SortKey(field)
+    ];
+  }
 
   RuleNode._fromJson(Map<String, dynamic> jsonData, this.modelRef,
       [this.parent]) {
@@ -113,16 +123,16 @@ class RuleNode implements Node {
     }
     var childData = jsonData['child'];
     if (childData != null) {
-      _childRuleNode = RuleNode._fromJson(childData, modelRef, this);
+      childRuleNode = RuleNode._fromJson(childData, modelRef, this);
     }
   }
 
-  bool get hasChildren => _childRuleNode != null;
+  bool get hasChildren => childRuleNode != null;
 
   List<Node> childNodes({bool forceUpdate = false}) => [];
 
   List<Node> storedChildren() {
-    if (_childRuleNode != null) return [_childRuleNode!];
+    if (childRuleNode != null) return [childRuleNode!];
     return [];
   }
 
@@ -182,9 +192,9 @@ class GroupNode implements Node {
   List<LeafNode> get availableNodes => matchingNodes;
 
   List<Node> childNodes({bool forceUpdate = false}) {
-    if (_ruleRef._childRuleNode != null &&
+    if (_ruleRef.childRuleNode != null &&
         (forceUpdate || childGroups.length == 0)) {
-      childGroups = _ruleRef._childRuleNode!.createGroups(matchingNodes, this);
+      childGroups = _ruleRef.childRuleNode!.createGroups(matchingNodes, this);
       nodeFullSort(childGroups, _ruleRef.sortFields);
     }
     if (childGroups.length > 0) {
@@ -210,7 +220,9 @@ class LeafNode implements Node {
   var isStale = false;
   var availableNodes = <LeafNode>[];
 
-  LeafNode(Map<String, dynamic> jsonData, this.modelRef) {
+  LeafNode({required this.data, required this.modelRef});
+
+  LeafNode.fromJson(Map<String, dynamic> jsonData, this.modelRef) {
     data = jsonData.cast<String, String>();
   }
 
