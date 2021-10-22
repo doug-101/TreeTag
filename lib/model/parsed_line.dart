@@ -48,4 +48,13 @@ class ParsedLine {
     if (fieldsBlank && lineFields.length > 0) return '';
     return result.toString();
   }
+
+  String getUnparsedLine() {
+    var result = StringBuffer(_textSegments[0]);
+    for (var i = 0; i < lineFields.length; i++) {
+      result.write(lineFields[i].lineText());
+      result.write(_textSegments[i + 1]);
+    }
+    return result.toString();
+  }
 }

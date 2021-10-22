@@ -24,7 +24,7 @@ class FileControl extends StatefulWidget {
 enum MenuItems { addFromFolder, copy, copyToFolder, rename, delete }
 
 class _FileControlState extends State<FileControl> {
-  Directory? workDir;
+  late Directory workDir;
   var fileList = <File>[];
   var selectFiles = <File>{};
   final _filenameEditKey = GlobalKey<FormFieldState>();
@@ -37,20 +37,20 @@ class _FileControlState extends State<FileControl> {
 
   void _findWorkDir() async {
     if (Platform.isAndroid) {
-      workDir = await getExternalStorageDirectory();
+      var dir = await getExternalStorageDirectory();
+      if (dir == null) dir = await getApplicationDocumentsDirectory();
+      workDir = dir;
     } else {
       workDir = await getApplicationDocumentsDirectory();
     }
-    if (workDir != null) _updateFileList();
+    _updateFileList();
   }
 
   void _updateFileList() async {
     fileList.clear();
     selectFiles.clear();
-    if (workDir != null) {
-      await for (var entity in workDir!.list()) {
-        if (entity != null && entity is File) fileList.add(entity);
-      }
+    await for (var entity in workDir.list()) {
+      if (entity != null && entity is File) fileList.add(entity);
     }
     setState(() {});
   }
@@ -71,10 +71,13 @@ class _FileControlState extends State<FileControl> {
                 var filename =
                     await filenameDialog(label: 'Nane for the new file:');
                 if (filename != null) {
+                  var fileObj = File(p.join(workDir.path, filename + '.trtg'));
                   var model = Provider.of<Structure>(context, listen: false);
-                  model.newFile();
-                  Navigator.pushNamed(context, '/treeView',
-                      arguments: filename);
+                  model.newFile(fileObj);
+                  Navigator.pushNamed(context, '/treeView', arguments: filename)
+                      .then((value) async {
+                    _updateFileList();
+                  });
                 }
               },
             ),
@@ -95,7 +98,7 @@ class _FileControlState extends State<FileControl> {
                   if (result != null) {
                     var cachePath = result.files.single.path;
                     var newName = p.basenameWithoutExtension(cachePath);
-                    var newPath = p.join(workDir!.path, newName + '.trtg');
+                    var newPath = p.join(workDir.path, newName + '.trtg');
                     if (File(newPath).existsSync()) {
                       var ans = await confirmOverwriteDialog(newName);
                       if (ans == null || !ans) {
@@ -118,7 +121,7 @@ class _FileControlState extends State<FileControl> {
                     label: 'Copy "$initName" to:',
                   );
                   if (result != null) {
-                    var newPath = p.join(workDir!.path, result + '.trtg');
+                    var newPath = p.join(workDir.path, result + '.trtg');
                     if (File(newPath).existsSync()) {
                       var ans = await confirmOverwriteDialog(result);
                       if (ans == null || !ans) break;
@@ -160,7 +163,7 @@ class _FileControlState extends State<FileControl> {
                     label: 'Rename "$initName" to:',
                   );
                   if (result != null) {
-                    var newPath = p.join(workDir!.path, result + '.trtg');
+                    var newPath = p.join(workDir.path, result + '.trtg');
                     if (File(newPath).existsSync()) {
                       var ans = await confirmOverwriteDialog(result);
                       if (ans == null || !ans) break;
@@ -234,7 +237,10 @@ class _FileControlState extends State<FileControl> {
               var model = Provider.of<Structure>(context, listen: false);
               model.openFile(fileObj);
               Navigator.pushNamed(context, '/treeView',
-                  arguments: p.basenameWithoutExtension(fileObj.path));
+                      arguments: p.basenameWithoutExtension(fileObj.path))
+                  .then((value) async {
+                _updateFileList();
+              });
             },
             onLongPress: () {
               setState(() {

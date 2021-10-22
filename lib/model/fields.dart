@@ -49,4 +49,16 @@ class Field {
     var secondValue = secondNode.data[name] ?? '';
     return firstValue.compareTo(secondValue);
   }
+
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{'fieldname': name, 'fieldtype': _type};
+    if (_format.isNotEmpty) result['format'] = _format;
+    if (_prefix.isNotEmpty) result['prefix'] = _prefix;
+    if (_suffix.isNotEmpty) result['suffix'] = _suffix;
+    return result;
+  }
+
+  String lineText() {
+    return '{*$name*}';
+  }
 }

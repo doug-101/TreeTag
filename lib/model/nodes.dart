@@ -35,6 +35,7 @@ abstract class Node {
   List<Node> childNodes({bool forceUpdate});
 
   List<Node> storedChildren();
+  Map<String, dynamic> toJson();
 }
 
 class TitleNode implements Node {
@@ -75,6 +76,18 @@ class TitleNode implements Node {
     if (childRuleNode != null) return [childRuleNode!];
     return _children;
   }
+
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{'title': title};
+    if (hasChildren) {
+      var childList = <Map<String, dynamic>>[];
+      for (var child in storedChildren()) {
+        childList.add(child.toJson());
+      }
+      result['children'] = childList;
+    }
+    return result;
+  }
 }
 
 class RuleNode implements Node {
@@ -82,7 +95,9 @@ class RuleNode implements Node {
   Node? parent;
   late ParsedLine _ruleLine;
   late List<SortKey> sortFields;
+  bool hasUniqueSortFields = false;
   late List<SortKey> childSortFields;
+  bool hasUniqueChildSortFields = false;
   RuleNode? childRuleNode;
   var isOpen = false;
   var isStale = false;
@@ -107,6 +122,7 @@ class RuleNode implements Node {
         for (var fieldName in sortData)
           SortKey.fromString(fieldName, modelRef.fieldMap)
       ];
+      hasUniqueSortFields = true;
     } else {
       sortFields = [for (var field in _ruleLine.lineFields) SortKey(field)];
     }
@@ -116,6 +132,7 @@ class RuleNode implements Node {
         for (var fieldName in childSortData)
           SortKey.fromString(fieldName, modelRef.fieldMap)
       ];
+      hasUniqueChildSortFields = true;
     } else {
       childSortFields = [
         for (var field in modelRef.fieldMap.values) SortKey(field)
@@ -134,6 +151,25 @@ class RuleNode implements Node {
   List<Node> storedChildren() {
     if (childRuleNode != null) return [childRuleNode!];
     return [];
+  }
+
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['rule'] = _ruleLine.getUnparsedLine();
+    if (hasUniqueSortFields) {
+      result['sortfields'] = [
+        for (var sortKey in sortFields) sortKey.toString()
+      ];
+    }
+    if (hasUniqueChildSortFields) {
+      result['childsortfields'] = [
+        for (var sortKey in childSortFields) sortKey.toString()
+      ];
+    }
+    if (hasChildren) {
+      result['child'] = childRuleNode!.toJson();
+    }
+    return result;
   }
 
   List<GroupNode> createGroups(List<LeafNode> availableNodes,
@@ -208,6 +244,11 @@ class GroupNode implements Node {
   }
 
   List<Node> storedChildren() => [];
+
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    return result;
+  }
 }
 
 class LeafNode implements Node {
@@ -235,6 +276,12 @@ class LeafNode implements Node {
   List<String> outputs() {
     return [for (var line in modelRef.outputLines) line.formattedLine(this)];
   }
+
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result = data;
+    return result;
+  }
 }
 
 class SortKey {
@@ -249,6 +296,10 @@ class SortKey {
       fieldName = fieldName.substring(1);
     }
     keyField = fieldMap[fieldName]!;
+  }
+
+  String toString() {
+    return (isAscend ? '+' : '-') + keyField.name;
   }
 }
 

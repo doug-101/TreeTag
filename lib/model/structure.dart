@@ -3,7 +3,7 @@
 // Copyright (c) 2021, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'dart:convert' show jsonDecode, HtmlEscape;
+import 'dart:convert' show json;
 import 'dart:io' show File;
 import 'package:flutter/foundation.dart'; // contains ChangeNotifier
 
@@ -19,6 +19,7 @@ class Structure extends ChangeNotifier {
   var fieldMap = <String, Field>{};
   late ParsedLine titleLine;
   var outputLines = <ParsedLine>[];
+  var fileObject = File('.');
 
   Structure() {
     titleLine = ParsedLine('', fieldMap);
@@ -26,7 +27,8 @@ class Structure extends ChangeNotifier {
 
   void openFile(File fileObj) {
     clearModel();
-    var jsonData = jsonDecode(fileObj.readAsStringSync());
+    fileObject = fileObj;
+    var jsonData = json.decode(fileObj.readAsStringSync());
     for (var fieldData in jsonData['fields'] ?? []) {
       var field = Field.fromJson(fieldData);
       fieldMap[field.name] = field;
@@ -44,8 +46,9 @@ class Structure extends ChangeNotifier {
     }
   }
 
-  void newFile() {
+  void newFile(File fileObj) {
     clearModel();
+    fileObject = fileObj;
     const mainFieldName = 'Name';
     fieldMap[mainFieldName] = Field(name: mainFieldName);
     const categoryFieldName = 'Category';
@@ -53,15 +56,21 @@ class Structure extends ChangeNotifier {
     var root = TitleNode(title: 'Root', modelRef: this);
     root.isOpen = true;
     rootNodes.add(root);
-    root.childRuleNode =
-        RuleNode(rule: '{*$categoryFieldName*}', modelRef: this, parent: root);
+    root.childRuleNode = RuleNode(
+        rule: fieldMap[categoryFieldName]!.lineText(),
+        modelRef: this,
+        parent: root);
     leafNodes.add(LeafNode(data: {
       mainFieldName: 'Sample Node',
       categoryFieldName: 'First Category',
     }, modelRef: this));
-    titleLine = ParsedLine('{*$mainFieldName*}', fieldMap);
-    outputLines.add(
-        ParsedLine('{*$mainFieldName*}\n{*$categoryFieldName*}', fieldMap));
+    titleLine = ParsedLine(fieldMap[mainFieldName]!.lineText(), fieldMap);
+    outputLines.add(ParsedLine(
+        fieldMap[mainFieldName]!.lineText() +
+            '\n' +
+            fieldMap[categoryFieldName]!.lineText(),
+        fieldMap));
+    saveFile();
   }
 
   void clearModel() {
@@ -71,6 +80,19 @@ class Structure extends ChangeNotifier {
     fieldMap = {};
     titleLine = ParsedLine('', fieldMap);
     outputLines = [];
+  }
+
+  void saveFile() async {
+    var jsonData = await <String, dynamic>{
+      'template': [for (var root in rootNodes) root.toJson()]
+    };
+    jsonData['fields'] =
+        await [for (var field in fieldMap.values) field.toJson()];
+    jsonData['titleline'] = titleLine.getUnparsedLine();
+    jsonData['outputlines'] =
+        await [for (var line in outputLines) line.getUnparsedLine()];
+    jsonData['leaves'] = await [for (var leaf in leafNodes) leaf..toJson()];
+    await fileObject.writeAsString(json.encode(jsonData));
   }
 
   void toggleNodeOpen(Node node) {
@@ -96,11 +118,13 @@ class Structure extends ChangeNotifier {
     updateAllChildren();
     obsoleteNodes.add(node);
     notifyListeners();
+    saveFile();
   }
 
   void updateAll() {
     updateAllChildren();
     notifyListeners();
+    saveFile();
   }
 
   void updateAllChildren({bool forceUpdate = true}) {
