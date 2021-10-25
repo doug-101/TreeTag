@@ -19,11 +19,18 @@ class ParsedLine {
     _textSegments.clear();
     lineFields.clear();
     var start = 0;
-    var regExp = RegExp(r'{\*([\w_\-.]+)\*}');
+    var regExp = RegExp(r'{\*([\w_\-.]+)(:\d+)?\*}');
     for (var match in regExp.allMatches(unparsedLine, start)) {
       _textSegments.add(unparsedLine.substring(start, match.start));
-      if (fieldMap.containsKey(match.group(1))) {
-        lineFields.add(fieldMap[match.group(1)!]!);
+      var field = fieldMap[match.group(1)];
+      if (field != null) {
+        var altFieldStr = match.group(2);
+        if (altFieldStr != null) {
+          var altField =
+              field.altFormatField(int.parse(altFieldStr.substring(1)));
+          if (altField != null) field = altField;
+        }
+        lineFields.add(field);
       } else {
         _textSegments.add(match.group(0)!);
       }
