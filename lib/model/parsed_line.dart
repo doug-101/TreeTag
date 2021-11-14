@@ -15,6 +15,11 @@ class ParsedLine {
     parseLine(unparsedLine, fieldMap);
   }
 
+  ParsedLine.fromSingleField(Field field) {
+    lineFields = [field];
+    _textSegments = ['', ''];
+  }
+
   void parseLine(String unparsedLine, Map<String, Field> fieldMap) {
     _textSegments.clear();
     lineFields.clear();
@@ -63,5 +68,28 @@ class ParsedLine {
       result.write(_textSegments[i + 1]);
     }
     return result.toString();
+  }
+
+  bool hasMultipleFields() {
+    return lineFields.toSet().length > 1;
+  }
+
+  void deleteField(Field field, {Field? replacement}) {
+    if (lineFields.contains(field)) {
+      if (hasMultipleFields()) {
+        while (lineFields.contains(field)) {
+          var i = lineFields.indexOf(field);
+          // Remove prefix text if field at start, otherwise remove suffix text
+          _textSegments.removeAt(i == 0 ? 0 : i + 1);
+          lineFields.removeAt(i);
+        }
+      } else if (replacement != null) {
+        lineFields = [replacement];
+        _textSegments = ['', ''];
+      } else {
+        lineFields.clear();
+        _textSegments = ['NO FIELD'];
+      }
+    }
   }
 }

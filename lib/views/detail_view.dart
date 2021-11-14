@@ -29,7 +29,8 @@ class DetailView extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => EditView(node: newNode, isNew: true)),
+                  builder: (context) => EditView(node: newNode, isNew: true),
+                ),
               );
             },
           ),

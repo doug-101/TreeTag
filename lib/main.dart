@@ -10,6 +10,7 @@ import 'model/nodes.dart';
 import 'views/detail_view.dart';
 import 'views/file_control.dart';
 import 'views/tree_view.dart';
+import 'views/config/config_view.dart';
 
 void main() {
   runApp(
@@ -33,6 +34,10 @@ void main() {
                 final node = settings.arguments as Node;
                 return MaterialPageRoute(builder: (context) {
                   return DetailView(node: node);
+                });
+              case '/configView':
+                return MaterialPageRoute(builder: (context) {
+                  return ConfigView();
                 });
             }
           }),

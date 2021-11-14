@@ -65,11 +65,8 @@ class Structure extends ChangeNotifier {
       categoryFieldName: 'First Category',
     }, modelRef: this));
     titleLine = ParsedLine(fieldMap[mainFieldName]!.lineText(), fieldMap);
-    outputLines.add(ParsedLine(
-        fieldMap[mainFieldName]!.lineText() +
-            '\n' +
-            fieldMap[categoryFieldName]!.lineText(),
-        fieldMap));
+    outputLines.add(ParsedLine.fromSingleField(fieldMap[mainFieldName]!));
+    outputLines.add(ParsedLine.fromSingleField(fieldMap[categoryFieldName]!));
     saveFile();
   }
 
@@ -91,7 +88,7 @@ class Structure extends ChangeNotifier {
     jsonData['titleline'] = titleLine.getUnparsedLine();
     jsonData['outputlines'] =
         await [for (var line in outputLines) line.getUnparsedLine()];
-    jsonData['leaves'] = await [for (var leaf in leafNodes) leaf..toJson()];
+    jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
     await fileObject.writeAsString(json.encode(jsonData));
   }
 
@@ -113,12 +110,115 @@ class Structure extends ChangeNotifier {
     return newNode;
   }
 
+  void editNodeData(Node node) {
+    // Defined as a separate function for future undo implementation.
+    updateAll();
+  }
+
   void deleteNode(Node node) {
     leafNodes.remove(node);
     updateAllChildren();
     obsoleteNodes.add(node);
     notifyListeners();
     saveFile();
+  }
+
+  void addNewField(Field field) {
+    fieldMap[field.name] = field;
+    updateAll();
+  }
+
+  void editField(Field field) {
+    if (!fieldMap.containsKey(field.name)) {
+      // Field was renamed.
+      var oldName = fieldMap.keys.firstWhere((key) => fieldMap[key] == field);
+      fieldMap.remove(oldName);
+      fieldMap[field.name] = field;
+      for (var leaf in leafNodes) {
+        var data = leaf.data[oldName];
+        if (data != null) leaf.data[field.name] = data;
+      }
+    }
+    updateAll();
+  }
+
+  void deleteField(Field field) {
+    fieldMap.remove(field.name);
+    if (isFieldInTitle(field))
+      titleLine.deleteField(field, replacement: List.of(fieldMap.values)[0]);
+    if (isFieldInOutput(field)) {
+      for (var line in outputLines.toList()) {
+        if (line.lineFields.contains(field)) {
+          if (line.hasMultipleFields()) {
+            line.deleteField(field);
+          } else {
+            outputLines.remove(line);
+          }
+        }
+      }
+      if (outputLines.isEmpty) {
+        outputLines
+            .add(ParsedLine.fromSingleField(List.of(fieldMap.values)[0]));
+      }
+    }
+    var badRules = <RuleNode>[];
+    for (var root in rootNodes) {
+      for (var item in storedNodeGenerator(root)) {
+        if (item.node is RuleNode) {
+          var rule = item.node as RuleNode;
+          if (rule.ruleLine.lineFields.contains(field)) badRules.add(rule);
+        }
+      }
+    }
+    for (var ruleNode in badRules) {
+      if (ruleNode.parent != null) {
+        if (ruleNode.parent is RuleNode) {
+          (ruleNode.parent as RuleNode).childRuleNode = ruleNode.childRuleNode;
+        } else {
+          (ruleNode.parent as TitleNode)
+              .replaceChildRule(ruleNode.childRuleNode);
+        }
+      } else {
+        rootNodes.remove(ruleNode);
+      }
+    }
+    updateAll();
+  }
+
+  void moveField(Field field, {bool up = true}) {
+    var fieldList = List.of(fieldMap.values);
+    var pos = fieldList.indexOf(field);
+    fieldList.removeAt(pos);
+    fieldList.insert(up ? --pos : ++pos, field);
+    fieldMap.clear();
+    for (var fld in fieldList) {
+      fieldMap[fld.name] = fld;
+    }
+    notifyListeners();
+    saveFile();
+  }
+
+  bool isFieldInTitle(Field field) {
+    return titleLine.lineFields.contains(field);
+  }
+
+  bool isFieldInOutput(Field field) {
+    for (var line in outputLines) {
+      if (line.lineFields.contains(field)) return true;
+    }
+    return false;
+  }
+
+  bool isFieldInGroup(Field field) {
+    for (var root in rootNodes) {
+      for (var item in storedNodeGenerator(root)) {
+        if (item.node is RuleNode) {
+          var rule = item.node as RuleNode;
+          if (rule.ruleLine.lineFields.contains(field)) return true;
+        }
+      }
+    }
+    return false;
   }
 
   void updateAll() {
@@ -169,6 +269,13 @@ Iterable<LeveledNode> nodeGenerator(Node node,
     }
   } else if (forceUpdate && node.hasChildren) {
     node.isStale == true;
+  }
+}
+
+Iterable<LeveledNode> storedNodeGenerator(Node node, {int level = 0}) sync* {
+  yield LeveledNode(node, level);
+  for (var child in node.storedChildren()) {
+    yield* storedNodeGenerator(child, level: level + 1);
   }
 }
 

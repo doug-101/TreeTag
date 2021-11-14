@@ -9,6 +9,8 @@ import '../model/nodes.dart';
 import '../model/structure.dart';
 import '../views/detail_view.dart';
 
+enum MenuItems { editConfig, close }
+
 /// The main indented tree view.
 class TreeView extends StatelessWidget {
   final _closedIcon = Icon(Icons.arrow_right, size: 24.0, color: Colors.blue);
@@ -27,12 +29,28 @@ class TreeView extends StatelessWidget {
         automaticallyImplyLeading: false,
         title: Text(headerName),
         actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.close),
-            tooltip: 'Close File',
-            onPressed: () {
-              Navigator.pop(context);
+          PopupMenuButton(
+            icon: const Icon(Icons.menu),
+            onSelected: (result) {
+              switch (result) {
+                case MenuItems.editConfig:
+                  Navigator.pushNamed(context, '/configView');
+                  break;
+                case MenuItems.close:
+                  Navigator.pop(context);
+                  break;
+              }
             },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                child: Text('Edit Configuration'),
+                value: MenuItems.editConfig,
+              ),
+              PopupMenuItem(
+                child: Text('Close file'),
+                value: MenuItems.close,
+              ),
+            ],
           ),
         ],
       ),

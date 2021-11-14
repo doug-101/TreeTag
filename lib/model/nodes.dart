@@ -77,6 +77,11 @@ class TitleNode implements Node {
     return _children;
   }
 
+  void replaceChildRule(RuleNode? newChildRuleNode) {
+    childRuleNode = newChildRuleNode;
+    _children.clear();
+  }
+
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{'title': title};
     if (hasChildren) {
@@ -93,7 +98,7 @@ class TitleNode implements Node {
 class RuleNode implements Node {
   late Structure modelRef;
   Node? parent;
-  late ParsedLine _ruleLine;
+  late ParsedLine ruleLine;
   late List<SortKey> sortFields;
   bool hasUniqueSortFields = false;
   late List<SortKey> childSortFields;
@@ -106,8 +111,8 @@ class RuleNode implements Node {
   var data = <String, String>{};
 
   RuleNode({required String rule, required this.modelRef, this.parent}) {
-    _ruleLine = ParsedLine(rule, modelRef.fieldMap);
-    sortFields = [for (var field in _ruleLine.lineFields) SortKey(field)];
+    ruleLine = ParsedLine(rule, modelRef.fieldMap);
+    sortFields = [for (var field in ruleLine.lineFields) SortKey(field)];
     childSortFields = [
       for (var field in modelRef.fieldMap.values) SortKey(field)
     ];
@@ -115,7 +120,7 @@ class RuleNode implements Node {
 
   RuleNode._fromJson(Map<String, dynamic> jsonData, this.modelRef,
       [this.parent]) {
-    _ruleLine = ParsedLine(jsonData['rule']!, modelRef.fieldMap);
+    ruleLine = ParsedLine(jsonData['rule']!, modelRef.fieldMap);
     var sortData = jsonData['sortfields'];
     if (sortData != null) {
       sortFields = [
@@ -124,7 +129,7 @@ class RuleNode implements Node {
       ];
       hasUniqueSortFields = true;
     } else {
-      sortFields = [for (var field in _ruleLine.lineFields) SortKey(field)];
+      sortFields = [for (var field in ruleLine.lineFields) SortKey(field)];
     }
     var childSortData = jsonData['childsortfields'];
     if (childSortData != null) {
@@ -155,7 +160,7 @@ class RuleNode implements Node {
 
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{};
-    result['rule'] = _ruleLine.getUnparsedLine();
+    result['rule'] = ruleLine.getUnparsedLine();
     if (hasUniqueSortFields) {
       result['sortfields'] = [
         for (var sortKey in sortFields) sortKey.toString()
@@ -177,7 +182,7 @@ class RuleNode implements Node {
     var nodeData = <String, List<LeafNode>>{};
     for (var node in availableNodes) {
       nodeData.update(
-          _ruleLine.formattedLine(node), (List<LeafNode> list) => list + [node],
+          ruleLine.formattedLine(node), (List<LeafNode> list) => list + [node],
           ifAbsent: () => [node]);
     }
     var oldGroups = <String, GroupNode>{};
@@ -198,7 +203,7 @@ class RuleNode implements Node {
       groupNode._ruleRef = this;
       groupNode.matchingNodes = nodeData[line]!;
       groupNode.data.clear();
-      for (var field in _ruleLine.lineFields) {
+      for (var field in ruleLine.lineFields) {
         groupNode.data[field.name] =
             groupNode.matchingNodes[0].data[field.name]!;
       }
@@ -228,14 +233,14 @@ class GroupNode implements Node {
   List<LeafNode> get availableNodes => matchingNodes;
 
   List<Node> childNodes({bool forceUpdate = false}) {
-    if (_ruleRef.childRuleNode != null &&
-        (forceUpdate || childGroups.length == 0)) {
-      childGroups = _ruleRef.childRuleNode!.createGroups(matchingNodes, this);
-      nodeFullSort(childGroups, _ruleRef.sortFields);
-    }
-    if (childGroups.length > 0) {
+    if (_ruleRef.childRuleNode != null) {
+      if (forceUpdate || childGroups.isEmpty) {
+        childGroups = _ruleRef.childRuleNode!.createGroups(matchingNodes, this);
+        nodeFullSort(childGroups, _ruleRef.sortFields);
+      }
       return childGroups;
     }
+    childGroups.clear();
     if (forceUpdate || !nodesSorted) {
       nodeFullSort(matchingNodes, _ruleRef.childSortFields);
       nodesSorted = true;

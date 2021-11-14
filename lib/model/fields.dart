@@ -5,37 +5,40 @@
 
 import 'nodes.dart';
 
+final fieldTypes = const {
+  'Text Field Type': Field,
+  'Test Field Type': Field,
+};
+
 /// A stored format for a portion of the data held within a leaf node.
 class Field {
-  late String name, _type, _format, _editFormat, _prefix, _suffix;
+  final fieldType = 'Text Field Type';
+  late String name, type, _format, _editFormat, prefix, suffix;
   var _altFormatFields = <Field>[];
   int? _altFormatNumber;
 
   Field(
       {required this.name,
-      type = 'Text',
+      this.type = 'Text',
       format = '',
       editFormat = '',
-      prefix = '',
-      suffix = ''})
-      : _type = type,
-        _format = format,
-        _editFormat = editFormat,
-        _prefix = prefix,
-        _suffix = suffix;
+      this.prefix = '',
+      this.suffix = ''})
+      : _format = format,
+        _editFormat = editFormat;
 
   Field.fromJson(Map<String, dynamic> jsonData) {
     name = jsonData['fieldname'] ?? '';
-    _type = jsonData['fieldtype'] ?? 'Text';
+    type = jsonData['fieldtype'] ?? 'Text';
     _format = jsonData['format'] ?? '';
     _editFormat = jsonData['editformat'] ?? '';
-    _prefix = jsonData['prefix'] ?? '';
-    _suffix = jsonData['suffix'] ?? '';
+    prefix = jsonData['prefix'] ?? '';
+    suffix = jsonData['suffix'] ?? '';
     var i = 0;
-    while (List.from(jsonData.keys).any((var key) => key.endsWith(':$i'))) {
+    while (List.of(jsonData.keys).any((var key) => key.endsWith(':$i'))) {
       var altField = Field(
           name: name,
-          type: _type,
+          type: type,
           format: jsonData['format:$i'] ?? '',
           editFormat: _editFormat,
           prefix: jsonData['prefix:$i'] ?? '',
@@ -53,7 +56,7 @@ class Field {
   }
 
   String _formatOutput(String storedText) {
-    return _prefix + storedText + _suffix;
+    return prefix + storedText + suffix;
   }
 
   String? validateMessage(String? text) {
@@ -69,16 +72,16 @@ class Field {
   }
 
   Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{'fieldname': name, 'fieldtype': _type};
+    var result = <String, dynamic>{'fieldname': name, 'fieldtype': type};
     if (_format.isNotEmpty) result['format'] = _format;
     if (_editFormat.isNotEmpty) result['editformat'] = _editFormat;
-    if (_prefix.isNotEmpty) result['prefix'] = _prefix;
-    if (_suffix.isNotEmpty) result['suffix'] = _suffix;
+    if (prefix.isNotEmpty) result['prefix'] = prefix;
+    if (suffix.isNotEmpty) result['suffix'] = suffix;
     var i = 0;
     for (var altField in _altFormatFields) {
       if (altField._format.isNotEmpty) result['format:$i'] = altField._format;
-      if (altField._prefix.isNotEmpty) result['prefix:$i'] = altField._prefix;
-      if (altField._suffix.isNotEmpty) result['suffix:$i'] = altField._suffix;
+      if (altField.prefix.isNotEmpty) result['prefix:$i'] = altField.prefix;
+      if (altField.suffix.isNotEmpty) result['suffix:$i'] = altField.suffix;
       i++;
     }
     return result;

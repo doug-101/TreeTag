@@ -34,7 +34,7 @@ class _EditViewState extends State<EditView> {
       }
       if (_isChanged || widget.isNew) {
         _formKey.currentState!.save();
-        widget.node.modelRef.updateAll();
+        widget.node.modelRef.editNodeData(widget.node);
       }
       return true;
     }
@@ -100,12 +100,13 @@ class _EditViewState extends State<EditView> {
     for (var field in node.modelRef.fieldMap.values) {
       items.add(
         TextFormField(
-            decoration: InputDecoration(labelText: field.name),
-            initialValue: node.data[field.name] ?? '',
-            validator: field.validateMessage,
-            onSaved: (String? value) {
-              if (value != null) node.data[field.name] = value;
-            }),
+          decoration: InputDecoration(labelText: field.name),
+          initialValue: node.data[field.name] ?? '',
+          validator: field.validateMessage,
+          onSaved: (String? value) {
+            if (value != null) node.data[field.name] = value;
+          },
+        ),
       );
     }
     return items;
