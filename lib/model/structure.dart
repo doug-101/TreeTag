@@ -148,7 +148,7 @@ class Structure extends ChangeNotifier {
       titleLine.deleteField(field, replacement: List.of(fieldMap.values)[0]);
     if (isFieldInOutput(field)) {
       for (var line in outputLines.toList()) {
-        if (line.lineFields.contains(field)) {
+        if (line.fields().contains(field)) {
           if (line.hasMultipleFields()) {
             line.deleteField(field);
           } else {
@@ -166,7 +166,7 @@ class Structure extends ChangeNotifier {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
           var rule = item.node as RuleNode;
-          if (rule.ruleLine.lineFields.contains(field)) badRules.add(rule);
+          if (rule.ruleLine.fields().contains(field)) badRules.add(rule);
         }
       }
     }
@@ -199,12 +199,12 @@ class Structure extends ChangeNotifier {
   }
 
   bool isFieldInTitle(Field field) {
-    return titleLine.lineFields.contains(field);
+    return titleLine.fields().contains(field);
   }
 
   bool isFieldInOutput(Field field) {
     for (var line in outputLines) {
-      if (line.lineFields.contains(field)) return true;
+      if (line.fields().contains(field)) return true;
     }
     return false;
   }
@@ -214,11 +214,82 @@ class Structure extends ChangeNotifier {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
           var rule = item.node as RuleNode;
-          if (rule.ruleLine.lineFields.contains(field)) return true;
+          if (rule.ruleLine.fields().contains(field)) return true;
         }
       }
     }
     return false;
+  }
+
+  void addTitleSibling(TitleNode siblingNode, String newTitle) {
+    var newNode =
+        TitleNode(title: newTitle, modelRef: this, parent: siblingNode.parent);
+    if (siblingNode.parent != null) {
+      (siblingNode.parent as TitleNode)
+          .addChildTitleNode(newNode, afterChild: siblingNode);
+    } else {
+      var pos = rootNodes.indexOf(siblingNode) + 1;
+      rootNodes.insert(pos, newNode);
+    }
+    updateAll();
+  }
+
+  void addTitleChild(TitleNode parentNode, String newTitle) {
+    var newNode =
+        TitleNode(title: newTitle, modelRef: this, parent: parentNode);
+    parentNode.addChildTitleNode(newNode);
+    updateAll();
+  }
+
+  void editTitle(TitleNode node, String newTitle) {
+    node.title = newTitle;
+    updateAll();
+  }
+
+  void editRuleLine(RuleNode node, ParsedLine newRuleLine) {
+    node.ruleLine = newRuleLine;
+    updateAll();
+  }
+
+  void deleteTreeNode(Node node) {
+    if (node.parent == null) {
+      rootNodes.remove(node);
+    } else if (node is TitleNode) {
+      (node.parent! as TitleNode).removeTitleChild(node);
+    } else if (node.parent is TitleNode) {
+      // Deleting a RuleNode from a TitleNode.
+      (node.parent! as TitleNode).replaceChildRule(null);
+    } else {
+      (node.parent! as RuleNode).childRuleNode = null;
+    }
+    updateAll();
+  }
+
+  void moveTitleNode(TitleNode node, {bool up = true}) {
+    var siblings =
+        node.parent != null ? node.parent!.storedChildren() : rootNodes;
+    var pos = siblings.indexOf(node);
+    siblings.removeAt(pos);
+    siblings.insert(up ? --pos : ++pos, node);
+    updateAll();
+  }
+
+  bool canNodeMove(Node node, {bool up = true}) {
+    if (node is! TitleNode) return false;
+    var siblings =
+        node.parent != null ? node.parent!.storedChildren() : rootNodes;
+    var pos = siblings.indexOf(node);
+    if (up && pos > 0) return true;
+    if (!up && pos < siblings.length - 1) return true;
+    return false;
+  }
+
+  void ruleSortKeysUpdated(RuleNode node) {
+    updateAll();
+  }
+
+  void childSortKeysUpdated(RuleNode node) {
+    updateAll();
   }
 
   void updateAll() {

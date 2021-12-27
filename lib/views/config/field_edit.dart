@@ -65,8 +65,8 @@ class _FieldEditState extends State<FieldEdit> {
       body: Form(
         key: _formKey,
         onWillPop: updateOnPop,
-        child: Container(
-          margin: const EdgeInsets.all(10.0),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
           child: ListView(
             children: <Widget>[
               TextFormField(

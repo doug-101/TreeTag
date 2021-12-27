@@ -92,6 +92,25 @@ class Field {
     return null;
   }
 
+  bool isAltFormatField() => _altFormatNumber != null;
+
+  Field createAltFormatField() {
+    var altField = Field(
+        name: name,
+        type: type,
+        format: _format,
+        editFormat: _editFormat,
+        prefix: prefix,
+        suffix: suffix);
+    altField._altFormatNumber = _altFormatFields.length;
+    _altFormatFields.add(altField);
+    return altField;
+  }
+
+  void removeAltFormatField(Field altField) {
+    _altFormatFields.remove(altField);
+  }
+
   String lineText() {
     return _altFormatNumber != null
         ? '{*$name:$_altFormatNumber*}'

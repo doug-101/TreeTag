@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'field_config.dart';
+import 'tree_config.dart';
 
 // The base config view.
 class ConfigView extends StatefulWidget {
@@ -17,7 +18,7 @@ class _ConfigViewState extends State<ConfigView> {
 
   static List<Widget> pages = [
     FieldConfig(),
-    Container(color: Colors.green),
+    TreeConfig(),
     Container(color: Colors.blue),
   ];
 

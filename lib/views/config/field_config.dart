@@ -78,6 +78,7 @@ class _FieldConfigState extends State<FieldConfig> {
                       }
                       setState(() {
                         model.deleteField(selectedField!);
+                        selectedField = null;
                       });
                     },
             ),

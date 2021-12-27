@@ -82,6 +82,22 @@ class TitleNode implements Node {
     _children.clear();
   }
 
+  void addChildTitleNode(TitleNode newNode, {TitleNode? afterChild}) {
+    // Adds at end if afterChild is null.
+    assert(childRuleNode == null);
+    var pos = 0;
+    if (afterChild != null) {
+      pos = _children.indexOf(afterChild) + 1;
+    } else {
+      pos = _children.length;
+    }
+    _children.insert(pos, newNode as Node);
+  }
+
+  void removeTitleChild(TitleNode node) {
+    _children.remove(node);
+  }
+
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{'title': title};
     if (hasChildren) {
@@ -112,10 +128,8 @@ class RuleNode implements Node {
 
   RuleNode({required String rule, required this.modelRef, this.parent}) {
     ruleLine = ParsedLine(rule, modelRef.fieldMap);
-    sortFields = [for (var field in ruleLine.lineFields) SortKey(field)];
-    childSortFields = [
-      for (var field in modelRef.fieldMap.values) SortKey(field)
-    ];
+    setDefaultRuleSortFields();
+    setDefaultChildSortFields();
   }
 
   RuleNode._fromJson(Map<String, dynamic> jsonData, this.modelRef,
@@ -129,7 +143,7 @@ class RuleNode implements Node {
       ];
       hasUniqueSortFields = true;
     } else {
-      sortFields = [for (var field in ruleLine.lineFields) SortKey(field)];
+      setDefaultRuleSortFields();
     }
     var childSortData = jsonData['childsortfields'];
     if (childSortData != null) {
@@ -139,9 +153,7 @@ class RuleNode implements Node {
       ];
       hasUniqueChildSortFields = true;
     } else {
-      childSortFields = [
-        for (var field in modelRef.fieldMap.values) SortKey(field)
-      ];
+      setDefaultChildSortFields();
     }
     var childData = jsonData['child'];
     if (childData != null) {
@@ -156,6 +168,16 @@ class RuleNode implements Node {
   List<Node> storedChildren() {
     if (childRuleNode != null) return [childRuleNode!];
     return [];
+  }
+
+  void setDefaultRuleSortFields() {
+    sortFields = [for (var field in ruleLine.fields()) SortKey(field)];
+  }
+
+  void setDefaultChildSortFields() {
+    childSortFields = [
+      for (var field in modelRef.fieldMap.values) SortKey(field)
+    ];
   }
 
   Map<String, dynamic> toJson() {
@@ -203,7 +225,7 @@ class RuleNode implements Node {
       groupNode._ruleRef = this;
       groupNode.matchingNodes = nodeData[line]!;
       groupNode.data.clear();
-      for (var field in ruleLine.lineFields) {
+      for (var field in ruleLine.fields()) {
         groupNode.data[field.name] =
             groupNode.matchingNodes[0].data[field.name]!;
       }
