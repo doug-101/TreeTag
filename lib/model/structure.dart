@@ -292,6 +292,34 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  void addOutputLine(int pos, ParsedLine newLine) {
+    outputLines.insert(pos, newLine);
+    updateAll();
+  }
+
+  void editOutputLine(ParsedLine origLine, ParsedLine newLine) {
+    if (origLine == titleLine) {
+      titleLine = newLine;
+    } else {
+      int pos = outputLines.indexOf(origLine);
+      if (pos >= 0)
+        outputLines[pos] = newLine;
+    }
+    updateAll();
+  }
+
+  void removeOutputLine(ParsedLine origLine) {
+    outputLines.remove(origLine);
+    updateAll();
+  }
+
+  void moveOutputLine(ParsedLine line, {bool up = true}) {
+    var pos = outputLines.indexOf(line);
+    outputLines.removeAt(pos);
+    outputLines.insert(up ? --pos : ++pos, line);
+    updateAll();
+  }
+
   void updateAll() {
     updateAllChildren();
     notifyListeners();

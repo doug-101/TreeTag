@@ -107,39 +107,35 @@ class _FieldConfigState extends State<FieldConfig> {
           ],
         ),
         Expanded(
-          child: ListView(
-            children: _fieldRows(context),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: ListView(
+              children: <Widget>[
+                for (var field in model.fieldMap.values)
+                  Card(
+                    color: field == selectedField
+                        ? Theme.of(context).highlightColor
+                        : null,
+                    child: ListTile(
+                      title: Text(field.name),
+                      subtitle: Text(field.type),
+                      onTap: () {
+                        setState(() {
+                          if (field != selectedField) {
+                            selectedField = field;
+                          } else {
+                            selectedField = null;
+                          }
+                        });
+                      },
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ],
     );
-  }
-
-  List<Widget> _fieldRows(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
-    final items = <Widget>[];
-    for (var field in model.fieldMap.values) {
-      items.add(
-        Card(
-          color:
-              field == selectedField ? Theme.of(context).highlightColor : null,
-          child: ListTile(
-            title: Text(field.name),
-            subtitle: Text(field.type),
-            onTap: () {
-              setState(() {
-                if (field != selectedField) {
-                  selectedField = field;
-                } else {
-                  selectedField = null;
-                }
-              });
-            },
-          ),
-        ),
-      );
-    }
-    return items;
   }
 
   Future<bool?> confirmDeleteDialog(String errorText) async {

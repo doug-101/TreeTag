@@ -19,10 +19,10 @@ class ParsedLine {
     segments.add(LineSegment(field: field));
   }
 
-  ParsedLine._empty();
+  ParsedLine.empty();
 
   ParsedLine copy() {
-    var newParsedLine = ParsedLine._empty();
+    var newParsedLine = ParsedLine.empty();
     for (var segment in segments) {
       newParsedLine.segments.add(segment._copy());
     }
