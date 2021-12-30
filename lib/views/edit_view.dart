@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import '../model/fields.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
 
@@ -88,27 +89,37 @@ class _EditViewState extends State<EditView> {
         child: Container(
           margin: const EdgeInsets.all(10.0),
           child: ListView(
-            children: _fieldEditors(widget.node, context),
+            children: <Widget>[
+              for (var field in widget.node.modelRef.fieldMap.values)
+                _fieldEditor(widget.node, field),
+            ],
           ),
         ),
       ),
     );
   }
 
-  List<Widget> _fieldEditors(LeafNode node, BuildContext context) {
-    var items = <Widget>[];
-    for (var field in node.modelRef.fieldMap.values) {
-      items.add(
-        TextFormField(
-          decoration: InputDecoration(labelText: field.name),
-          initialValue: node.data[field.name] ?? '',
-          validator: field.validateMessage,
-          onSaved: (String? value) {
-            if (value != null) node.data[field.name] = value;
-          },
-        ),
+  Widget _fieldEditor(LeafNode node, Field field) {
+    if (field is LongTextField) {
+      return TextFormField(
+        decoration: InputDecoration(labelText: field.name),
+        minLines: 4,
+        maxLines: 12,
+        initialValue: widget.node.data[field.name] ?? '',
+        validator: field.validateMessage,
+        onSaved: (String? value) {
+          if (value != null) widget.node.data[field.name] = value;
+        },
       );
     }
-    return items;
+    // Default return for a regular TextField
+    return TextFormField(
+      decoration: InputDecoration(labelText: field.name),
+      initialValue: widget.node.data[field.name] ?? '',
+      validator: field.validateMessage,
+      onSaved: (String? value) {
+        if (value != null) widget.node.data[field.name] = value;
+      },
+    );
   }
 }

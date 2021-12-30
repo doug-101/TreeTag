@@ -50,9 +50,9 @@ class Structure extends ChangeNotifier {
     clearModel();
     fileObject = fileObj;
     const mainFieldName = 'Name';
-    fieldMap[mainFieldName] = Field(name: mainFieldName);
+    fieldMap[mainFieldName] = Field.createField(name: mainFieldName);
     const categoryFieldName = 'Category';
-    fieldMap[categoryFieldName] = Field(name: categoryFieldName);
+    fieldMap[categoryFieldName] = Field.createField(name: categoryFieldName);
     var root = TitleNode(title: 'Root', modelRef: this);
     root.isOpen = true;
     rootNodes.add(root);
@@ -139,6 +139,19 @@ class Structure extends ChangeNotifier {
         if (data != null) leaf.data[field.name] = data;
       }
     }
+    updateAll();
+  }
+
+  // Used for field type changes.
+  void replaceField(Field oldField, Field newField) {
+    if (oldField.name != newField.name) {
+      for (var leaf in leafNodes) {
+        var data = leaf.data[oldField.name];
+        if (data != null) leaf.data[newField.name] = data;
+      }
+    }
+    fieldMap.remove(oldField.name);
+    fieldMap[newField.name] = newField;
     updateAll();
   }
 

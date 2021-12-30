@@ -5,48 +5,86 @@
 
 import 'nodes.dart';
 
-final fieldTypes = const {
-  'Text Field Type': Field,
-  'Test Field Type': Field,
-};
+final fieldTypes = const ['Text', 'LongText'];
 
 /// A stored format for a portion of the data held within a leaf node.
-class Field {
-  final fieldType = 'Text Field Type';
-  late String name, type, _format, _editFormat, prefix, suffix;
+abstract class Field {
+  late String name, fieldType, _format, _editFormat, prefix, suffix;
   var _altFormatFields = <Field>[];
   int? _altFormatNumber;
 
-  Field(
-      {required this.name,
-      this.type = 'Text',
-      format = '',
-      editFormat = '',
-      this.prefix = '',
-      this.suffix = ''})
-      : _format = format,
+  Field({
+    required this.name,
+    this.fieldType = 'Text',
+    format = '',
+    editFormat = '',
+    this.prefix = '',
+    this.suffix = '',
+  })  : _format = format,
         _editFormat = editFormat;
 
-  Field.fromJson(Map<String, dynamic> jsonData) {
-    name = jsonData['fieldname'] ?? '';
-    type = jsonData['fieldtype'] ?? 'Text';
-    _format = jsonData['format'] ?? '';
-    _editFormat = jsonData['editformat'] ?? '';
-    prefix = jsonData['prefix'] ?? '';
-    suffix = jsonData['suffix'] ?? '';
+  factory Field.createField({
+    required String name,
+    fieldType = 'Text',
+    format = '',
+    editFormat = '',
+    prefix = '',
+    suffix = '',
+  }) {
+    Field newField;
+    switch (fieldType) {
+      case 'Text':
+        newField = TextField(
+            name: name,
+            format: format,
+            editFormat: editFormat,
+            prefix: prefix,
+            suffix: suffix);
+        break;
+      case 'LongText':
+        newField = LongTextField(
+            name: name,
+            format: format,
+            editFormat: editFormat,
+            prefix: prefix,
+            suffix: suffix);
+        break;
+      default:
+        newField = TextField(
+            name: name,
+            format: format,
+            editFormat: editFormat,
+            prefix: prefix,
+            suffix: suffix);
+        break;
+    }
+    return newField;
+  }
+
+  factory Field.fromJson(Map<String, dynamic> jsonData) {
+    var newField = Field.createField(
+      name: jsonData['fieldname'] ?? '',
+      fieldType: jsonData['fieldtype'] ?? 'Text',
+      format: jsonData['format'] ?? '',
+      editFormat: jsonData['editformat'] ?? '',
+      prefix: jsonData['prefix'] ?? '',
+      suffix: jsonData['suffix'] ?? '',
+    );
     var i = 0;
     while (List.of(jsonData.keys).any((var key) => key.endsWith(':$i'))) {
-      var altField = Field(
-          name: name,
-          type: type,
-          format: jsonData['format:$i'] ?? '',
-          editFormat: _editFormat,
-          prefix: jsonData['prefix:$i'] ?? '',
-          suffix: jsonData['suffix:$i'] ?? '');
+      var altField = Field.createField(
+        name: newField.name,
+        fieldType: newField.fieldType,
+        format: jsonData['format:$i'] ?? '',
+        editFormat: newField._editFormat,
+        prefix: jsonData['prefix:$i'] ?? '',
+        suffix: jsonData['suffix:$i'] ?? '',
+      );
       altField._altFormatNumber = i;
-      _altFormatFields.add(altField);
+      newField._altFormatFields.add(altField);
       i++;
     }
+    return newField;
   }
 
   String outputText(LeafNode node) {
@@ -72,7 +110,7 @@ class Field {
   }
 
   Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{'fieldname': name, 'fieldtype': type};
+    var result = <String, dynamic>{'fieldname': name, 'fieldtype': fieldType};
     if (_format.isNotEmpty) result['format'] = _format;
     if (_editFormat.isNotEmpty) result['editformat'] = _editFormat;
     if (prefix.isNotEmpty) result['prefix'] = prefix;
@@ -87,6 +125,15 @@ class Field {
     return result;
   }
 
+  Field copyToType(String newFieldType) {
+    return Field.createField(
+      name: name,
+      fieldType: newFieldType,
+      prefix: prefix,
+      suffix: suffix,
+    );
+  }
+
   Field? altFormatField(int num) {
     if (num < _altFormatFields.length) return _altFormatFields[num];
     return null;
@@ -95,9 +142,9 @@ class Field {
   bool isAltFormatField() => _altFormatNumber != null;
 
   Field createAltFormatField() {
-    var altField = Field(
+    var altField = Field.createField(
         name: name,
-        type: type,
+        fieldType: fieldType,
         format: _format,
         editFormat: _editFormat,
         prefix: prefix,
@@ -116,4 +163,38 @@ class Field {
         ? '{*$name:$_altFormatNumber*}'
         : '{*$name*}';
   }
+}
+
+class TextField extends Field {
+  TextField({
+    required String name,
+    format = '',
+    editFormat = '',
+    prefix = '',
+    suffix = '',
+  }) : super(
+          name: name,
+          fieldType: 'Text',
+          format: format,
+          editFormat: editFormat,
+          prefix: prefix,
+          suffix: suffix,
+        );
+}
+
+class LongTextField extends Field {
+  LongTextField({
+    required String name,
+    format = '',
+    editFormat = '',
+    prefix = '',
+    suffix = '',
+  }) : super(
+          name: name,
+          fieldType: 'LongText',
+          format: format,
+          editFormat: editFormat,
+          prefix: prefix,
+          suffix: suffix,
+        );
 }

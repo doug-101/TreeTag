@@ -30,7 +30,7 @@ class _FieldConfigState extends State<FieldConfig> {
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               onPressed: () async {
-                var newField = Field(name: '');
+                var newField = Field.createField(name: '');
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -118,7 +118,7 @@ class _FieldConfigState extends State<FieldConfig> {
                         : null,
                     child: ListTile(
                       title: Text(field.name),
-                      subtitle: Text(field.type),
+                      subtitle: Text(field.fieldType),
                       onTap: () {
                         setState(() {
                           if (field != selectedField) {

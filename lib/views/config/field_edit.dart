@@ -10,7 +10,7 @@ import '../../model/structure.dart';
 
 // The field edit widget
 class FieldEdit extends StatefulWidget {
-  final Field field;
+  Field field;
   final bool isNew;
 
   FieldEdit({Key? key, required this.field, this.isNew = false})
@@ -23,6 +23,8 @@ class FieldEdit extends StatefulWidget {
 class _FieldEditState extends State<FieldEdit> {
   final _formKey = GlobalKey<FormState>();
   var cancelNewFlag = false;
+  // The original field is only used for field type changes.
+  Field? origField;
 
   Future<bool> updateOnPop() async {
     if (cancelNewFlag) return true;
@@ -31,6 +33,9 @@ class _FieldEditState extends State<FieldEdit> {
       var model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
         model.addNewField(widget.field);
+      } else if (origField != null) {
+        // Used for field type changes.
+        model.replaceField(origField!, widget.field);
       } else {
         model.editField(widget.field);
       }
@@ -96,13 +101,18 @@ class _FieldEditState extends State<FieldEdit> {
                 decoration: InputDecoration(labelText: 'Field Type'),
                 value: widget.field.fieldType,
                 items: [
-                  for (var type in fieldTypes.keys)
+                  for (var type in fieldTypes)
                     DropdownMenuItem<String>(
                       value: type,
                       child: Text(type),
                     )
                 ],
-                onSaved: (String? value) {},
+                onSaved: (String? newType) {
+                  if (newType != null) {
+                    origField = widget.field;
+                    widget.field = widget.field.copyToType(newType);
+                  }
+                },
                 onChanged: (String? value) {
                   setState(() {});
                 },
