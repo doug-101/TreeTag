@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../model/fields.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
@@ -112,6 +113,20 @@ class _EditViewState extends State<EditView> {
         },
       );
     }
+    if (field is DateField) {
+      var initString = node.data[field.name];
+      var storedDateFormat = DateFormat('yyyy-MM-dd');
+      return DateFormField(
+        fieldFormat: field.format,
+        initialValue:
+            initString != null ? storedDateFormat.parse(initString) : null,
+        heading: field.name,
+        onSaved: (DateTime? value) {
+          if (value != null)
+            widget.node.data[field.name] = storedDateFormat.format(value);
+        },
+      );
+    }
     // Default return for a regular TextField
     return TextFormField(
       decoration: InputDecoration(labelText: field.name),
@@ -122,4 +137,53 @@ class _EditViewState extends State<EditView> {
       },
     );
   }
+}
+
+class DateFormField extends FormField<DateTime> {
+  DateFormField({
+    required String fieldFormat,
+    DateTime? initialValue,
+    String? heading,
+    FormFieldSetter<DateTime>? onSaved,
+  }) : super(
+          onSaved: onSaved,
+          initialValue: initialValue,
+          builder: (FormFieldState<DateTime> state) {
+            return InkWell(
+              onTap: () async {
+                var newDate = await showDatePicker(
+                  context: state.context,
+                  initialDate: state.value ?? DateTime.now(),
+                  firstDate: DateTime(0),
+                  lastDate: DateTime(3000),
+                );
+                if (newDate != null) {
+                  state.didChange(newDate);
+                }
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(top: 10.0),
+                    child: Text(heading ?? 'Date',
+                        style: Theme.of(state.context).textTheme.overline),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 5.0),
+                    child: Text(
+                      state.value != null
+                          ? DateFormat(fieldFormat).format(state.value!)
+                          : '',
+                      style: Theme.of(state.context).textTheme.subtitle1,
+                    ),
+                  ),
+                  Divider(
+                    thickness: 3.0,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
 }

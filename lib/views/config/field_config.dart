@@ -34,8 +34,9 @@ class _FieldConfigState extends State<FieldConfig> {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          FieldEdit(field: newField, isNew: true)),
+                    builder: (context) =>
+                        FieldEdit(field: newField, isNew: true),
+                  ),
                 );
                 setState(() {});
               },

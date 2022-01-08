@@ -3,31 +3,31 @@
 // Copyright (c) 2021, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'package:intl/intl.dart' show DateFormat;
 import 'nodes.dart';
 
-final fieldTypes = const ['Text', 'LongText'];
+final fieldTypes = const ['Text', 'LongText', 'Date'];
 
 /// A stored format for a portion of the data held within a leaf node.
 abstract class Field {
-  late String name, fieldType, _format, _editFormat, prefix, suffix;
+  late String name, fieldType, format, initValue, prefix, suffix;
   var _altFormatFields = <Field>[];
   int? _altFormatNumber;
 
   Field({
     required this.name,
     this.fieldType = 'Text',
-    format = '',
-    editFormat = '',
+    this.format = '',
+    this.initValue = '',
     this.prefix = '',
     this.suffix = '',
-  })  : _format = format,
-        _editFormat = editFormat;
+  });
 
   factory Field.createField({
     required String name,
     fieldType = 'Text',
     format = '',
-    editFormat = '',
+    initValue = '',
     prefix = '',
     suffix = '',
   }) {
@@ -36,24 +36,29 @@ abstract class Field {
       case 'Text':
         newField = TextField(
             name: name,
-            format: format,
-            editFormat: editFormat,
+            initValue: initValue,
             prefix: prefix,
             suffix: suffix);
         break;
       case 'LongText':
         newField = LongTextField(
             name: name,
+            initValue: initValue,
+            prefix: prefix,
+            suffix: suffix);
+        break;
+      case 'Date':
+        newField = DateField(
+            name: name,
             format: format,
-            editFormat: editFormat,
+            initValue: initValue,
             prefix: prefix,
             suffix: suffix);
         break;
       default:
         newField = TextField(
             name: name,
-            format: format,
-            editFormat: editFormat,
+            initValue: initValue,
             prefix: prefix,
             suffix: suffix);
         break;
@@ -66,7 +71,7 @@ abstract class Field {
       name: jsonData['fieldname'] ?? '',
       fieldType: jsonData['fieldtype'] ?? 'Text',
       format: jsonData['format'] ?? '',
-      editFormat: jsonData['editformat'] ?? '',
+      initValue: jsonData['initvalue'] ?? '',
       prefix: jsonData['prefix'] ?? '',
       suffix: jsonData['suffix'] ?? '',
     );
@@ -76,7 +81,7 @@ abstract class Field {
         name: newField.name,
         fieldType: newField.fieldType,
         format: jsonData['format:$i'] ?? '',
-        editFormat: newField._editFormat,
+        initValue: newField.initValue,
         prefix: jsonData['prefix:$i'] ?? '',
         suffix: jsonData['suffix:$i'] ?? '',
       );
@@ -111,13 +116,13 @@ abstract class Field {
 
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{'fieldname': name, 'fieldtype': fieldType};
-    if (_format.isNotEmpty) result['format'] = _format;
-    if (_editFormat.isNotEmpty) result['editformat'] = _editFormat;
+    if (format.isNotEmpty) result['format'] = format;
+    if (initValue.isNotEmpty) result['initvalue'] = initValue;
     if (prefix.isNotEmpty) result['prefix'] = prefix;
     if (suffix.isNotEmpty) result['suffix'] = suffix;
     var i = 0;
     for (var altField in _altFormatFields) {
-      if (altField._format.isNotEmpty) result['format:$i'] = altField._format;
+      if (altField.format.isNotEmpty) result['format:$i'] = altField.format;
       if (altField.prefix.isNotEmpty) result['prefix:$i'] = altField.prefix;
       if (altField.suffix.isNotEmpty) result['suffix:$i'] = altField.suffix;
       i++;
@@ -145,8 +150,8 @@ abstract class Field {
     var altField = Field.createField(
         name: name,
         fieldType: fieldType,
-        format: _format,
-        editFormat: _editFormat,
+        format: format,
+        initValue: initValue,
         prefix: prefix,
         suffix: suffix);
     altField._altFormatNumber = _altFormatFields.length;
@@ -168,15 +173,14 @@ abstract class Field {
 class TextField extends Field {
   TextField({
     required String name,
-    format = '',
-    editFormat = '',
+    initValue = '',
     prefix = '',
     suffix = '',
   }) : super(
           name: name,
           fieldType: 'Text',
-          format: format,
-          editFormat: editFormat,
+          format: '',
+          initValue: initValue,
           prefix: prefix,
           suffix: suffix,
         );
@@ -185,16 +189,50 @@ class TextField extends Field {
 class LongTextField extends Field {
   LongTextField({
     required String name,
-    format = '',
-    editFormat = '',
+    initValue = '',
     prefix = '',
     suffix = '',
   }) : super(
           name: name,
           fieldType: 'LongText',
-          format: format,
-          editFormat: editFormat,
+          format: '',
+          initValue: initValue,
           prefix: prefix,
           suffix: suffix,
         );
+}
+
+class DateField extends Field {
+  DateField({
+    required String name,
+    format = '',
+    initValue = '',
+    prefix = '',
+    suffix = '',
+  }) : super(
+          name: name,
+          fieldType: 'Date',
+          format: format.isNotEmpty ? format : 'MMMM d, yyyy',
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
+
+  DateTime _parseStored(String storedText) {
+    return DateFormat('yyyy-MM-dd').parse(storedText);
+  }
+
+  @override
+  String _formatOutput(String storedText) {
+    var date = _parseStored(storedText);
+    var dateString = DateFormat(format).format(date);
+    return prefix + dateString + suffix;
+  }
+
+  @override
+  int compareNodes(Node firstNode, Node secondNode) {
+    var firstValue = _parseStored(firstNode.data[name] ?? '0000-01-01');
+    var secondValue = _parseStored(secondNode.data[name] ?? '0000-01-01');
+    return firstValue.compareTo(secondValue);
+  }
 }

@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import '../../model/fields.dart';
 import '../../model/structure.dart';
+import 'field_format_edit.dart';
 
 // The line field edit widget
 class LineFieldEdit extends StatefulWidget {
@@ -57,6 +58,14 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           padding: const EdgeInsets.all(10.0),
           child: ListView(
             children: <Widget>[
+              if (widget.field.format.isNotEmpty)
+                FieldFormatDisplay(
+                  fieldType: widget.field.fieldType,
+                  initialFormat: widget.field.format,
+                  onSaved: (String? value) {
+                    if (value != null) widget.field.format = value;
+                  },
+                ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'Prefix'),
                 initialValue: widget.field.prefix,
