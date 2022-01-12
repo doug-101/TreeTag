@@ -11,10 +11,12 @@ import 'field_format_edit.dart';
 // The line field edit widget
 class LineFieldEdit extends StatefulWidget {
   final Field field;
+  late final String origFormat;
   late final String origPrefix;
   late final String origSuffix;
 
   LineFieldEdit({Key? key, required this.field}) : super(key: key) {
+    origFormat = field.format;
     origPrefix = field.prefix;
     origSuffix = field.suffix;
   }
@@ -30,7 +32,8 @@ class _LineFieldEditState extends State<LineFieldEdit> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       var isChanged = widget.origPrefix != widget.field.prefix ||
-          widget.origSuffix != widget.field.suffix;
+          widget.origSuffix != widget.field.suffix ||
+          widget.origFormat != widget.field.format;
       Navigator.pop(context, isChanged);
       return true;
     }

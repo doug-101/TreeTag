@@ -112,6 +112,12 @@ class ParsedLine {
     }
   }
 
+  void replaceField(Field oldField, Field newField) {
+    for (var s in segments) {
+      s.replaceField(oldField, newField);
+    }
+  }
+
   List<TextSpan> richLineSpans(TextStyle fieldStyle) {
     var spans = <TextSpan>[];
     for (var segment in segments) {
@@ -143,6 +149,14 @@ class LineSegment {
   TextSpan richText(TextStyle fieldStyle) {
     if (field != null) return TextSpan(text: field!.name, style: fieldStyle);
     return TextSpan(text: text ?? '');
+  }
+
+  bool replaceField(Field oldField, Field newField) {
+    if (field != null && field == oldField) {
+      field = newField;
+      return true;
+    }
+    return false;
   }
 
   LineSegment _copy() {

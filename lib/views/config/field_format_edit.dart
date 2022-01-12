@@ -29,7 +29,7 @@ class FieldFormatDisplay extends FormField<String> {
                     MaterialPageRoute<String?>(
                       builder: (context) => FieldFormatEdit(
                         fieldType: fieldType,
-                        initFormat: initialFormat,
+                        initFormat: state.value!,
                       ),
                     ),
                   );
@@ -101,7 +101,9 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
       body: WillPopScope(
         onWillPop: () async {
           Navigator.pop<String?>(
-              context, isChanged ? combineFieldFormat(segments) : null);
+            context,
+            isChanged ? combineFieldFormat(segments, condense: true) : null,
+          );
           return true;
         },
         child: Padding(
@@ -213,29 +215,35 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   scrollDirection: Axis.horizontal,
                   children: [
                     for (var segment in segments)
-                      InputChip(
-                        backgroundColor: Colors.transparent,
-                        shape: StadiumBorder(
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 1.0,
+                      Padding(
+                        padding: EdgeInsets.all(2.0),
+                        child: InputChip(
+                          backgroundColor: Colors.transparent,
+                          shape: StadiumBorder(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 1.0,
+                            ),
                           ),
+                          showCheckmark: false,
+                          label: segment.formatCode != null
+                              ? Text(formatMap[segment.formatCode]!,
+                                  style: contrastStyle)
+                              : Text(segment.extraText ?? ''),
+                          // Tap target setting prevents uneven spacing
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          selected: segment == selectedSegment,
+                          onSelected: (bool isSelected) {
+                            setState(() {
+                              if (isSelected) {
+                                selectedSegment = segment;
+                              } else {
+                                selectedSegment = null;
+                              }
+                            });
+                          },
                         ),
-                        showCheckmark: false,
-                        label: segment.formatCode != null
-                            ? Text(formatMap[segment.formatCode]!,
-                                style: contrastStyle)
-                            : Text(segment.extraText ?? ''),
-                        selected: segment == selectedSegment,
-                        onSelected: (bool isSelected) {
-                          setState(() {
-                            if (isSelected) {
-                              selectedSegment = segment;
-                            } else {
-                              selectedSegment = null;
-                            }
-                          });
-                        },
                       ),
                   ],
                 ),

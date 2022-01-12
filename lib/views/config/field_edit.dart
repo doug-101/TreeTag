@@ -23,6 +23,7 @@ class FieldEdit extends StatefulWidget {
 
 class _FieldEditState extends State<FieldEdit> {
   final _formKey = GlobalKey<FormState>();
+  final _dropdownState = GlobalKey<FormFieldState>();
   var cancelNewFlag = false;
   // The original field is only used for field type changes.
   Field? origField;
@@ -47,6 +48,7 @@ class _FieldEditState extends State<FieldEdit> {
 
   @override
   Widget build(BuildContext context) {
+    var model = Provider.of<Structure>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.field.name + ' Field'),
@@ -99,6 +101,7 @@ class _FieldEditState extends State<FieldEdit> {
                 },
               ),
               DropdownButtonFormField<String>(
+                key: _dropdownState,
                 decoration: InputDecoration(labelText: 'Field Type'),
                 value: widget.field.fieldType,
                 items: [
@@ -109,13 +112,28 @@ class _FieldEditState extends State<FieldEdit> {
                     )
                 ],
                 onSaved: (String? newType) {
-                  if (newType != null) {
-                    origField = widget.field;
-                    widget.field = widget.field.copyToType(newType);
-                  }
+                  // Changes are made in onChanged.
                 },
-                onChanged: (String? value) {
-                  setState(() {});
+                onChanged: (String? newType) async {
+                  if (newType != null) {
+                    if (newType != widget.field.fieldType) {
+                      if (model.isFieldInData(widget.field)) {
+                        // Do no allow type changes with existing data.
+                        // It would cause format errors, especially in rules.
+                        await _noTypeChangeDialog();
+                        _dropdownState.currentState!
+                            .didChange(widget.field.fieldType);
+                      } else {
+                        if (origField == null) origField = widget.field;
+                        widget.field = widget.field.copyToType(newType);
+                      }
+                    }
+                    if (newType == origField?.fieldType) {
+                      widget.field = origField!;
+                      origField == null;
+                    }
+                    setState(() {});
+                  }
                 },
               ),
               if (widget.field.format.isNotEmpty)
@@ -144,6 +162,25 @@ class _FieldEditState extends State<FieldEdit> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _noTypeChangeDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cannot Change Type'),
+          content: const Text(
+              'A field with data in leaf nodes cannot have its type changed.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
     );
   }
 }

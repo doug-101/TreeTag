@@ -41,7 +41,7 @@ List<FormatSegment> parseFieldFormat(
       format = format.substring(endPos + 1);
     } else {
       var formatLen = format.length;
-      for (var len = 4; len > 0; len--) {
+      for (var len = 4 <= format.length ? 4 : format.length; len > 0; len--) {
         if (formatMap.containsKey(format.substring(0, len))) {
           result.add(FormatSegment(formatCode: format.substring(0, len)));
           format = format.substring(len);
@@ -64,11 +64,30 @@ List<FormatSegment> parseFieldFormat(
   return result;
 }
 
-// Combine parsed format back into a single format  string.
-String combineFieldFormat(List<FormatSegment> parsedList) {
+// Combine parsed format back into a single format string.
+String combineFieldFormat(List<FormatSegment> parsedList,
+    {bool condense = false}) {
+  if (condense) {
+    var condensedList = <FormatSegment>[];
+    for (var segment in parsedList) {
+      if (condensedList.isNotEmpty &&
+          condensedList.last.extraText != null &&
+          segment.extraText != null) {
+        condensedList.last.extraText =
+            condensedList.last.extraText! + segment.extraText!;
+      } else {
+        condensedList.add(segment);
+      }
+    }
+    parsedList = condensedList;
+  }
   var result = StringBuffer();
   for (var segment in parsedList) {
     if (segment.formatCode != null) {
+      if (result.toString().endsWith(segment.formatCode![0])) {
+        // Add a space to adjacent codes with the same letter to avoid garbage.
+        result.write(' ');
+      }
       result.write(segment.formatCode);
     } else {
       // Duplicate the single quotes to escape them.

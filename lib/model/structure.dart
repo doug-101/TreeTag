@@ -136,7 +136,10 @@ class Structure extends ChangeNotifier {
       fieldMap[field.name] = field;
       for (var leaf in leafNodes) {
         var data = leaf.data[oldName];
-        if (data != null) leaf.data[field.name] = data;
+        if (data != null) {
+          leaf.data[field.name] = data;
+          leaf.data.remove(oldName);
+        }
       }
     }
     updateAll();
@@ -147,16 +150,35 @@ class Structure extends ChangeNotifier {
     if (oldField.name != newField.name) {
       for (var leaf in leafNodes) {
         var data = leaf.data[oldField.name];
-        if (data != null) leaf.data[newField.name] = data;
+        if (data != null) {
+          leaf.data[newField.name] = data;
+          leaf.data.remove(oldField.name);
+        }
       }
     }
     fieldMap.remove(oldField.name);
     fieldMap[newField.name] = newField;
+    if (isFieldInTitle(oldField)) titleLine.replaceField(oldField, newField);
+    if (isFieldInOutput(oldField)) {
+      for (var line in outputLines.toList()) {
+        line.replaceField(oldField, newField);
+      }
+    }
+    for (var root in rootNodes) {
+      for (var item in storedNodeGenerator(root)) {
+        if (item.node is RuleNode) {
+          (item.node as RuleNode).ruleLine.replaceField(oldField, newField);
+        }
+      }
+    }
     updateAll();
   }
 
   void deleteField(Field field) {
     fieldMap.remove(field.name);
+    for (var leaf in leafNodes) {
+      leaf.data.remove(field.name);
+    }
     if (isFieldInTitle(field))
       titleLine.deleteField(field, replacement: List.of(fieldMap.values)[0]);
     if (isFieldInOutput(field)) {
@@ -230,6 +252,13 @@ class Structure extends ChangeNotifier {
           if (rule.ruleLine.fields().contains(field)) return true;
         }
       }
+    }
+    return false;
+  }
+
+  bool isFieldInData(Field field) {
+    for (var leaf in leafNodes) {
+      if (leaf.data.containsKey(field.name)) return true;
     }
     return false;
   }
@@ -315,8 +344,7 @@ class Structure extends ChangeNotifier {
       titleLine = newLine;
     } else {
       int pos = outputLines.indexOf(origLine);
-      if (pos >= 0)
-        outputLines[pos] = newLine;
+      if (pos >= 0) outputLines[pos] = newLine;
     }
     updateAll();
   }
