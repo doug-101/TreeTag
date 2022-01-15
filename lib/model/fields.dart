@@ -35,17 +35,11 @@ abstract class Field {
     switch (fieldType) {
       case 'Text':
         newField = TextField(
-            name: name,
-            initValue: initValue,
-            prefix: prefix,
-            suffix: suffix);
+            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
         break;
       case 'LongText':
         newField = LongTextField(
-            name: name,
-            initValue: initValue,
-            prefix: prefix,
-            suffix: suffix);
+            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
         break;
       case 'Date':
         newField = DateField(
@@ -57,10 +51,7 @@ abstract class Field {
         break;
       default:
         newField = TextField(
-            name: name,
-            initValue: initValue,
-            prefix: prefix,
-            suffix: suffix);
+            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
         break;
     }
     return newField;
@@ -100,6 +91,11 @@ abstract class Field {
 
   String _formatOutput(String storedText) {
     return prefix + storedText + suffix;
+  }
+
+  String? initialValue() {
+    if (initValue.isNotEmpty) return initValue;
+    return null;
   }
 
   String? validateMessage(String? text) {
@@ -227,6 +223,13 @@ class DateField extends Field {
     var date = _parseStored(storedText);
     var dateString = DateFormat(format).format(date);
     return prefix + dateString + suffix;
+  }
+
+  @override
+  String? initialValue() {
+    if (initValue == 'now')
+      return DateFormat('yyyy-MM-dd').format(DateTime.now());
+    return null;
   }
 
   @override

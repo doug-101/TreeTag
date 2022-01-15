@@ -144,6 +144,26 @@ class _FieldEditState extends State<FieldEdit> {
                     if (value != null) widget.field.format = value;
                   },
                 ),
+              if (widget.field is DateField)
+                InitNowBoolFormField(
+                  initialValue: widget.field.initValue == 'now' ? true : false,
+                  heading: widget.field is DateField
+                      ? 'Initial Value to Current Date'
+                      : 'Initial Value to Current Time',
+                  onSaved: (bool? value) {
+                    if (value != null)
+                      widget.field.initValue = value ? 'now' : '';
+                  },
+                )
+              else
+                // Initial value for text fields.
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Initial Value'),
+                  initialValue: widget.field.initValue,
+                  onSaved: (String? value) {
+                    if (value != null) widget.field.initValue = value;
+                  },
+                ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'Default Prefix'),
                 initialValue: widget.field.prefix,
@@ -183,4 +203,43 @@ class _FieldEditState extends State<FieldEdit> {
       },
     );
   }
+}
+
+class InitNowBoolFormField extends FormField<bool> {
+  InitNowBoolFormField({
+    bool? initialValue,
+    String? heading,
+    FormFieldSetter<bool>? onSaved,
+  }) : super(
+          onSaved: onSaved,
+          initialValue: initialValue,
+          builder: (FormFieldState<bool> state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                InkWell(
+                  onTap: () {
+                    state.didChange(!state.value!);
+                  },
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(heading ?? 'Initial Value to Now'),
+                      ),
+                      Switch(
+                        value: state.value!,
+                        onChanged: (bool value) {
+                          state.didChange(!state.value!);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(
+                  thickness: 3.0,
+                ),
+              ],
+            );
+          },
+        );
 }
