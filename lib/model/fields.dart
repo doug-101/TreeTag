@@ -6,7 +6,7 @@
 import 'package:intl/intl.dart' show DateFormat;
 import 'nodes.dart';
 
-final fieldTypes = const ['Text', 'LongText', 'Date'];
+final fieldTypes = const ['Text', 'LongText', 'Date', 'Time'];
 
 /// A stored format for a portion of the data held within a leaf node.
 abstract class Field {
@@ -43,6 +43,14 @@ abstract class Field {
         break;
       case 'Date':
         newField = DateField(
+            name: name,
+            format: format,
+            initValue: initValue,
+            prefix: prefix,
+            suffix: suffix);
+        break;
+      case 'Time':
+        newField = TimeField(
             name: name,
             format: format,
             initValue: initValue,
@@ -236,6 +244,48 @@ class DateField extends Field {
   int compareNodes(Node firstNode, Node secondNode) {
     var firstValue = _parseStored(firstNode.data[name] ?? '0000-01-01');
     var secondValue = _parseStored(secondNode.data[name] ?? '0000-01-01');
+    return firstValue.compareTo(secondValue);
+  }
+}
+
+class TimeField extends Field {
+  TimeField({
+    required String name,
+    format = '',
+    initValue = '',
+    prefix = '',
+    suffix = '',
+  }) : super(
+          name: name,
+          fieldType: 'Time',
+          format: format.isNotEmpty ? format : 'h:mm a',
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
+
+  DateTime _parseStored(String storedText) {
+    return DateFormat('HH:mm:ss.S').parse(storedText);
+  }
+
+  @override
+  String _formatOutput(String storedText) {
+    var time = _parseStored(storedText);
+    var timeString = DateFormat(format).format(time);
+    return prefix + timeString + suffix;
+  }
+
+  @override
+  String? initialValue() {
+    if (initValue == 'now')
+      return DateFormat('HH:mm:ss.S').format(DateTime.now());
+    return null;
+  }
+
+  @override
+  int compareNodes(Node firstNode, Node secondNode) {
+    var firstValue = _parseStored(firstNode.data[name] ?? '00:00:00.000');
+    var secondValue = _parseStored(secondNode.data[name] ?? '00:00:00.000');
     return firstValue.compareTo(secondValue);
   }
 }

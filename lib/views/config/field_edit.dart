@@ -144,7 +144,7 @@ class _FieldEditState extends State<FieldEdit> {
                     if (value != null) widget.field.format = value;
                   },
                 ),
-              if (widget.field is DateField)
+              if (widget.field is DateField || widget.field is TimeField)
                 InitNowBoolFormField(
                   initialValue: widget.field.initValue == 'now' ? true : false,
                   heading: widget.field is DateField

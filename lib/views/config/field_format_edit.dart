@@ -85,6 +85,8 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
     super.initState();
     if (widget.fieldType == 'Date') {
       formatMap.addAll(dateFormatMap);
+    } else {
+      formatMap.addAll(timeFormatMap);
     }
     segments.addAll(parseFieldFormat(widget.initFormat, formatMap));
   }
@@ -308,7 +310,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
 }
 
 String _fieldFormatPreview(String fieldType, String fieldFormat) {
-  if (fieldType == 'Date')
+  if (fieldType == 'Date' || fieldType == 'Time')
     return DateFormat(fieldFormat).format(DateTime.now());
   return '';
 }

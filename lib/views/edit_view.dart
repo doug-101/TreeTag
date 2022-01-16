@@ -127,6 +127,20 @@ class _EditViewState extends State<EditView> {
         },
       );
     }
+    if (field is TimeField) {
+      var initString = node.data[field.name];
+      var storedTimeFormat = DateFormat('HH:mm:ss.S');
+      return TimeFormField(
+        fieldFormat: field.format,
+        initialValue:
+            initString != null ? storedTimeFormat.parse(initString) : null,
+        heading: field.name,
+        onSaved: (DateTime? value) {
+          if (value != null)
+            widget.node.data[field.name] = storedTimeFormat.format(value);
+        },
+      );
+    }
     // Default return for a regular TextField
     return TextFormField(
       decoration: InputDecoration(labelText: field.name),
@@ -167,6 +181,57 @@ class DateFormField extends FormField<DateTime> {
                   Padding(
                     padding: EdgeInsets.only(top: 10.0),
                     child: Text(heading ?? 'Date',
+                        style: Theme.of(state.context).textTheme.overline),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 5.0),
+                    child: Text(
+                      state.value != null
+                          ? DateFormat(fieldFormat).format(state.value!)
+                          : '',
+                      style: Theme.of(state.context).textTheme.subtitle1,
+                    ),
+                  ),
+                  Divider(
+                    thickness: 3.0,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+}
+
+class TimeFormField extends FormField<DateTime> {
+  TimeFormField({
+    required String fieldFormat,
+    DateTime? initialValue,
+    String? heading,
+    FormFieldSetter<DateTime>? onSaved,
+  }) : super(
+          onSaved: onSaved,
+          initialValue: initialValue,
+          builder: (FormFieldState<DateTime> state) {
+            return InkWell(
+              onTap: () async {
+                var newTime = await showTimePicker(
+                  context: state.context,
+                  initialTime: state.value != null
+                      ? TimeOfDay.fromDateTime(state.value!)
+                      : TimeOfDay.now(),
+                );
+                if (newTime != null) {
+                  state.didChange(
+                    DateTime(1970, 1, 1, newTime.hour, newTime.minute),
+                  );
+                }
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(top: 10.0),
+                    child: Text(heading ?? 'Time',
                         style: Theme.of(state.context).textTheme.overline),
                   ),
                   Padding(

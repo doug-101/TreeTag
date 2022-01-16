@@ -19,6 +19,19 @@ final dateFormatMap = const {
   'QQQ': 'Quarter (Q1, etc.)',
 };
 
+final timeFormatMap = const {
+  'hh': 'Hour, 01-12 (2 digits)',
+  'h': 'Hour, 1-12 (1 or 2 digits)',
+  'HH': 'Hour, 00-23 (2 digits)',
+  'H': 'Hour, 0-23 (1 or 2 digits)',
+  'mm': 'Minute (2 digits)',
+  'm': 'Minute (1 or 2 digits)',
+  'ss': 'Second (2 digits)',
+  's': 'Second (1 or 2 digits)',
+  'S': 'Milliseconds (3 digits)',
+  'a': 'AM/PM marker',
+};
+
 class FormatSegment {
   String? formatCode;
   String? extraText;
