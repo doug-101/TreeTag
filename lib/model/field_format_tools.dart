@@ -3,6 +3,15 @@
 // Copyright (c) 2021, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+final numberFormatMap = const {
+  '0': 'Required digit',
+  '#': 'Optional digit',
+  '.': 'Decimal separator',
+  ',': 'Group separator',
+  'E': 'Exponent separator',
+  '+': 'Exponent sign',
+};
+
 final dateFormatMap = const {
   'yyyy': 'Year (4 digits)',
   'yy': 'Year (2 digits)',
@@ -97,7 +106,9 @@ String combineFieldFormat(List<FormatSegment> parsedList,
   var result = StringBuffer();
   for (var segment in parsedList) {
     if (segment.formatCode != null) {
-      if (result.toString().endsWith(segment.formatCode![0])) {
+      if (result.toString().endsWith(segment.formatCode![0]) &&
+          segment.formatCode != '0' &&
+          segment.formatCode != '#') {
         // Add a space to adjacent codes with the same letter to avoid garbage.
         result.write(' ');
       }

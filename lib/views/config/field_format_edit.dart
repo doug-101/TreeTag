@@ -4,7 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
+import 'package:intl/intl.dart' show NumberFormat, DateFormat;
 import 'package:provider/provider.dart';
 import '../../model/structure.dart';
 import '../../model/field_format_tools.dart';
@@ -83,7 +83,9 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
   @override
   void initState() {
     super.initState();
-    if (widget.fieldType == 'Date') {
+    if (widget.fieldType == 'Number') {
+      formatMap.addAll(numberFormatMap);
+    } else if (widget.fieldType == 'Date') {
       formatMap.addAll(dateFormatMap);
     } else {
       formatMap.addAll(timeFormatMap);
@@ -102,9 +104,12 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
       ),
       body: WillPopScope(
         onWillPop: () async {
+          var formatResult = combineFieldFormat(segments, condense: true);
+          if (!_fieldFormatIsValid(widget.fieldType, formatResult))
+            return false;
           Navigator.pop<String?>(
             context,
-            isChanged ? combineFieldFormat(segments, condense: true) : null,
+            isChanged ? formatResult : null,
           );
           return true;
         },
@@ -139,11 +144,12 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                       }
                     },
                     itemBuilder: (context) => <PopupMenuEntry<String>>[
-                      PopupMenuItem<String>(
-                        child: Text('Add Text'),
-                        value: 'add text',
-                      ),
-                      PopupMenuDivider(),
+                      if (widget.fieldType != 'Number')
+                        PopupMenuItem<String>(
+                          child: Text('Add Text'),
+                          value: 'add text',
+                        ),
+                      if (widget.fieldType != 'Number') PopupMenuDivider(),
                       for (var code in formatMap.keys)
                         PopupMenuItem<String>(
                           child: Text('Add: ${formatMap[code]}'),
@@ -310,7 +316,26 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
 }
 
 String _fieldFormatPreview(String fieldType, String fieldFormat) {
-  if (fieldType == 'Date' || fieldType == 'Time')
-    return DateFormat(fieldFormat).format(DateTime.now());
+  try {
+    if (fieldType == 'Date' || fieldType == 'Time')
+      return DateFormat(fieldFormat).format(DateTime.now());
+    if (fieldType == 'Number') {
+      var result = NumberFormat(fieldFormat).format(12345.6789);
+      return '$result  ($fieldFormat)';
+    }
+  } on FormatException {
+    return 'Invalid Format';
+  }
   return '';
+}
+
+bool _fieldFormatIsValid(String fieldType, String fieldFormat) {
+  try {
+    if (fieldType == 'Date' || fieldType == 'Time')
+      DateFormat(fieldFormat).format(DateTime.now());
+    if (fieldType == 'Number') NumberFormat(fieldFormat).format(12345.6789);
+  } on FormatException {
+    return false;
+  }
+  return true;
 }

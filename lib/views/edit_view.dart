@@ -113,6 +113,17 @@ class _EditViewState extends State<EditView> {
         },
       );
     }
+    if (field is NumberField) {
+      return TextFormField(
+        decoration: InputDecoration(labelText: field.name),
+        initialValue: widget.node.data[field.name] ?? '',
+        validator: field.validateMessage,
+        onSaved: (String? value) {
+          if (value != null)
+            widget.node.data[field.name] = num.parse(value).toString();
+        },
+      );
+    }
     if (field is DateField) {
       var initString = node.data[field.name];
       var storedDateFormat = DateFormat('yyyy-MM-dd');

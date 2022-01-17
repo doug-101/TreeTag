@@ -156,10 +156,11 @@ class _FieldEditState extends State<FieldEdit> {
                   },
                 )
               else
-                // Initial value for text fields.
+                // Initial value for other fields.
                 TextFormField(
                   decoration: InputDecoration(labelText: 'Initial Value'),
                   initialValue: widget.field.initValue,
+                  validator: widget.field.validateMessage,
                   onSaved: (String? value) {
                     if (value != null) widget.field.initValue = value;
                   },

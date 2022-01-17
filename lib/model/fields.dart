@@ -3,10 +3,10 @@
 // Copyright (c) 2021, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'package:intl/intl.dart' show DateFormat;
+import 'package:intl/intl.dart' show NumberFormat, DateFormat;
 import 'nodes.dart';
 
-final fieldTypes = const ['Text', 'LongText', 'Date', 'Time'];
+final fieldTypes = const ['Text', 'LongText', 'Number', 'Date', 'Time'];
 
 /// A stored format for a portion of the data held within a leaf node.
 abstract class Field {
@@ -40,6 +40,14 @@ abstract class Field {
       case 'LongText':
         newField = LongTextField(
             name: name, initValue: initValue, prefix: prefix, suffix: suffix);
+        break;
+      case 'Number':
+        newField = NumberField(
+            name: name,
+            format: format,
+            initValue: initValue,
+            prefix: prefix,
+            suffix: suffix);
         break;
       case 'Date':
         newField = DateField(
@@ -204,6 +212,43 @@ class LongTextField extends Field {
           prefix: prefix,
           suffix: suffix,
         );
+}
+
+class NumberField extends Field {
+  NumberField({
+    required String name,
+    format = '',
+    initValue = '',
+    prefix = '',
+    suffix = '',
+  }) : super(
+          name: name,
+          fieldType: 'Number',
+          format: format.isNotEmpty ? format : '#0.##',
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
+
+  @override
+  String _formatOutput(String storedText) {
+    var numValue = num.parse(storedText);
+    return NumberFormat(format).format(numValue);
+  }
+
+  @override
+  String? validateMessage(String? text) {
+    if (text != null && text.isNotEmpty && num.tryParse(text) == null)
+      return 'Not a valid number entry.';
+    return null;
+  }
+
+  @override
+  int compareNodes(Node firstNode, Node secondNode) {
+    var firstValue = num.parse(firstNode.data[name] ?? '0');
+    var secondValue = num.parse(secondNode.data[name] ?? '0');
+    return firstValue.compareTo(secondValue);
+  }
 }
 
 class DateField extends Field {
