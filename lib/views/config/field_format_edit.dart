@@ -5,10 +5,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
-import 'package:provider/provider.dart';
-import '../../model/structure.dart';
 import '../../model/field_format_tools.dart';
 import '../../model/fields.dart';
+import 'choice_format_edit.dart';
 
 // The field format display form field widget.
 class FieldFormatDisplay extends FormField<String> {
@@ -20,17 +19,17 @@ class FieldFormatDisplay extends FormField<String> {
             onSaved: onSaved,
             initialValue: initialFormat,
             builder: (FormFieldState<String> state) {
-              final contrastStyle = TextStyle(
-                  color: Theme.of(state.context).colorScheme.secondary);
               return InkWell(
                 onTap: () async {
                   var newFormat = await Navigator.push(
                     state.context,
                     MaterialPageRoute<String?>(
-                      builder: (context) => FieldFormatEdit(
-                        fieldType: fieldType,
-                        initFormat: state.value!,
-                      ),
+                      builder: (context) {
+                        if (fieldType == 'Choice')
+                          return ChoiceFormatEdit(initFormat: state.value!);
+                        return FieldFormatEdit(
+                            fieldType: fieldType, initFormat: state.value!);
+                      },
                     ),
                   );
                   if (newFormat != null) {
@@ -95,7 +94,6 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
         TextStyle(color: Theme.of(context).colorScheme.secondary);
     return Scaffold(
@@ -323,6 +321,8 @@ String _fieldFormatPreview(String fieldType, String fieldFormat) {
       var result = NumberFormat(fieldFormat).format(12345.6789);
       return '$result  ($fieldFormat)';
     }
+    if (fieldType == 'Choice')
+      return splitChoiceFormat(fieldFormat).join(' | ');
   } on FormatException {
     return 'Invalid Format';
   }

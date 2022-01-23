@@ -132,7 +132,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
-  void editField(Field field) {
+  void editField(Field field, {bool removeChoices = false}) {
     if (!fieldMap.containsKey(field.name)) {
       // Field was renamed.
       var oldName = fieldMap.keys.firstWhere((key) => fieldMap[key] == field);
@@ -144,6 +144,11 @@ class Structure extends ChangeNotifier {
           leaf.data[field.name] = data;
           leaf.data.remove(oldName);
         }
+      }
+    }
+    if (removeChoices) {
+      for (var leaf in leafNodes) {
+        if (!field.isStoredTextValid(leaf)) leaf.data.remove(field.name);
       }
     }
     updateAll();
@@ -265,6 +270,14 @@ class Structure extends ChangeNotifier {
       if (leaf.data.containsKey(field.name)) return true;
     }
     return false;
+  }
+
+  int badFieldCount(Field field) {
+    var count = 0;
+    for (var leaf in leafNodes) {
+      if (!field.isStoredTextValid(leaf)) count++;
+    }
+    return count;
   }
 
   void addTitleSibling(TitleNode siblingNode, String newTitle) {

@@ -24,22 +24,37 @@ class FieldEdit extends StatefulWidget {
 class _FieldEditState extends State<FieldEdit> {
   final _formKey = GlobalKey<FormState>();
   final _dropdownState = GlobalKey<FormFieldState>();
-  var cancelNewFlag = false;
+  bool _isChanged = false;
+  var _cancelNewFlag = false;
   // The original field is only used for field type changes.
-  Field? origField;
+  Field? _origField;
+  // The original field format is only to recover from Choice field errors.
+  String? _origFormat;
 
   Future<bool> updateOnPop() async {
-    if (cancelNewFlag) return true;
+    if (_cancelNewFlag) return true;
+    var removeChoices = false;
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       var model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
         model.addNewField(widget.field);
-      } else if (origField != null) {
+      } else if (_origField != null) {
         // Used for field type changes.
-        model.replaceField(origField!, widget.field);
-      } else {
-        model.editField(widget.field);
+        model.replaceField(_origField!, widget.field);
+      } else if (_isChanged) {
+        if (widget.field is ChoiceField) {
+          var numErrors = model.badFieldCount(widget.field);
+          if (numErrors > 0) {
+            var doKeep = await _keepChoiceErrorDialog(numErrors: numErrors);
+            if (doKeep != null && doKeep) {
+              removeChoices = true;
+            } else {
+              widget.field.format = _origFormat!;
+            }
+          }
+        }
+        model.editField(widget.field, removeChoices: removeChoices);
       }
       return true;
     }
@@ -57,7 +72,7 @@ class _FieldEditState extends State<FieldEdit> {
                 IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () {
-                      cancelNewFlag = true;
+                      _cancelNewFlag = true;
                       Navigator.pop(context, null);
                     }),
               ]
@@ -97,7 +112,10 @@ class _FieldEditState extends State<FieldEdit> {
                   return null;
                 },
                 onSaved: (String? text) {
-                  if (text != null) widget.field.name = text;
+                  if (text != null && text != widget.field.name) {
+                    _isChanged = true;
+                    widget.field.name = text;
+                  }
                 },
               ),
               DropdownButtonFormField<String>(
@@ -113,6 +131,7 @@ class _FieldEditState extends State<FieldEdit> {
                 ],
                 onSaved: (String? newType) {
                   // Changes are made in onChanged.
+                  if (_origField != null) _isChanged = true;
                 },
                 onChanged: (String? newType) async {
                   if (newType != null) {
@@ -124,13 +143,13 @@ class _FieldEditState extends State<FieldEdit> {
                         _dropdownState.currentState!
                             .didChange(widget.field.fieldType);
                       } else {
-                        if (origField == null) origField = widget.field;
+                        if (_origField == null) _origField = widget.field;
                         widget.field = widget.field.copyToType(newType);
                       }
                     }
-                    if (newType == origField?.fieldType) {
-                      widget.field = origField!;
-                      origField == null;
+                    if (newType == _origField?.fieldType) {
+                      widget.field = _origField!;
+                      _origField == null;
                     }
                     setState(() {});
                   }
@@ -140,8 +159,12 @@ class _FieldEditState extends State<FieldEdit> {
                 FieldFormatDisplay(
                   fieldType: widget.field.fieldType,
                   initialFormat: widget.field.format,
-                  onSaved: (String? value) {
-                    if (value != null) widget.field.format = value;
+                  onSaved: (String? value) async {
+                    if (value != null && value != widget.field.format) {
+                      _isChanged = true;
+                      _origFormat = widget.field.format;
+                      widget.field.format = value;
+                    }
                   },
                 ),
               if (widget.field is DateField || widget.field is TimeField)
@@ -151,8 +174,11 @@ class _FieldEditState extends State<FieldEdit> {
                       ? 'Initial Value to Current Date'
                       : 'Initial Value to Current Time',
                   onSaved: (bool? value) {
-                    if (value != null)
+                    if (value != null &&
+                        widget.field.initValue != (value ? 'now' : '')) {
+                      _isChanged = true;
                       widget.field.initValue = value ? 'now' : '';
+                    }
                   },
                 )
               else
@@ -162,21 +188,30 @@ class _FieldEditState extends State<FieldEdit> {
                   initialValue: widget.field.initValue,
                   validator: widget.field.validateMessage,
                   onSaved: (String? value) {
-                    if (value != null) widget.field.initValue = value;
+                    if (value != null && value != widget.field.initValue) {
+                      _isChanged = true;
+                      widget.field.initValue = value;
+                    }
                   },
                 ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'Default Prefix'),
                 initialValue: widget.field.prefix,
                 onSaved: (String? value) {
-                  if (value != null) widget.field.prefix = value;
+                  if (value != null && value != widget.field.prefix) {
+                    _isChanged = true;
+                    widget.field.prefix = value;
+                  }
                 },
               ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'Default Suffix'),
                 initialValue: widget.field.suffix,
                 onSaved: (String? value) {
-                  if (value != null) widget.field.suffix = value;
+                  if (value != null && value != widget.field.suffix) {
+                    _isChanged = true;
+                    widget.field.suffix = value;
+                  }
                 },
               ),
             ],
@@ -198,6 +233,30 @@ class _FieldEditState extends State<FieldEdit> {
             TextButton(
               child: const Text('OK'),
               onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool?> _keepChoiceErrorDialog({required int numErrors}) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choice Data Mismatch'),
+          content: Text(
+              'Choice field changes will cause $numErrors nodes to lose data.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Keep changes'),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+            TextButton(
+              child: const Text('Discard changes'),
+              onPressed: () => Navigator.pop(context, false),
             ),
           ],
         );

@@ -4,9 +4,17 @@
 // Free software, GPL v2 or later.
 
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
+import 'field_format_tools.dart';
 import 'nodes.dart';
 
-final fieldTypes = const ['Text', 'LongText', 'Number', 'Date', 'Time'];
+final fieldTypes = const [
+  'Text',
+  'LongText',
+  'Choice',
+  'Number',
+  'Date',
+  'Time'
+];
 
 /// A stored format for a portion of the data held within a leaf node.
 abstract class Field {
@@ -40,6 +48,14 @@ abstract class Field {
       case 'LongText':
         newField = LongTextField(
             name: name, initValue: initValue, prefix: prefix, suffix: suffix);
+        break;
+      case 'Choice':
+        newField = ChoiceField(
+            name: name,
+            format: format,
+            initValue: initValue,
+            prefix: prefix,
+            suffix: suffix);
         break;
       case 'Number':
         newField = NumberField(
@@ -112,6 +128,11 @@ abstract class Field {
   String? initialValue() {
     if (initValue.isNotEmpty) return initValue;
     return null;
+  }
+
+  bool isStoredTextValid(LeafNode node) {
+    // Stored text is always valid for regular text fields.
+    return true;
   }
 
   String? validateMessage(String? text) {
@@ -214,6 +235,39 @@ class LongTextField extends Field {
         );
 }
 
+class ChoiceField extends Field {
+  ChoiceField({
+    required String name,
+    format = '',
+    initValue = '',
+    prefix = '',
+    suffix = '',
+  }) : super(
+          name: name,
+          fieldType: 'Choice',
+          format: format.isNotEmpty ? format : '/1/2/3/4',
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
+
+  @override
+  bool isStoredTextValid(LeafNode node) {
+    var storedText = node.data[name] ?? '';
+    return storedText.isEmpty || splitChoiceFormat(format).contains(storedText);
+  }
+
+  @override
+  String? validateMessage(String? text) {
+    if (text != null &&
+        text.isNotEmpty &&
+        !splitChoiceFormat(format).contains(text)) {
+      return 'Not a valid choice.';
+    }
+    return null;
+  }
+}
+
 class NumberField extends Field {
   NumberField({
     required String name,
@@ -234,6 +288,12 @@ class NumberField extends Field {
   String _formatOutput(String storedText) {
     var numValue = num.parse(storedText);
     return NumberFormat(format).format(numValue);
+  }
+
+  @override
+  bool isStoredTextValid(LeafNode node) {
+    var storedText = node.data[name] ?? '';
+    return storedText.isEmpty || num.tryParse(storedText) != null;
   }
 
   @override
@@ -286,6 +346,17 @@ class DateField extends Field {
   }
 
   @override
+  bool isStoredTextValid(LeafNode node) {
+    var storedText = node.data[name] ?? '';
+    try {
+      if (storedText.isNotEmpty) DateFormat('yyyy-MM-dd').parse(storedText);
+    } on FormatException {
+      return false;
+    }
+    return true;
+  }
+
+  @override
   int compareNodes(Node firstNode, Node secondNode) {
     var firstValue = _parseStored(firstNode.data[name] ?? '0000-01-01');
     var secondValue = _parseStored(secondNode.data[name] ?? '0000-01-01');
@@ -325,6 +396,17 @@ class TimeField extends Field {
     if (initValue == 'now')
       return DateFormat('HH:mm:ss.S').format(DateTime.now());
     return null;
+  }
+
+  @override
+  bool isStoredTextValid(LeafNode node) {
+    var storedText = node.data[name] ?? '';
+    try {
+      if (storedText.isNotEmpty) DateFormat('HH:mm:ss.S').parse(storedText);
+    } on FormatException {
+      return false;
+    }
+    return true;
   }
 
   @override

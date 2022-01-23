@@ -127,6 +127,16 @@ String combineFieldFormat(List<FormatSegment> parsedList,
   return result.toString();
 }
 
+List<String> splitChoiceFormat(String format) {
+  format = format.replaceAll(r'\/', '\x00');
+  return [for (var s in format.split('/')) s.replaceAll('\x00', '/')];
+}
+
+String combineChoiceFormat(List<String> choices) {
+  choices = [for (var s in choices) s.replaceAll('/', '\x00')];
+  return choices.join('/').replaceAll('\x00', r'\/');
+}
+
 void main() {
   var list = parseFieldFormat("'Date''s is: 'MMMM d, ''yyyy", dateFormatMap);
   for (var s in list) {

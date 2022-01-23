@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import '../model/field_format_tools.dart';
 import '../model/fields.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
@@ -110,6 +111,32 @@ class _EditViewState extends State<EditView> {
         validator: field.validateMessage,
         onSaved: (String? value) {
           if (value != null) widget.node.data[field.name] = value;
+        },
+      );
+    }
+    if (field is ChoiceField) {
+      return DropdownButtonFormField<String>(
+        items: [
+          for (var str in splitChoiceFormat(field.format))
+            DropdownMenuItem<String>(
+              value: str,
+              child: Text(str.isNotEmpty ? str : '[Empty Value]'),
+            )
+        ],
+        decoration: InputDecoration(labelText: field.name),
+        // Null value gives a blank.
+        value: widget.node.data[field.name],
+        onChanged: (String? value) {
+          setState(() {});
+        },
+        onSaved: (String? value) {
+          if (value != null) {
+            if (value.isNotEmpty) {
+              widget.node.data[field.name] = value;
+            } else {
+              widget.node.data.remove(field.name);
+            }
+          }
         },
       );
     }
