@@ -180,6 +180,9 @@ class Structure extends ChangeNotifier {
         }
       }
     }
+    for (var leaf in leafNodes) {
+      if (!newField.isStoredTextValid(leaf)) leaf.data.remove(newField.name);
+    }
     updateAll();
   }
 

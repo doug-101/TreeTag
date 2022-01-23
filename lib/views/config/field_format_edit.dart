@@ -18,6 +18,8 @@ class FieldFormatDisplay extends FormField<String> {
   }) : super(
             onSaved: onSaved,
             initialValue: initialFormat,
+            // Key required to force update on parent setState.
+            key: Key(initialFormat),
             builder: (FormFieldState<String> state) {
               return InkWell(
                 onTap: () async {

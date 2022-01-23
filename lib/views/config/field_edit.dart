@@ -39,10 +39,29 @@ class _FieldEditState extends State<FieldEdit> {
       var model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
         model.addNewField(widget.field);
+        _isChanged = false;
       } else if (_origField != null) {
         // Used for field type changes.
-        model.replaceField(_origField!, widget.field);
-      } else if (_isChanged) {
+        var numErrors = model.badFieldCount(widget.field);
+        if (numErrors > 0) {
+          var doKeep = await _keepTypeChangeDialog(numErrors: numErrors);
+          if (doKeep != null && !doKeep) {
+            _isChanged = widget.field.name != _origField!.name ||
+                widget.field.format != _origField!.format ||
+                widget.field.initValue != _origField!.initValue ||
+                widget.field.prefix != _origField!.prefix ||
+                widget.field.suffix != _origField!.suffix;
+            widget.field = _origField!;
+            _origField == null;
+          }
+        }
+        if (_origField != null) {
+          model.replaceField(_origField!, widget.field);
+          _isChanged = false;
+        }
+      }
+      if (_isChanged) {
+        // Used for other changes.
         if (widget.field is ChoiceField) {
           var numErrors = model.badFieldCount(widget.field);
           if (numErrors > 0) {
@@ -80,7 +99,12 @@ class _FieldEditState extends State<FieldEdit> {
                 IconButton(
                   icon: const Icon(Icons.restore),
                   onPressed: () {
+                    if (_origField != null) {
+                      widget.field = _origField!;
+                      _origField == null;
+                    }
                     _formKey.currentState!.reset();
+                    setState(() {});
                   },
                 ),
               ],
@@ -133,26 +157,17 @@ class _FieldEditState extends State<FieldEdit> {
                   // Changes are made in onChanged.
                   if (_origField != null) _isChanged = true;
                 },
-                onChanged: (String? newType) async {
-                  if (newType != null) {
-                    if (newType != widget.field.fieldType) {
-                      if (model.isFieldInData(widget.field)) {
-                        // Do no allow type changes with existing data.
-                        // It would cause format errors, especially in rules.
-                        await _noTypeChangeDialog();
-                        _dropdownState.currentState!
-                            .didChange(widget.field.fieldType);
-                      } else {
-                        if (_origField == null) _origField = widget.field;
-                        widget.field = widget.field.copyToType(newType);
-                      }
-                    }
-                    if (newType == _origField?.fieldType) {
+                onChanged: (String? newType) {
+                  if (newType != null && newType != widget.field.fieldType) {
+                    if (newType != _origField?.fieldType) {
+                      if (_origField == null) _origField = widget.field;
+                      widget.field = widget.field.copyToType(newType);
+                    } else {
                       widget.field = _origField!;
                       _origField == null;
                     }
-                    setState(() {});
                   }
+                  setState(() {});
                 },
               ),
               if (widget.field.format.isNotEmpty)
@@ -221,18 +236,23 @@ class _FieldEditState extends State<FieldEdit> {
     );
   }
 
-  Future<void> _noTypeChangeDialog() async {
-    return showDialog<void>(
+  Future<bool?> _keepTypeChangeDialog({required int numErrors}) async {
+    return showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Cannot Change Type'),
-          content: const Text(
-              'A field with data in leaf nodes cannot have its type changed.'),
+          title: const Text('Change Type for Data'),
+          content: Text(
+              'Field type change will cause $numErrors nodes to lose data.'),
           actions: <Widget>[
             TextButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.pop(context),
+              child: const Text('Keep changes'),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+            TextButton(
+              child: const Text('Discard changes'),
+              onPressed: () => Navigator.pop(context, false),
             ),
           ],
         );
