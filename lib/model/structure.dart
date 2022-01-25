@@ -27,11 +27,14 @@ class Structure extends ChangeNotifier {
 
   void openFile(File fileObj) {
     clearModel();
+    var autoChoiceFields = <AutoChoiceField>[];
     fileObject = fileObj;
     var jsonData = json.decode(fileObj.readAsStringSync());
     for (var fieldData in jsonData['fields'] ?? []) {
       var field = Field.fromJson(fieldData);
       fieldMap[field.name] = field;
+      if (field is AutoChoiceField)
+        autoChoiceFields.add(field);
     }
     for (var nodeData in jsonData['template'] ?? []) {
       rootNodes.add(Node(nodeData, this));
@@ -43,6 +46,14 @@ class Structure extends ChangeNotifier {
     }
     for (var leaf in jsonData['leaves'] ?? []) {
       leafNodes.add(LeafNode.fromJson(leaf, this));
+    }
+    if (autoChoiceFields.isNotEmpty) {
+      for (var leaf in leafNodes) {
+        for (var field in autoChoiceFields) {
+          if (leaf.data[field.name] != null)
+            field.options.add(leaf.data[field.name]!);
+        }
+      }
     }
   }
 

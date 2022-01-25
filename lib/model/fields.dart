@@ -11,6 +11,7 @@ final fieldTypes = const [
   'Text',
   'LongText',
   'Choice',
+  'AutoChoice',
   'Number',
   'Date',
   'Time'
@@ -42,7 +43,7 @@ abstract class Field {
     Field newField;
     switch (fieldType) {
       case 'Text':
-        newField = TextField(
+        newField = RegTextField(
             name: name, initValue: initValue, prefix: prefix, suffix: suffix);
         break;
       case 'LongText':
@@ -56,6 +57,10 @@ abstract class Field {
             initValue: initValue,
             prefix: prefix,
             suffix: suffix);
+        break;
+      case 'AutoChoice':
+        newField = AutoChoiceField(
+            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
         break;
       case 'Number':
         newField = NumberField(
@@ -82,7 +87,7 @@ abstract class Field {
             suffix: suffix);
         break;
       default:
-        newField = TextField(
+        newField = RegTextField(
             name: name, initValue: initValue, prefix: prefix, suffix: suffix);
         break;
     }
@@ -203,8 +208,8 @@ abstract class Field {
   }
 }
 
-class TextField extends Field {
-  TextField({
+class RegTextField extends Field {
+  RegTextField({
     required String name,
     initValue = '',
     prefix = '',
@@ -266,6 +271,24 @@ class ChoiceField extends Field {
     }
     return null;
   }
+}
+
+class AutoChoiceField extends Field {
+  final options = <String>{};
+
+  AutoChoiceField({
+    required String name,
+    initValue = '',
+    prefix = '',
+    suffix = '',
+  }) : super(
+          name: name,
+          fieldType: 'AutoChoice',
+          format: '',
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
 }
 
 class NumberField extends Field {

@@ -140,6 +140,21 @@ class _EditViewState extends State<EditView> {
         },
       );
     }
+    if (field is AutoChoiceField) {
+      return AutoChoiceForm(
+        label: field.name,
+        initialValue: widget.node.data[field.name] ?? '',
+        initialOptions: field.options,
+        onSaved: (String? value) {
+          if (value != null && value.isNotEmpty) {
+            widget.node.data[field.name] = value;
+            field.options.add(value);
+          } else {
+            widget.node.data.remove(field.name);
+          }
+        },
+      );
+    }
     if (field is NumberField) {
       return TextFormField(
         decoration: InputDecoration(labelText: field.name),
@@ -185,9 +200,80 @@ class _EditViewState extends State<EditView> {
       initialValue: widget.node.data[field.name] ?? '',
       validator: field.validateMessage,
       onSaved: (String? value) {
-        if (value != null) widget.node.data[field.name] = value;
+        if (value != null && value.isNotEmpty) {
+          widget.node.data[field.name] = value;
+        } else {
+          widget.node.data.remove(field.name);
+        }
       },
     );
+  }
+}
+
+class AutoChoiceForm extends FormField<String> {
+  AutoChoiceForm({
+    String? label,
+    String? initialValue,
+    required Set<String> initialOptions,
+    FormFieldSetter<String>? onSaved,
+  }) : super(
+          onSaved: onSaved,
+          initialValue: initialValue,
+          builder: (FormFieldState<String> origState) {
+            final state = origState as _AutoChoiceFormState;
+            return Column(
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: label ?? 'AutoChoice Field',
+                          border: InputBorder.none,
+                        ),
+                        controller: state._textController,
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.arrow_drop_down),
+                      onSelected: (String value) {
+                        state._textController.text = value;
+                      },
+                      itemBuilder: (BuildContext context) {
+                        var options = List.of(initialOptions);
+                        var newText = state._textController.text;
+                        if (newText.isNotEmpty &&
+                            !initialOptions.contains(newText)) {
+                          options.add(newText);
+                        }
+                        options.sort();
+                        return [
+                          for (var s in options)
+                            PopupMenuItem(child: Text(s), value: s)
+                        ];
+                      },
+                    ),
+                  ],
+                ),
+                Divider(thickness: 3.0),
+              ],
+            );
+          },
+        );
+
+  @override
+  _AutoChoiceFormState createState() => _AutoChoiceFormState();
+}
+
+class _AutoChoiceFormState extends FormFieldState<String> {
+  var _textController = TextEditingController();
+
+  void initState() {
+    super.initState();
+    _textController.text = value!;
+    _textController.addListener(() {
+      didChange(_textController.text);
+    });
   }
 }
 
@@ -230,9 +316,7 @@ class DateFormField extends FormField<DateTime> {
                       style: Theme.of(state.context).textTheme.subtitle1,
                     ),
                   ),
-                  Divider(
-                    thickness: 3.0,
-                  ),
+                  Divider(thickness: 3.0),
                 ],
               ),
             );
