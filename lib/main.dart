@@ -10,6 +10,7 @@ import 'model/nodes.dart';
 import 'views/detail_view.dart';
 import 'views/file_control.dart';
 import 'views/tree_view.dart';
+import 'views/undo_view.dart';
 import 'views/config/config_view.dart';
 
 void main() {
@@ -38,6 +39,10 @@ void main() {
               case '/configView':
                 return MaterialPageRoute(builder: (context) {
                   return ConfigView();
+                });
+              case '/undoView':
+                return MaterialPageRoute(builder: (context) {
+                  return UndoView();
                 });
             }
           }),

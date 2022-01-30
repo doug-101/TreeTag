@@ -1,4 +1,4 @@
-// tree_view.dart, the main view showing the tree data.
+// detail_view.dart, a view showing node and child output.
 // TreeTag, an information storage program with an automatic tree structure.
 // Copyright (c) 2021, Douglas W. Bell.
 // Free software, GPL v2 or later.
@@ -50,7 +50,7 @@ class DetailView extends StatelessWidget {
               icon: const Icon(Icons.delete),
               onPressed: () {
                 var model = Provider.of<Structure>(context, listen: false);
-                model.deleteNode(node);
+                model.deleteNode(node as LeafNode);
               },
             ),
         ],

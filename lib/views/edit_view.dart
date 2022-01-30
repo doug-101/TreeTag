@@ -24,20 +24,27 @@ class EditView extends StatefulWidget {
 
 class _EditViewState extends State<EditView> {
   final _formKey = GlobalKey<FormState>();
-  bool _isChanged = false;
+  var _isChanged = false;
+  late final Map<String, String> nodeData;
+
+  void initState() {
+    super.initState();
+    nodeData = Map.of(widget.node.data);
+  }
 
   Future<bool> updateOnPop() async {
     if (_formKey.currentState!.validate()) {
       if (!_isChanged && widget.isNew) {
         var toBeSaved = await saveUnchangedDialog();
         if (toBeSaved != null && !toBeSaved) {
-          widget.node.modelRef.deleteNode(widget.node);
+          widget.node.modelRef.deleteNode(widget.node, withUndo: false);
           return true;
         }
       }
       if (_isChanged || widget.isNew) {
         _formKey.currentState!.save();
-        widget.node.modelRef.editNodeData(widget.node);
+        widget.node.modelRef
+            .editNodeData(widget.node, nodeData, newNode: widget.isNew);
       }
       return true;
     }
@@ -107,10 +114,10 @@ class _EditViewState extends State<EditView> {
         decoration: InputDecoration(labelText: field.name),
         minLines: 4,
         maxLines: 12,
-        initialValue: widget.node.data[field.name] ?? '',
+        initialValue: nodeData[field.name] ?? '',
         validator: field.validateMessage,
         onSaved: (String? value) {
-          if (value != null) widget.node.data[field.name] = value;
+          if (value != null) nodeData[field.name] = value;
         },
       );
     }
@@ -125,16 +132,16 @@ class _EditViewState extends State<EditView> {
         ],
         decoration: InputDecoration(labelText: field.name),
         // Null value gives a blank.
-        value: widget.node.data[field.name],
+        value: nodeData[field.name],
         onChanged: (String? value) {
           setState(() {});
         },
         onSaved: (String? value) {
           if (value != null) {
             if (value.isNotEmpty) {
-              widget.node.data[field.name] = value;
+              nodeData[field.name] = value;
             } else {
-              widget.node.data.remove(field.name);
+              nodeData.remove(field.name);
             }
           }
         },
@@ -143,14 +150,14 @@ class _EditViewState extends State<EditView> {
     if (field is AutoChoiceField) {
       return AutoChoiceForm(
         label: field.name,
-        initialValue: widget.node.data[field.name] ?? '',
+        initialValue: nodeData[field.name] ?? '',
         initialOptions: field.options,
         onSaved: (String? value) {
           if (value != null && value.isNotEmpty) {
-            widget.node.data[field.name] = value;
+            nodeData[field.name] = value;
             field.options.add(value);
           } else {
-            widget.node.data.remove(field.name);
+            nodeData.remove(field.name);
           }
         },
       );
@@ -158,11 +165,10 @@ class _EditViewState extends State<EditView> {
     if (field is NumberField) {
       return TextFormField(
         decoration: InputDecoration(labelText: field.name),
-        initialValue: widget.node.data[field.name] ?? '',
+        initialValue: nodeData[field.name] ?? '',
         validator: field.validateMessage,
         onSaved: (String? value) {
-          if (value != null)
-            widget.node.data[field.name] = num.parse(value).toString();
+          if (value != null) nodeData[field.name] = num.parse(value).toString();
         },
       );
     }
@@ -176,7 +182,7 @@ class _EditViewState extends State<EditView> {
         heading: field.name,
         onSaved: (DateTime? value) {
           if (value != null)
-            widget.node.data[field.name] = storedDateFormat.format(value);
+            nodeData[field.name] = storedDateFormat.format(value);
         },
       );
     }
@@ -190,20 +196,20 @@ class _EditViewState extends State<EditView> {
         heading: field.name,
         onSaved: (DateTime? value) {
           if (value != null)
-            widget.node.data[field.name] = storedTimeFormat.format(value);
+            nodeData[field.name] = storedTimeFormat.format(value);
         },
       );
     }
     // Default return for a regular TextField
     return TextFormField(
       decoration: InputDecoration(labelText: field.name),
-      initialValue: widget.node.data[field.name] ?? '',
+      initialValue: nodeData[field.name] ?? '',
       validator: field.validateMessage,
       onSaved: (String? value) {
         if (value != null && value.isNotEmpty) {
-          widget.node.data[field.name] = value;
+          nodeData[field.name] = value;
         } else {
-          widget.node.data.remove(field.name);
+          nodeData.remove(field.name);
         }
       },
     );

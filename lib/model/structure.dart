@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart'; // contains ChangeNotifier
 import 'fields.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
+import 'undos.dart';
 
 /// Top-level storage for tree formats and nodes.
 class Structure extends ChangeNotifier {
@@ -20,9 +21,11 @@ class Structure extends ChangeNotifier {
   late ParsedLine titleLine;
   var outputLines = <ParsedLine>[];
   var fileObject = File('.');
+  late UndoList undoList;
 
   Structure() {
     titleLine = ParsedLine('', fieldMap);
+    undoList = UndoList(this);
   }
 
   void openFile(File fileObj) {
@@ -33,8 +36,7 @@ class Structure extends ChangeNotifier {
     for (var fieldData in jsonData['fields'] ?? []) {
       var field = Field.fromJson(fieldData);
       fieldMap[field.name] = field;
-      if (field is AutoChoiceField)
-        autoChoiceFields.add(field);
+      if (field is AutoChoiceField) autoChoiceFields.add(field);
     }
     for (var nodeData in jsonData['template'] ?? []) {
       rootNodes.add(Node(nodeData, this));
@@ -88,6 +90,7 @@ class Structure extends ChangeNotifier {
     fieldMap = {};
     titleLine = ParsedLine('', fieldMap);
     outputLines = [];
+    undoList = UndoList(this);
   }
 
   void saveFile() async {
@@ -125,12 +128,20 @@ class Structure extends ChangeNotifier {
     return newNode;
   }
 
-  void editNodeData(Node node) {
-    // Defined as a separate function for future undo implementation.
+  void editNodeData(LeafNode node, Map<String, String> nodeData,
+      {bool newNode = false}) {
+    if (newNode) {
+      undoList.add(UndoAddNode('Add new node', node, this));
+    } else {
+      undoList.add(UndoEditNode('Edit node: ${node.title}', node, node.data));
+    }
+    node.data = nodeData;
     updateAll();
   }
 
-  void deleteNode(Node node) {
+  void deleteNode(LeafNode node, {bool withUndo = true}) {
+    if (withUndo)
+      undoList.add(UndoDeleteNode('Delete node: ${node.title}', node, this));
     leafNodes.remove(node);
     updateAllChildren();
     obsoleteNodes.add(node);

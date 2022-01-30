@@ -8,8 +8,9 @@ import 'package:provider/provider.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
 import '../views/detail_view.dart';
+import '../views/undo_view.dart';
 
-enum MenuItems { editConfig, close }
+enum MenuItems { editConfig, close, undoView }
 
 /// The main indented tree view.
 class TreeView extends StatelessWidget {
@@ -29,12 +30,15 @@ class TreeView extends StatelessWidget {
         automaticallyImplyLeading: false,
         title: Text(headerName),
         actions: <Widget>[
-          PopupMenuButton(
+          PopupMenuButton<MenuItems>(
             icon: const Icon(Icons.menu),
-            onSelected: (result) {
+            onSelected: (MenuItems result) {
               switch (result) {
                 case MenuItems.editConfig:
                   Navigator.pushNamed(context, '/configView');
+                  break;
+                case MenuItems.undoView:
+                  Navigator.pushNamed(context, '/undoView');
                   break;
                 case MenuItems.close:
                   Navigator.pop(context);
@@ -42,12 +46,16 @@ class TreeView extends StatelessWidget {
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
+              PopupMenuItem<MenuItems>(
                 child: Text('Edit Configuration'),
                 value: MenuItems.editConfig,
               ),
-              PopupMenuItem(
-                child: Text('Close file'),
+              PopupMenuItem<MenuItems>(
+                child: Text('View Undo Steps'),
+                value: MenuItems.undoView,
+              ),
+              PopupMenuItem<MenuItems>(
+                child: Text('Close File'),
                 value: MenuItems.close,
               ),
             ],
