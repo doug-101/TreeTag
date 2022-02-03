@@ -57,6 +57,7 @@ class Structure extends ChangeNotifier {
         }
       }
     }
+    undoList = UndoList.fromJson(jsonData['undos'] ?? [], this);
   }
 
   void newFile(File fileObj) {
@@ -103,6 +104,7 @@ class Structure extends ChangeNotifier {
     jsonData['outputlines'] =
         await [for (var line in outputLines) line.getUnparsedLine()];
     jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
+    jsonData['undos'] = await undoList.toJson();
     await fileObject.writeAsString(json.encode(jsonData));
   }
 
@@ -131,9 +133,10 @@ class Structure extends ChangeNotifier {
   void editNodeData(LeafNode node, Map<String, String> nodeData,
       {bool newNode = false}) {
     if (newNode) {
-      undoList.add(UndoAddNode('Add new node', node, this));
+      undoList.add(UndoAddNode('Add new node', leafNodes.indexOf(node)));
     } else {
-      undoList.add(UndoEditNode('Edit node: ${node.title}', node, node.data));
+      undoList.add(UndoEditNode(
+          'Edit node: ${node.title}', leafNodes.indexOf(node), node.data));
     }
     node.data = nodeData;
     updateAll();
@@ -141,7 +144,7 @@ class Structure extends ChangeNotifier {
 
   void deleteNode(LeafNode node, {bool withUndo = true}) {
     if (withUndo)
-      undoList.add(UndoDeleteNode('Delete node: ${node.title}', node, this));
+      undoList.add(UndoDeleteNode('Delete node: ${node.title}', node));
     leafNodes.remove(node);
     updateAllChildren();
     obsoleteNodes.add(node);

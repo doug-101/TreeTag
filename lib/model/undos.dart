@@ -10,9 +10,16 @@ import 'structure.dart';
 /// Storage of an undo list with operations.
 class UndoList extends ListBase<Undo> {
   final _innerList = <Undo>[];
-  Structure _modelRef;
+  static late Structure _modelRef;
 
-  UndoList(this._modelRef);
+  UndoList(Structure modelRef) {
+    _modelRef = modelRef;
+  }
+
+  UndoList.fromJson(List<dynamic> jsonData, Structure modelRef) {
+    _modelRef = modelRef;
+    addAll([for (var data in jsonData) Undo.fromJson(data)]);
+  }
 
   int get length => _innerList.length;
 
@@ -39,16 +46,51 @@ class UndoList extends ListBase<Undo> {
     addAll(redoList);
     _modelRef.updateAll();
   }
+
+  List<dynamic> toJson() {
+    return [for (var undo in this) undo.toJson()];
+  }
 }
 
 abstract class Undo {
   final String title;
-  final DateTime timeStamp = DateTime.now();
+  final String undoType;
+  DateTime timeStamp = DateTime.now();
 
-  Undo(this.title);
+  Undo(this.title, this.undoType);
 
   // Subclasses perform the undo and return an opposite redo object.
   Undo undo();
+
+  factory Undo.fromJson(Map<String, dynamic> jsonData) {
+    Undo undo;
+    switch (jsonData['type']) {
+      case 'editnode':
+        undo = UndoEditNode(jsonData['title'], jsonData['nodepos'],
+            jsonData['nodedata'].cast<String, String>());
+        break;
+      case 'addnode':
+        undo = UndoAddNode(jsonData['title'], jsonData['nodepos']);
+        break;
+      case 'deletenode':
+        undo = UndoDeleteNode(jsonData['title'],
+            LeafNode.fromJson(jsonData['nodeobject'], UndoList._modelRef));
+        break;
+      default:
+        throw FormatException('Stored undo data is corrupt');
+        break;
+    }
+    undo.timeStamp = DateTime.parse(jsonData['time']);
+    return undo;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'type': undoType,
+      'time': timeStamp.toIso8601String(),
+    };
+  }
 
   String _toggleTitleRedo(String title) {
     if (title.startsWith('Redo '))
@@ -58,43 +100,68 @@ abstract class Undo {
 }
 
 class UndoEditNode extends Undo {
-  LeafNode node;
+  int nodePos;
   late Map<String, String> storedNodeData;
 
-  UndoEditNode(String title, this.node, Map<String, String> nodeData)
-      : super(title) {
+  UndoEditNode(String title, this.nodePos, Map<String, String> nodeData)
+      : super(title, 'editnode') {
     storedNodeData = Map.of(nodeData);
   }
 
+  @override
   Undo undo() {
-    var redo = UndoEditNode(_toggleTitleRedo(title), node, node.data);
+    var node = UndoList._modelRef.leafNodes[nodePos];
+    var redo = UndoEditNode(_toggleTitleRedo(title), nodePos, node.data);
     node.data = storedNodeData;
     return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result.addAll({'nodepos': nodePos, 'nodedata': storedNodeData});
+    return result;
   }
 }
 
 class UndoAddNode extends Undo {
-  LeafNode node;
-  Structure _modelRef;
+  int nodePos;
 
-  UndoAddNode(String title, this.node, this._modelRef) : super(title);
+  UndoAddNode(String title, this.nodePos) : super(title, 'addnode');
 
+  @override
   Undo undo() {
-    var redo = UndoDeleteNode(_toggleTitleRedo(title), node, _modelRef);
-    _modelRef.leafNodes.remove(node);
+    var redo = UndoDeleteNode(
+        _toggleTitleRedo(title), UndoList._modelRef.leafNodes[nodePos]);
+    UndoList._modelRef.leafNodes.removeAt(nodePos);
     return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['nodepos'] = nodePos;
+    return result;
   }
 }
 
 class UndoDeleteNode extends Undo {
   LeafNode node;
-  Structure _modelRef;
 
-  UndoDeleteNode(String title, this.node, this._modelRef) : super(title);
+  UndoDeleteNode(String title, this.node) : super(title, 'deletenode');
 
+  @override
   Undo undo() {
-    var redo = UndoAddNode(_toggleTitleRedo(title), node, _modelRef);
-    _modelRef.leafNodes.add(node);
+    var redo = UndoAddNode(
+        _toggleTitleRedo(title), UndoList._modelRef.leafNodes.indexOf(node));
+    UndoList._modelRef.leafNodes.add(node);
     return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['nodeobject'] = node.toJson();
+    return result;
   }
 }
