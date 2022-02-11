@@ -22,14 +22,17 @@ class FieldEdit extends StatefulWidget {
 }
 
 class _FieldEditState extends State<FieldEdit> {
+  late Field _editedField;
+  bool _isFieldTypeChanged = false;
+  var _cancelNewFlag = false;
   final _formKey = GlobalKey<FormState>();
   final _dropdownState = GlobalKey<FormFieldState>();
-  bool _isChanged = false;
-  var _cancelNewFlag = false;
-  // The original field is only used for field type changes.
-  Field? _origField;
-  // The original field format is only to recover from Choice field errors.
-  String? _origFormat;
+
+  @override
+  void initState() {
+    super.initState();
+    _editedField = Field.copy(widget.field);
+  }
 
   Future<bool> updateOnPop() async {
     if (_cancelNewFlag) return true;
@@ -39,41 +42,39 @@ class _FieldEditState extends State<FieldEdit> {
       var model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
         model.addNewField(widget.field);
-        _isChanged = false;
-      } else if (_origField != null) {
-        // Used for field type changes.
-        var numErrors = model.badFieldCount(widget.field);
+        return true;
+      }
+      if (_isFieldTypeChanged) {
+        var numErrors = model.badFieldCount(_editedField);
         if (numErrors > 0) {
           var doKeep = await _keepTypeChangeDialog(numErrors: numErrors);
           if (doKeep != null && !doKeep) {
-            _isChanged = widget.field.name != _origField!.name ||
-                widget.field.format != _origField!.format ||
-                widget.field.initValue != _origField!.initValue ||
-                widget.field.prefix != _origField!.prefix ||
-                widget.field.suffix != _origField!.suffix;
-            widget.field = _origField!;
-            _origField == null;
+            _editedField = _editedField.copyToType(widget.field.fieldType);
+            _isFieldTypeChanged = false;
           }
         }
-        if (_origField != null) {
-          model.replaceField(_origField!, widget.field);
-          _isChanged = false;
+        if (_isFieldTypeChanged) {
+          model.replaceField(widget.field, _editedField);
+          return true;
         }
       }
-      if (_isChanged) {
+      if (_editedField != widget.field) {
         // Used for other changes.
-        if (widget.field is ChoiceField) {
-          var numErrors = model.badFieldCount(widget.field);
+        if (_editedField is ChoiceField) {
+          var numErrors = model.badFieldCount(_editedField);
           if (numErrors > 0) {
             var doKeep = await _keepChoiceErrorDialog(numErrors: numErrors);
             if (doKeep != null && doKeep) {
               removeChoices = true;
             } else {
-              widget.field.format = _origFormat!;
+              _editedField.format = widget.field.format;
             }
           }
         }
-        model.editField(widget.field, removeChoices: removeChoices);
+        if (_editedField != widget.field) {
+          model.editField(widget.field, _editedField,
+              removeChoices: removeChoices);
+        }
       }
       return true;
     }
@@ -85,7 +86,7 @@ class _FieldEditState extends State<FieldEdit> {
     var model = Provider.of<Structure>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.field.name + ' Field'),
+        title: Text(_editedField.name + ' Field'),
         actions: widget.isNew
             ? <Widget>[
                 IconButton(
@@ -99,9 +100,9 @@ class _FieldEditState extends State<FieldEdit> {
                 IconButton(
                   icon: const Icon(Icons.restore),
                   onPressed: () {
-                    if (_origField != null) {
-                      widget.field = _origField!;
-                      _origField == null;
+                    if (_isFieldTypeChanged) {
+                      _editedField = Field.copy(widget.field);
+                      _isFieldTypeChanged = false;
                     }
                     _formKey.currentState!.reset();
                     setState(() {});
@@ -118,7 +119,7 @@ class _FieldEditState extends State<FieldEdit> {
             children: <Widget>[
               TextFormField(
                 decoration: InputDecoration(labelText: 'Field Name'),
-                initialValue: widget.field.name,
+                initialValue: _editedField.name,
                 validator: (String? text) {
                   if (text == null) return null;
                   if (text.isEmpty) return 'Cannot be empty';
@@ -136,16 +137,15 @@ class _FieldEditState extends State<FieldEdit> {
                   return null;
                 },
                 onSaved: (String? text) {
-                  if (text != null && text != widget.field.name) {
-                    _isChanged = true;
-                    widget.field.name = text;
+                  if (text != null) {
+                    _editedField.name = text;
                   }
                 },
               ),
               DropdownButtonFormField<String>(
                 key: _dropdownState,
                 decoration: InputDecoration(labelText: 'Field Type'),
-                value: widget.field.fieldType,
+                value: _editedField.fieldType,
                 items: [
                   for (var type in fieldTypes)
                     DropdownMenuItem<String>(
@@ -155,44 +155,40 @@ class _FieldEditState extends State<FieldEdit> {
                 ],
                 onSaved: (String? newType) {
                   // Changes are made in onChanged.
-                  if (_origField != null) _isChanged = true;
                 },
                 onChanged: (String? newType) {
-                  if (newType != null && newType != widget.field.fieldType) {
-                    if (newType != _origField?.fieldType) {
-                      if (_origField == null) _origField = widget.field;
-                      widget.field = widget.field.copyToType(newType);
+                  if (newType != null && newType != _editedField.fieldType) {
+                    if (newType == widget.field.fieldType) {
+                      _editedField = Field.copy(widget.field);
+                      // TODO - any resets required?
+                      _isFieldTypeChanged = false;
                     } else {
-                      widget.field = _origField!;
-                      _origField == null;
+                      _editedField = _editedField.copyToType(newType);
+                      _isFieldTypeChanged = true;
                     }
                   }
                   setState(() {});
                 },
               ),
-              if (widget.field.format.isNotEmpty)
+              if (_editedField.format.isNotEmpty)
                 FieldFormatDisplay(
-                  fieldType: widget.field.fieldType,
-                  initialFormat: widget.field.format,
+                  fieldType: _editedField.fieldType,
+                  initialFormat: _editedField.format,
                   onSaved: (String? value) async {
-                    if (value != null && value != widget.field.format) {
-                      _isChanged = true;
-                      _origFormat = widget.field.format;
-                      widget.field.format = value;
+                    if (value != null && value != _editedField.format) {
+                      _editedField.format = value;
                     }
                   },
                 ),
-              if (widget.field is DateField || widget.field is TimeField)
+              if (_editedField is DateField || _editedField is TimeField)
                 InitNowBoolFormField(
-                  initialValue: widget.field.initValue == 'now' ? true : false,
-                  heading: widget.field is DateField
+                  initialValue: _editedField.initValue == 'now' ? true : false,
+                  heading: _editedField is DateField
                       ? 'Initial Value to Current Date'
                       : 'Initial Value to Current Time',
                   onSaved: (bool? value) {
-                    if (value != null &&
-                        widget.field.initValue != (value ? 'now' : '')) {
-                      _isChanged = true;
-                      widget.field.initValue = value ? 'now' : '';
+                    if (value != null) {
+                      _editedField.initValue = value ? 'now' : '';
                     }
                   },
                 )
@@ -201,31 +197,28 @@ class _FieldEditState extends State<FieldEdit> {
                 TextFormField(
                   decoration: InputDecoration(labelText: 'Initial Value'),
                   initialValue: widget.field.initValue,
-                  validator: widget.field.validateMessage,
+                  validator: _editedField.validateMessage,
                   onSaved: (String? value) {
-                    if (value != null && value != widget.field.initValue) {
-                      _isChanged = true;
-                      widget.field.initValue = value;
+                    if (value != null) {
+                      _editedField.initValue = value;
                     }
                   },
                 ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'Default Prefix'),
-                initialValue: widget.field.prefix,
+                initialValue: _editedField.prefix,
                 onSaved: (String? value) {
-                  if (value != null && value != widget.field.prefix) {
-                    _isChanged = true;
-                    widget.field.prefix = value;
+                  if (value != null) {
+                    _editedField.prefix = value;
                   }
                 },
               ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'Default Suffix'),
-                initialValue: widget.field.suffix,
+                initialValue: _editedField.suffix,
                 onSaved: (String? value) {
-                  if (value != null && value != widget.field.suffix) {
-                    _isChanged = true;
-                    widget.field.suffix = value;
+                  if (value != null) {
+                    _editedField.suffix = value;
                   }
                 },
               ),

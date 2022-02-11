@@ -50,6 +50,19 @@ class _TreeConfigState extends State<TreeConfig> {
                     }
                     break;
                   case MenuItems.ruleChild:
+                    var newRule = RuleNode(
+                      rule: '',
+                      modelRef: model,
+                      parent: selectedNode!,
+                    );
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RuleEdit(node: newRule, isNew: true),
+                      ),
+                    );
+                    setState(() {});
                     break;
                 }
               },
@@ -154,6 +167,18 @@ class _TreeConfigState extends State<TreeConfig> {
     for (var root in model.rootNodes) {
       for (var leveledNode in storedNodeGenerator(root)) {
         var node = leveledNode.node;
+        late Text titleText;
+        if (node is RuleNode) {
+          var ruleTitleSpans = node.ruleLine.richLineSpans(contrastStyle);
+          if (ruleTitleSpans.length == 1 &&
+              ruleTitleSpans[0].style != contrastStyle) {
+            ruleTitleSpans
+                .add(TextSpan(text: ' <no_fields>', style: contrastStyle));
+          }
+          titleText = Text.rich(TextSpan(children: ruleTitleSpans));
+        } else {
+          titleText = Text(node.title);
+        }
         items.add(
           Padding(
             padding:
@@ -163,10 +188,7 @@ class _TreeConfigState extends State<TreeConfig> {
                   ? Theme.of(context).highlightColor
                   : null,
               child: ListTile(
-                title: node is RuleNode
-                    ? Text.rich(TextSpan(
-                        children: node.ruleLine.richLineSpans(contrastStyle)))
-                    : Text(node.title),
+                title: titleText,
                 onTap: () {
                   setState(() {
                     if (node != selectedNode) {

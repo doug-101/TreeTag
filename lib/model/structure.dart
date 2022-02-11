@@ -157,23 +157,24 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
-  void editField(Field field, {bool removeChoices = false}) {
-    if (!fieldMap.containsKey(field.name)) {
+  void editField(Field oldField, Field editedField,
+      {bool removeChoices = false}) {
+    if (oldField.name != editedField.name) {
       // Field was renamed.
-      var oldName = fieldMap.keys.firstWhere((key) => fieldMap[key] == field);
-      fieldMap.remove(oldName);
-      fieldMap[field.name] = field;
+      fieldMap.remove(oldField.name);
+      fieldMap[editedField.name] = oldField;
       for (var leaf in leafNodes) {
-        var data = leaf.data[oldName];
+        var data = leaf.data[oldField.name];
         if (data != null) {
-          leaf.data[field.name] = data;
-          leaf.data.remove(oldName);
+          leaf.data[editedField.name] = data;
+          leaf.data.remove(oldField.name);
         }
       }
     }
+    oldField.updateSettings(editedField);
     if (removeChoices) {
       for (var leaf in leafNodes) {
-        if (!field.isStoredTextValid(leaf)) leaf.data.remove(field.name);
+        if (!oldField.isStoredTextValid(leaf)) leaf.data.remove(oldField.name);
       }
     }
     updateAll();
@@ -328,6 +329,15 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  void addRuleChild(RuleNode newNode) {
+    if (newNode.parent is TitleNode) {
+      (newNode.parent! as TitleNode).childRuleNode = newNode;
+    } else {
+      (newNode.parent! as RuleNode).childRuleNode = newNode;
+    }
+    newNode.setDefaultRuleSortFields();
+  }
+
   void editTitle(TitleNode node, String newTitle) {
     node.title = newTitle;
     updateAll();
@@ -335,6 +345,7 @@ class Structure extends ChangeNotifier {
 
   void editRuleLine(RuleNode node, ParsedLine newRuleLine) {
     node.ruleLine = newRuleLine;
+    node.setDefaultRuleSortFields();
     updateAll();
   }
 
@@ -371,11 +382,27 @@ class Structure extends ChangeNotifier {
     return false;
   }
 
-  void ruleSortKeysUpdated(RuleNode node) {
+  void ruleSortKeysToDefault(RuleNode node) {
+    node.hasUniqueSortFields = false;
+    node.setDefaultRuleSortFields();
     updateAll();
   }
 
-  void childSortKeysUpdated(RuleNode node) {
+  void childSortKeysToDefault(RuleNode node) {
+    node.hasUniqueChildSortFields = false;
+    node.setDefaultChildSortFields();
+    updateAll();
+  }
+
+  void updateRuleSortKeys(RuleNode node, List<SortKey> newKeys) {
+    node.hasUniqueSortFields = true;
+    node.sortFields = newKeys;
+    updateAll();
+  }
+
+  void updateChildSortKeys(RuleNode node, List<SortKey> newKeys) {
+    node.hasUniqueChildSortFields = true;
+    node.childSortFields = newKeys;
     updateAll();
   }
 

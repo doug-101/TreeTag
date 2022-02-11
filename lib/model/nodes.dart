@@ -57,7 +57,7 @@ class TitleNode implements Node {
       _children.add(Node(childData, modelRef, this));
     }
     if (_children.length == 1 && _children[0] is RuleNode) {
-      childRuleNode = _children[0] as RuleNode?;
+      childRuleNode = _children[0] as RuleNode;
       _children = [];
     }
   }
@@ -171,13 +171,15 @@ class RuleNode implements Node {
   }
 
   void setDefaultRuleSortFields() {
-    sortFields = [for (var field in ruleLine.fields()) SortKey(field)];
+    if (!hasUniqueSortFields)
+      sortFields = [for (var field in ruleLine.fields()) SortKey(field)];
   }
 
   void setDefaultChildSortFields() {
-    childSortFields = [
-      for (var field in modelRef.fieldMap.values) SortKey(field)
-    ];
+    if (!hasUniqueChildSortFields)
+      childSortFields = [
+        for (var field in modelRef.fieldMap.values) SortKey(field)
+      ];
   }
 
   Map<String, dynamic> toJson() {
@@ -323,6 +325,11 @@ class SortKey {
       fieldName = fieldName.substring(1);
     }
     keyField = fieldMap[fieldName]!;
+  }
+
+  SortKey.copy(SortKey origKey) {
+    keyField = origKey.keyField;
+    isAscend = origKey.isAscend;
   }
 
   String toString() {

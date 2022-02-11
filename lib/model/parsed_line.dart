@@ -28,6 +28,8 @@ class ParsedLine {
     }
     return newParsedLine;
   }
+  
+  bool get isEmpty => segments.isEmpty;
 
   void parseLine(String unparsedLine, Map<String, Field> fieldMap) {
     segments.clear();

@@ -120,6 +120,45 @@ abstract class Field {
     return newField;
   }
 
+  // Returns a new field with the same settings.
+  // Keeps the _altFormatField; does not make a deep copy
+  factory Field.copy(Field origField) {
+    var newField = Field.createField(
+      name: origField.name,
+      fieldType: origField.fieldType,
+      format: origField.format,
+      initValue: origField.initValue,
+      prefix: origField.prefix,
+      suffix: origField.suffix,
+    );
+    newField._altFormatFields = origField._altFormatFields;
+    newField._altFormatNumber = origField._altFormatNumber;
+    return newField;
+  }
+
+  void updateSettings(Field otherField) {
+    name = otherField.name;
+    format = otherField.format;
+    initValue = otherField.initValue;
+    prefix = otherField.prefix;
+    suffix = otherField.suffix;
+  }
+
+  @override
+  bool operator ==(Object otherField) {
+    if (runtimeType != otherField.runtimeType) return false;
+    otherField = otherField as Field;
+    return name == otherField.name &&
+        format == otherField.format &&
+        initValue == otherField.initValue &&
+        prefix == otherField.prefix &&
+        suffix == otherField.suffix;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(name, fieldType, format, initValue, prefix, suffix);
+
   String outputText(LeafNode node) {
     var storedText = node.data[name] ?? '';
     if (storedText.isEmpty) return '';

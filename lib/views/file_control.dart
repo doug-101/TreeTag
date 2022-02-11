@@ -93,37 +93,39 @@ class _FileControlState extends State<FileControl> {
             onSelected: (result) async {
               switch (result) {
                 case MenuItems.addFromFolder:
-                  FilePickerResult? result =
+                  FilePickerResult? answer =
                       await FilePicker.platform.pickFiles();
-                  if (result != null) {
-                    var cachePath = result.files.single.path;
-                    var newName = p.basenameWithoutExtension(cachePath);
-                    var newPath = p.join(workDir.path, newName + '.trtg');
-                    if (File(newPath).existsSync()) {
-                      var ans = await confirmOverwriteDialog(newName);
-                      if (ans == null || !ans) {
-                        FilePicker.platform.clearTemporaryFiles();
-                        break;
+                  if (answer != null) {
+                    var cachePath = answer.files.single.path;
+                    if (cachePath != null) {
+                      var newName = p.basenameWithoutExtension(cachePath);
+                      var newPath = p.join(workDir.path, newName + '.trtg');
+                      if (File(newPath).existsSync()) {
+                        var ans = await confirmOverwriteDialog(newName);
+                        if (ans == null || !ans) {
+                          FilePicker.platform.clearTemporaryFiles();
+                          break;
+                        }
                       }
+                      await File(cachePath).copy(newPath);
+                      setState(() {
+                        _updateFileList();
+                      });
+                      FilePicker.platform.clearTemporaryFiles();
                     }
-                    await File(cachePath).copy(newPath);
-                    setState(() {
-                      _updateFileList();
-                    });
-                    FilePicker.platform.clearTemporaryFiles();
                   }
                   break;
                 case MenuItems.copy:
                   var initName =
                       p.basenameWithoutExtension(selectFiles.first.path);
-                  var result = await filenameDialog(
+                  var answer = await filenameDialog(
                     initName: initName,
                     label: 'Copy "$initName" to:',
                   );
-                  if (result != null) {
-                    var newPath = p.join(workDir.path, result + '.trtg');
+                  if (answer != null) {
+                    var newPath = p.join(workDir.path, answer + '.trtg');
                     if (File(newPath).existsSync()) {
-                      var ans = await confirmOverwriteDialog(result);
+                      var ans = await confirmOverwriteDialog(answer);
                       if (ans == null || !ans) break;
                     }
                     await selectFiles.first.copy(newPath);
@@ -158,14 +160,14 @@ class _FileControlState extends State<FileControl> {
                 case MenuItems.rename:
                   var initName =
                       p.basenameWithoutExtension(selectFiles.first.path);
-                  var result = await filenameDialog(
+                  var answer = await filenameDialog(
                     initName: initName,
                     label: 'Rename "$initName" to:',
                   );
-                  if (result != null) {
-                    var newPath = p.join(workDir.path, result + '.trtg');
+                  if (answer != null) {
+                    var newPath = p.join(workDir.path, answer + '.trtg');
                     if (File(newPath).existsSync()) {
-                      var ans = await confirmOverwriteDialog(result);
+                      var ans = await confirmOverwriteDialog(answer);
                       if (ans == null || !ans) break;
                     }
                     await selectFiles.first.rename(newPath);

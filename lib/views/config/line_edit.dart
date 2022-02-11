@@ -35,6 +35,10 @@ class _LineEditState extends State<LineEdit> {
       ),
       body: WillPopScope(
         onWillPop: () async {
+          if (widget.line.isEmpty) {
+            await noEmptyDialog();
+            return false;
+          }
           Navigator.pop(context, isChanged);
           return true;
         },
@@ -243,6 +247,25 @@ class _LineEditState extends State<LineEdit> {
               child: const Text('Cancel'),
               onPressed: () => Navigator.pop(context, null),
             ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool?> noEmptyDialog() async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cannot be empty'),
+          content: const Text('Must add a field or a text entry'),
+          actions: <Widget>[
+            TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.pop(context, true);
+                }),
           ],
         );
       },

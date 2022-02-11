@@ -13,8 +13,10 @@ import 'sort_edit.dart';
 // The rule node edit widget.
 class RuleEdit extends StatefulWidget {
   final RuleNode node;
+  final bool isNew;
 
-  RuleEdit({Key? key, required this.node}) : super(key: key);
+  RuleEdit({Key? key, required this.node, this.isNew = false})
+      : super(key: key);
 
   @override
   State<RuleEdit> createState() => _RuleEditState();
@@ -26,6 +28,21 @@ class _RuleEditState extends State<RuleEdit> {
     var model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
         TextStyle(color: Theme.of(context).colorScheme.secondary);
+    if (widget.isNew && widget.node.ruleLine.isEmpty) {
+      // A new rule is empty, so it goes directly to the LineEdit.
+      // Use a microtask to delay the push until after the build.
+      Future.microtask(() async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LineEdit(line: widget.node.ruleLine),
+          ),
+        );
+        setState(() {
+          model.addRuleChild(widget.node);
+        });
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('Rule Node'),
@@ -103,26 +120,30 @@ class _RuleEditState extends State<RuleEdit> {
                         if (index == 0) {
                           // Default button pushed.
                           if (widget.node.hasUniqueSortFields) {
-                            widget.node.setDefaultRuleSortFields();
-                            widget.node.hasUniqueSortFields = false;
-                            model.ruleSortKeysUpdated(widget.node);
-                            setState(() {});
+                            setState(() {
+                              model.ruleSortKeysToDefault(widget.node);
+                            });
                           }
                         } else {
                           // Custom button pushed.
+                          var newSortKeys = [
+                            for (var key in widget.node.sortFields)
+                              SortKey.copy(key)
+                          ];
                           var isChanged = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => SortEdit(
-                                sortKeys: widget.node.sortFields,
+                                sortKeys: newSortKeys,
                                 availFields: widget.node.ruleLine.fields(),
                               ),
                             ),
                           );
                           if (isChanged) {
-                            widget.node.hasUniqueSortFields = true;
-                            model.ruleSortKeysUpdated(widget.node);
-                            setState(() {});
+                            setState(() {
+                              model.updateRuleSortKeys(
+                                  widget.node, newSortKeys);
+                            });
                           }
                         }
                       },
@@ -166,24 +187,28 @@ class _RuleEditState extends State<RuleEdit> {
                           if (index == 0) {
                             // Default button pushed.
                             if (widget.node.hasUniqueChildSortFields) {
-                              widget.node.setDefaultChildSortFields();
-                              widget.node.hasUniqueChildSortFields = false;
-                              model.childSortKeysUpdated(widget.node);
-                              setState(() {});
+                              setState(() {
+                                model.childSortKeysToDefault(widget.node);
+                              });
                             }
                           } else {
                             // Custom button pushed.
+                            var newSortKeys = [
+                              for (var key in widget.node.childSortFields)
+                                SortKey.copy(key)
+                            ];
                             var isChanged = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => SortEdit(
-                                    sortKeys: widget.node.childSortFields),
+                                builder: (context) =>
+                                    SortEdit(sortKeys: newSortKeys),
                               ),
                             );
                             if (isChanged) {
-                              widget.node.hasUniqueChildSortFields = true;
-                              model.childSortKeysUpdated(widget.node);
-                              setState(() {});
+                              setState(() {
+                                model.updateChildSortKeys(
+                                    widget.node, newSortKeys);
+                              });
                             }
                           }
                         },
