@@ -133,9 +133,9 @@ class Structure extends ChangeNotifier {
   void editNodeData(LeafNode node, Map<String, String> nodeData,
       {bool newNode = false}) {
     if (newNode) {
-      undoList.add(UndoAddNode('Add new node', leafNodes.indexOf(node)));
+      undoList.add(UndoAddLeafNode('Add new node', leafNodes.indexOf(node)));
     } else {
-      undoList.add(UndoEditNode(
+      undoList.add(UndoEditLeafNode(
           'Edit node: ${node.title}', leafNodes.indexOf(node), node.data));
     }
     node.data = nodeData;
@@ -144,7 +144,7 @@ class Structure extends ChangeNotifier {
 
   void deleteNode(LeafNode node, {bool withUndo = true}) {
     if (withUndo)
-      undoList.add(UndoDeleteNode('Delete node: ${node.title}', node));
+      undoList.add(UndoDeleteLeafNode('Delete node: ${node.title}', node));
     leafNodes.remove(node);
     updateAllChildren();
     obsoleteNodes.add(node);
@@ -154,6 +154,7 @@ class Structure extends ChangeNotifier {
 
   void addNewField(Field field) {
     fieldMap[field.name] = field;
+    updateRuleChildSortFields();
     updateAll();
   }
 
@@ -240,6 +241,9 @@ class Structure extends ChangeNotifier {
         if (item.node is RuleNode) {
           var rule = item.node as RuleNode;
           if (rule.ruleLine.fields().contains(field)) badRules.add(rule);
+          if (rule.isFieldInChildSort(field)) {
+            rule.removeChildSortField(field);
+          }
         }
       }
     }
@@ -255,6 +259,7 @@ class Structure extends ChangeNotifier {
         rootNodes.remove(ruleNode);
       }
     }
+    updateRuleChildSortFields();
     updateAll();
   }
 
@@ -267,8 +272,40 @@ class Structure extends ChangeNotifier {
     for (var fld in fieldList) {
       fieldMap[fld.name] = fld;
     }
+    updateRuleChildSortFields();
     notifyListeners();
     saveFile();
+  }
+
+  void updateRuleChildSortFields() {
+    for (var root in rootNodes) {
+      for (var item in storedNodeGenerator(root)) {
+        if (item.node is RuleNode) {
+          (item.node as RuleNode).setDefaultChildSortFields();
+        }
+      }
+    }
+  }
+
+  String storedNodeId(Node node) {
+    var posList = <int>[];
+    while (node.parent != null) {
+      posList.insert(0, node.parent!.storedChildren().indexOf(node));
+      assert(posList[0] != -1);
+      node = node.parent!;
+    }
+    posList.insert(0, rootNodes.indexOf(node));
+    assert(posList[0] != -1);
+    return posList.join('.');
+  }
+
+  Node storedNodeFromId(String id) {
+    var posList = [for (var i in id.split('.')) int.parse(i)];
+    var node = rootNodes[posList.removeAt(0)];
+    while (posList.isNotEmpty) {
+      node = node.storedChildren()[posList.removeAt(0)];
+    }
+    return node;
   }
 
   bool isFieldInTitle(Field field) {
@@ -345,7 +382,7 @@ class Structure extends ChangeNotifier {
 
   void editRuleLine(RuleNode node, ParsedLine newRuleLine) {
     node.ruleLine = newRuleLine;
-    node.setDefaultRuleSortFields();
+    node.setDefaultRuleSortFields(checkUnique: true);
     updateAll();
   }
 

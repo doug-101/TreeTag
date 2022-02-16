@@ -59,21 +59,22 @@ abstract class Undo {
 
   Undo(this.title, this.undoType);
 
-  // Subclasses perform the undo and return an opposite redo object.
-  Undo undo();
-
   factory Undo.fromJson(Map<String, dynamic> jsonData) {
     Undo undo;
     switch (jsonData['type']) {
-      case 'editnode':
-        undo = UndoEditNode(jsonData['title'], jsonData['nodepos'],
+      case 'batch':
+        undo = UndoBatch(jsonData['title'],
+            [for (var item in jsonData['children']) Undo.fromJson(item)]);
+        break;
+      case 'editleafnode':
+        undo = UndoEditLeafNode(jsonData['title'], jsonData['nodepos'],
             jsonData['nodedata'].cast<String, String>());
         break;
-      case 'addnode':
-        undo = UndoAddNode(jsonData['title'], jsonData['nodepos']);
+      case 'addleafnode':
+        undo = UndoAddLeafNode(jsonData['title'], jsonData['nodepos']);
         break;
-      case 'deletenode':
-        undo = UndoDeleteNode(jsonData['title'],
+      case 'deleteleafnode':
+        undo = UndoDeleteLeafNode(jsonData['title'],
             LeafNode.fromJson(jsonData['nodeobject'], UndoList._modelRef));
         break;
       default:
@@ -92,26 +93,51 @@ abstract class Undo {
     };
   }
 
+  // Subclasses perform the undo and return an opposite redo object.
+  Undo undo();
+
   String _toggleTitleRedo(String title) {
+    if (title.isEmpty) return '';
     if (title.startsWith('Redo '))
       return title.replaceRange(0, 6, title[5].toUpperCase());
     return 'Redo ${title.replaceRange(0, 1, title[0].toLowerCase())}';
   }
 }
 
-class UndoEditNode extends Undo {
+class UndoBatch extends Undo {
+  late List<Undo> storedUndos;
+
+  UndoBatch(String title, this.storedUndos) : super(title, 'batch');
+
+  @override
+  Undo undo() {
+    var redos = [for (var undoInst in storedUndos) undoInst.undo()];
+    return UndoBatch(_toggleTitleRedo(title), redos);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result.addAll({
+      'children': [for (var undoInst in storedUndos) undoInst.toJson()]
+    });
+    return result;
+  }
+}
+
+class UndoEditLeafNode extends Undo {
   int nodePos;
   late Map<String, String> storedNodeData;
 
-  UndoEditNode(String title, this.nodePos, Map<String, String> nodeData)
-      : super(title, 'editnode') {
+  UndoEditLeafNode(String title, this.nodePos, Map<String, String> nodeData)
+      : super(title, 'editleafnode') {
     storedNodeData = Map.of(nodeData);
   }
 
   @override
   Undo undo() {
     var node = UndoList._modelRef.leafNodes[nodePos];
-    var redo = UndoEditNode(_toggleTitleRedo(title), nodePos, node.data);
+    var redo = UndoEditLeafNode(_toggleTitleRedo(title), nodePos, node.data);
     node.data = storedNodeData;
     return redo;
   }
@@ -124,14 +150,14 @@ class UndoEditNode extends Undo {
   }
 }
 
-class UndoAddNode extends Undo {
+class UndoAddLeafNode extends Undo {
   int nodePos;
 
-  UndoAddNode(String title, this.nodePos) : super(title, 'addnode');
+  UndoAddLeafNode(String title, this.nodePos) : super(title, 'addleafnode');
 
   @override
   Undo undo() {
-    var redo = UndoDeleteNode(
+    var redo = UndoDeleteLeafNode(
         _toggleTitleRedo(title), UndoList._modelRef.leafNodes[nodePos]);
     UndoList._modelRef.leafNodes.removeAt(nodePos);
     return redo;
@@ -145,14 +171,14 @@ class UndoAddNode extends Undo {
   }
 }
 
-class UndoDeleteNode extends Undo {
+class UndoDeleteLeafNode extends Undo {
   LeafNode node;
 
-  UndoDeleteNode(String title, this.node) : super(title, 'deletenode');
+  UndoDeleteLeafNode(String title, this.node) : super(title, 'deleteleafnode');
 
   @override
   Undo undo() {
-    var redo = UndoAddNode(
+    var redo = UndoAddLeafNode(
         _toggleTitleRedo(title), UndoList._modelRef.leafNodes.indexOf(node));
     UndoList._modelRef.leafNodes.add(node);
     return redo;

@@ -170,9 +170,20 @@ class RuleNode implements Node {
     return [];
   }
 
-  void setDefaultRuleSortFields() {
-    if (!hasUniqueSortFields)
+  void setDefaultRuleSortFields({bool checkUnique = false}) {
+    if (!hasUniqueSortFields) {
       sortFields = [for (var field in ruleLine.fields()) SortKey(field)];
+    } else if (checkUnique) {
+      // Only keep unique sort fields that are found in the rules.
+      var ruleFields = ruleLine.fields();
+      for (var key in List.of(sortFields)) {
+        if (!ruleFields.contains(key.keyField)) sortFields.remove(key);
+      }
+      if (sortFields.isEmpty) {
+        hasUniqueSortFields = false;
+        setDefaultRuleSortFields();
+      }
+    }
   }
 
   void setDefaultChildSortFields() {
@@ -180,6 +191,29 @@ class RuleNode implements Node {
       childSortFields = [
         for (var field in modelRef.fieldMap.values) SortKey(field)
       ];
+  }
+
+  bool isFieldInChildSort(Field field) {
+    if (!hasUniqueChildSortFields) return false;
+    for (var key in childSortFields) {
+      if (key.keyField == field) return true;
+    }
+    return false;
+  }
+
+  bool removeChildSortField(Field field) {
+    if (!hasUniqueChildSortFields) return false;
+    for (var key in childSortFields) {
+      if (key.keyField == field) {
+        if (childSortFields.length > 1) {
+          childSortFields.remove(key);
+        } else {
+          hasUniqueChildSortFields = false;
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   Map<String, dynamic> toJson() {
