@@ -133,10 +133,11 @@ class Structure extends ChangeNotifier {
   void editNodeData(LeafNode node, Map<String, String> nodeData,
       {bool newNode = false}) {
     if (newNode) {
-      undoList.add(UndoAddLeafNode('Add new node', leafNodes.indexOf(node)));
+      undoList
+          .add(UndoAddLeafNode('Add new leaf node', leafNodes.indexOf(node)));
     } else {
       undoList.add(UndoEditLeafNode(
-          'Edit node: ${node.title}', leafNodes.indexOf(node), node.data));
+          'Edit leaf node: ${node.title}', leafNodes.indexOf(node), node.data));
     }
     node.data = nodeData;
     updateAll();
@@ -144,7 +145,10 @@ class Structure extends ChangeNotifier {
 
   void deleteNode(LeafNode node, {bool withUndo = true}) {
     if (withUndo)
-      undoList.add(UndoDeleteLeafNode('Delete node: ${node.title}', node));
+      undoList.add(
+        UndoDeleteLeafNode(
+            'Delete leaf node: ${node.title}', leafNodes.indexOf(node), node),
+      );
     leafNodes.remove(node);
     updateAllChildren();
     obsoleteNodes.add(node);
@@ -287,27 +291,6 @@ class Structure extends ChangeNotifier {
     }
   }
 
-  String storedNodeId(Node node) {
-    var posList = <int>[];
-    while (node.parent != null) {
-      posList.insert(0, node.parent!.storedChildren().indexOf(node));
-      assert(posList[0] != -1);
-      node = node.parent!;
-    }
-    posList.insert(0, rootNodes.indexOf(node));
-    assert(posList[0] != -1);
-    return posList.join('.');
-  }
-
-  Node storedNodeFromId(String id) {
-    var posList = [for (var i in id.split('.')) int.parse(i)];
-    var node = rootNodes[posList.removeAt(0)];
-    while (posList.isNotEmpty) {
-      node = node.storedChildren()[posList.removeAt(0)];
-    }
-    return node;
-  }
-
   bool isFieldInTitle(Field field) {
     return titleLine.fields().contains(field);
   }
@@ -346,56 +329,116 @@ class Structure extends ChangeNotifier {
     return count;
   }
 
+  String storedNodeId(Node? node) {
+    if (node == null) return '';
+    var posList = <int>[];
+    while (node!.parent != null) {
+      posList.insert(0, node.parent!.storedChildren().indexOf(node));
+      assert(posList[0] != -1);
+      node = node.parent;
+    }
+    posList.insert(0, rootNodes.indexOf(node));
+    assert(posList[0] != -1);
+    return posList.join('.');
+  }
+
+  Node? storedNodeFromId(String id) {
+    if (id.isEmpty) return null;
+    var posList = [for (var i in id.split('.')) int.parse(i)];
+    var node = rootNodes[posList.removeAt(0)];
+    while (posList.isNotEmpty) {
+      node = node.storedChildren()[posList.removeAt(0)];
+    }
+    return node;
+  }
+
+  int storedNodePos(Node node) {
+    var parent = node.parent;
+    if (parent != null) return parent.storedChildren().indexOf(node);
+    return rootNodes.indexOf(node);
+  }
+
   void addTitleSibling(TitleNode siblingNode, String newTitle) {
-    var newNode =
-        TitleNode(title: newTitle, modelRef: this, parent: siblingNode.parent);
-    if (siblingNode.parent != null) {
-      (siblingNode.parent as TitleNode)
-          .addChildTitleNode(newNode, afterChild: siblingNode);
+    var parent = siblingNode.parent as TitleNode;
+    var pos = storedNodePos(siblingNode) + 1;
+    undoList.add(
+        UndoAddTreeNode('Add title sibling node', storedNodeId(parent), pos));
+    var newNode = TitleNode(title: newTitle, modelRef: this, parent: parent);
+    if (parent != null) {
+      parent.addChildTitleNode(newNode, pos: pos);
     } else {
-      var pos = rootNodes.indexOf(siblingNode) + 1;
       rootNodes.insert(pos, newNode);
     }
     updateAll();
   }
 
   void addTitleChild(TitleNode parentNode, String newTitle) {
+    undoList.add(UndoAddTreeNode('Add title child node',
+        storedNodeId(parentNode), parentNode.storedChildren().length));
     var newNode =
         TitleNode(title: newTitle, modelRef: this, parent: parentNode);
     parentNode.addChildTitleNode(newNode);
     updateAll();
   }
 
+  void editTitle(TitleNode node, String newTitle) {
+    undoList.add(UndoEditTitleNode(
+        'Edit title node: ${node.title}', storedNodeId(node), node.title));
+    node.title = newTitle;
+    updateAll();
+  }
+
   void addRuleChild(RuleNode newNode) {
+    undoList.add(UndoAddTreeNode(
+        'Add rule child node', storedNodeId(newNode.parent), 0));
     if (newNode.parent is TitleNode) {
       (newNode.parent! as TitleNode).childRuleNode = newNode;
     } else {
       (newNode.parent! as RuleNode).childRuleNode = newNode;
     }
     newNode.setDefaultRuleSortFields();
-  }
-
-  void editTitle(TitleNode node, String newTitle) {
-    node.title = newTitle;
     updateAll();
   }
 
   void editRuleLine(RuleNode node, ParsedLine newRuleLine) {
+    var editUndo = UndoEditRuleLine(
+        'Edit rule line: ${node.ruleLine.getUnparsedLine()}',
+        storedNodeId(node),
+        node.ruleLine);
     node.ruleLine = newRuleLine;
-    node.setDefaultRuleSortFields(checkUnique: true);
+    var prevSortKeys = List.of(node.sortFields);
+    if (node.setDefaultRuleSortFields(checkCustom: true)) {
+      // Save custom sort keys if they've changed.
+      var sortUndo = UndoEditSortKeys('', storedNodeId(node), prevSortKeys,
+          isCustom: node.hasCustomSortFields);
+      undoList.add(UndoBatch(editUndo.title, [editUndo, sortUndo]));
+    } else {
+      undoList.add(editUndo);
+    }
     updateAll();
   }
 
   void deleteTreeNode(Node node) {
-    if (node.parent == null) {
-      rootNodes.remove(node);
-    } else if (node is TitleNode) {
-      (node.parent! as TitleNode).removeTitleChild(node);
-    } else if (node.parent is TitleNode) {
-      // Deleting a RuleNode from a TitleNode.
-      (node.parent! as TitleNode).replaceChildRule(null);
+    if (node is TitleNode) {
+      undoList.add(UndoDeleteTreeNode('Delete title node: ${node.title}',
+          storedNodeId(node.parent), storedNodePos(node), node));
+      if (node.parent != null) {
+        (node.parent as TitleNode).removeTitleChild(node);
+      } else {
+        rootNodes.remove(node);
+      }
     } else {
-      (node.parent! as RuleNode).childRuleNode = null;
+      undoList.add(UndoDeleteTreeNode(
+          'Delete rule node: ${(node as RuleNode).ruleLine.getUnparsedLine()}',
+          storedNodeId(node.parent),
+          storedNodePos(node),
+          node));
+      if (node.parent is TitleNode) {
+        // Deleting a RuleNode from a TitleNode.
+        (node.parent as TitleNode).replaceChildRule(null);
+      } else {
+        (node.parent as RuleNode).childRuleNode = null;
+      }
     }
     updateAll();
   }
@@ -404,6 +447,8 @@ class Structure extends ChangeNotifier {
     var siblings =
         node.parent != null ? node.parent!.storedChildren() : rootNodes;
     var pos = siblings.indexOf(node);
+    undoList.add(UndoMoveTitleNode(
+        'Move title node: ${node.title}', storedNodeId(node.parent), pos, up));
     siblings.removeAt(pos);
     siblings.insert(up ? --pos : ++pos, node);
     updateAll();
@@ -420,25 +465,37 @@ class Structure extends ChangeNotifier {
   }
 
   void ruleSortKeysToDefault(RuleNode node) {
-    node.hasUniqueSortFields = false;
+    undoList.add(UndoEditSortKeys(
+        'Rule sort keys to default', storedNodeId(node), node.sortFields,
+        isCustom: node.hasCustomSortFields));
+    node.hasCustomSortFields = false;
     node.setDefaultRuleSortFields();
     updateAll();
   }
 
   void childSortKeysToDefault(RuleNode node) {
-    node.hasUniqueChildSortFields = false;
+    undoList.add(UndoEditSortKeys(
+        'Child sort keys to default', storedNodeId(node), node.childSortFields,
+        isCustom: node.hasCustomChildSortFields, isChildSort: true));
+    node.hasCustomChildSortFields = false;
     node.setDefaultChildSortFields();
     updateAll();
   }
 
   void updateRuleSortKeys(RuleNode node, List<SortKey> newKeys) {
-    node.hasUniqueSortFields = true;
+    undoList.add(UndoEditSortKeys(
+        'Edit rule sort keys', storedNodeId(node), node.sortFields,
+        isCustom: node.hasCustomSortFields));
+    node.hasCustomSortFields = true;
     node.sortFields = newKeys;
     updateAll();
   }
 
   void updateChildSortKeys(RuleNode node, List<SortKey> newKeys) {
-    node.hasUniqueChildSortFields = true;
+    undoList.add(UndoEditSortKeys(
+        'Edit child sort keys', storedNodeId(node), node.childSortFields,
+        isCustom: node.hasCustomChildSortFields, isChildSort: true));
+    node.hasCustomChildSortFields = true;
     node.childSortFields = newKeys;
     updateAll();
   }

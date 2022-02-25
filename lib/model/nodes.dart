@@ -82,13 +82,12 @@ class TitleNode implements Node {
     _children.clear();
   }
 
-  void addChildTitleNode(TitleNode newNode, {TitleNode? afterChild}) {
-    // Adds at end if afterChild is null.
+  void addChildTitleNode(TitleNode newNode, {TitleNode? afterChild, int? pos}) {
+    // Adds at end if afterChild and pos are null.
     assert(childRuleNode == null);
-    var pos = 0;
     if (afterChild != null) {
       pos = _children.indexOf(afterChild) + 1;
-    } else {
+    } else if (pos == null) {
       pos = _children.length;
     }
     _children.insert(pos, newNode as Node);
@@ -116,9 +115,9 @@ class RuleNode implements Node {
   Node? parent;
   late ParsedLine ruleLine;
   late List<SortKey> sortFields;
-  bool hasUniqueSortFields = false;
+  bool hasCustomSortFields = false;
   late List<SortKey> childSortFields;
-  bool hasUniqueChildSortFields = false;
+  bool hasCustomChildSortFields = false;
   RuleNode? childRuleNode;
   var isOpen = false;
   var isStale = false;
@@ -141,7 +140,7 @@ class RuleNode implements Node {
         for (var fieldName in sortData)
           SortKey.fromString(fieldName, modelRef.fieldMap)
       ];
-      hasUniqueSortFields = true;
+      hasCustomSortFields = true;
     } else {
       setDefaultRuleSortFields();
     }
@@ -151,7 +150,7 @@ class RuleNode implements Node {
         for (var fieldName in childSortData)
           SortKey.fromString(fieldName, modelRef.fieldMap)
       ];
-      hasUniqueChildSortFields = true;
+      hasCustomChildSortFields = true;
     } else {
       setDefaultChildSortFields();
     }
@@ -170,31 +169,37 @@ class RuleNode implements Node {
     return [];
   }
 
-  void setDefaultRuleSortFields({bool checkUnique = false}) {
-    if (!hasUniqueSortFields) {
+  bool setDefaultRuleSortFields({bool checkCustom = false}) {
+    var hasCustomChange = false;
+    if (!hasCustomSortFields) {
       sortFields = [for (var field in ruleLine.fields()) SortKey(field)];
-    } else if (checkUnique) {
+    } else if (checkCustom) {
       // Only keep unique sort fields that are found in the rules.
       var ruleFields = ruleLine.fields();
       for (var key in List.of(sortFields)) {
-        if (!ruleFields.contains(key.keyField)) sortFields.remove(key);
+        if (!ruleFields.contains(key.keyField)) {
+          sortFields.remove(key);
+          hasCustomChange = true;
+        }
       }
       if (sortFields.isEmpty) {
-        hasUniqueSortFields = false;
+        hasCustomSortFields = false;
+        hasCustomChange = false;
         setDefaultRuleSortFields();
       }
     }
+    return hasCustomChange;
   }
 
   void setDefaultChildSortFields() {
-    if (!hasUniqueChildSortFields)
+    if (!hasCustomChildSortFields)
       childSortFields = [
         for (var field in modelRef.fieldMap.values) SortKey(field)
       ];
   }
 
   bool isFieldInChildSort(Field field) {
-    if (!hasUniqueChildSortFields) return false;
+    if (!hasCustomChildSortFields) return false;
     for (var key in childSortFields) {
       if (key.keyField == field) return true;
     }
@@ -202,13 +207,13 @@ class RuleNode implements Node {
   }
 
   bool removeChildSortField(Field field) {
-    if (!hasUniqueChildSortFields) return false;
+    if (!hasCustomChildSortFields) return false;
     for (var key in childSortFields) {
       if (key.keyField == field) {
         if (childSortFields.length > 1) {
           childSortFields.remove(key);
         } else {
-          hasUniqueChildSortFields = false;
+          hasCustomChildSortFields = false;
         }
         return true;
       }
@@ -219,12 +224,12 @@ class RuleNode implements Node {
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{};
     result['rule'] = ruleLine.getUnparsedLine();
-    if (hasUniqueSortFields) {
+    if (hasCustomSortFields) {
       result['sortfields'] = [
         for (var sortKey in sortFields) sortKey.toString()
       ];
     }
-    if (hasUniqueChildSortFields) {
+    if (hasCustomChildSortFields) {
       result['childsortfields'] = [
         for (var sortKey in childSortFields) sortKey.toString()
       ];

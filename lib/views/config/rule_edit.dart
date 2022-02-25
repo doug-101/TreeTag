@@ -113,13 +113,13 @@ class _RuleEditState extends State<RuleEdit> {
                           BoxConstraints(minWidth: 48.0, minHeight: 24.0),
                       borderRadius: BorderRadius.circular(10.0),
                       isSelected: [
-                        !widget.node.hasUniqueSortFields,
-                        widget.node.hasUniqueSortFields
+                        !widget.node.hasCustomSortFields,
+                        widget.node.hasCustomSortFields
                       ],
                       onPressed: (int index) async {
                         if (index == 0) {
                           // Default button pushed.
-                          if (widget.node.hasUniqueSortFields) {
+                          if (widget.node.hasCustomSortFields) {
                             setState(() {
                               model.ruleSortKeysToDefault(widget.node);
                             });
@@ -180,13 +180,13 @@ class _RuleEditState extends State<RuleEdit> {
                             BoxConstraints(minWidth: 48.0, minHeight: 24.0),
                         borderRadius: BorderRadius.circular(10.0),
                         isSelected: [
-                          !widget.node.hasUniqueChildSortFields,
-                          widget.node.hasUniqueChildSortFields
+                          !widget.node.hasCustomChildSortFields,
+                          widget.node.hasCustomChildSortFields
                         ],
                         onPressed: (int index) async {
                           if (index == 0) {
                             // Default button pushed.
-                            if (widget.node.hasUniqueChildSortFields) {
+                            if (widget.node.hasCustomChildSortFields) {
                               setState(() {
                                 model.childSortKeysToDefault(widget.node);
                               });
