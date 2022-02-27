@@ -40,64 +40,86 @@ class _UndoViewState extends State<UndoView> {
           title: Text('Undo List'),
         ),
         body: ListView(
-          children: [
-            for (var pos = 0; pos < model.undoList.length; pos++)
-              Card(
-                child: ListTile(
-                  title: Text(model.undoList[pos].title),
-                  subtitle: Text(DateFormat('MMM dd HH:mm')
-                      .format(model.undoList[pos].timeStamp)),
-                  enabled: deleteToPos == null || pos > deleteToPos!,
-                  selected: undoToPos != null && pos >= undoToPos!,
-                  trailing: PopupMenuButton<MenuItems>(
-                    icon: const Icon(Icons.more_vert),
-                    onSelected: (MenuItems result) {
-                      switch (result) {
-                        case MenuItems.undo:
-                          undoToPos = pos;
-                          break;
-                        case MenuItems.cancelUndo:
-                          undoToPos = null;
-                          break;
-                        case MenuItems.delete:
-                          deleteToPos = pos;
-                          break;
-                        case MenuItems.cancelDelete:
-                          deleteToPos = null;
-                          break;
-                      }
-                      setState(() {});
-                    },
-                    itemBuilder: (context) => [
-                      if (pos != undoToPos &&
-                          (deleteToPos == null || pos > deleteToPos!))
-                        PopupMenuItem<MenuItems>(
-                          child: Text('Undo to here'),
-                          value: MenuItems.undo,
-                        ),
-                      if (pos == undoToPos)
-                        PopupMenuItem<MenuItems>(
-                          child: Text('Cancel undo'),
-                          value: MenuItems.cancelUndo,
-                        ),
-                      if (pos != deleteToPos &&
-                          (undoToPos == null || pos < undoToPos!))
-                        PopupMenuItem<MenuItems>(
-                          child: Text('Delete to here'),
-                          value: MenuItems.delete,
-                        ),
-                      if (pos == deleteToPos)
-                        PopupMenuItem<MenuItems>(
-                          child: Text('Cancel delete'),
-                          value: MenuItems.cancelDelete,
-                        ),
-                    ],
-                  ),
-                ),
-              )
-          ],
+          children: _undoCards(),
         ),
       ),
     );
+  }
+
+  List<Widget> _undoCards() {
+    var model = Provider.of<Structure>(context, listen: false);
+    var cards = <Widget>[];
+    var hasPrevUndo = false;
+    for (var pos = 0; pos < model.undoList.length; pos++) {
+      var isEnabled = true;
+      var isSelected = false;
+      if (deleteToPos != null && pos <= deleteToPos!) {
+        isEnabled = false;
+      }
+      if (undoToPos != null && pos >= undoToPos!) {
+        if (hasPrevUndo && model.undoList[pos].isRedo) {
+          isEnabled = false;
+        } else {
+          isSelected = true;
+        }
+        if (!model.undoList[pos].isRedo) hasPrevUndo = true;
+      }
+      cards.add(
+        Card(
+          child: ListTile(
+            title: Text(model.undoList[pos].title),
+            subtitle: Text(DateFormat('MMM dd HH:mm')
+                .format(model.undoList[pos].timeStamp)),
+            enabled: isEnabled,
+            selected: isSelected,
+            trailing: PopupMenuButton<MenuItems>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (MenuItems result) {
+                switch (result) {
+                  case MenuItems.undo:
+                    undoToPos = pos;
+                    break;
+                  case MenuItems.cancelUndo:
+                    undoToPos = null;
+                    break;
+                  case MenuItems.delete:
+                    deleteToPos = pos;
+                    break;
+                  case MenuItems.cancelDelete:
+                    deleteToPos = null;
+                    break;
+                }
+                setState(() {});
+              },
+              itemBuilder: (context) => [
+                if (pos != undoToPos &&
+                    (deleteToPos == null || pos > deleteToPos!))
+                  PopupMenuItem<MenuItems>(
+                    child: Text('Undo to here'),
+                    value: MenuItems.undo,
+                  ),
+                if (pos == undoToPos)
+                  PopupMenuItem<MenuItems>(
+                    child: Text('Cancel undo'),
+                    value: MenuItems.cancelUndo,
+                  ),
+                if (pos != deleteToPos &&
+                    (undoToPos == null || pos < undoToPos!))
+                  PopupMenuItem<MenuItems>(
+                    child: Text('Delete to here'),
+                    value: MenuItems.delete,
+                  ),
+                if (pos == deleteToPos)
+                  PopupMenuItem<MenuItems>(
+                    child: Text('Cancel delete'),
+                    value: MenuItems.cancelDelete,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return cards;
   }
 }
