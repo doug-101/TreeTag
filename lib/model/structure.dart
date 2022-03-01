@@ -501,27 +501,33 @@ class Structure extends ChangeNotifier {
   }
 
   void addOutputLine(int pos, ParsedLine newLine) {
+    undoList.add(UndoAddOutputLine('Add output line', pos));
     outputLines.insert(pos, newLine);
     updateAll();
   }
 
   void editOutputLine(ParsedLine origLine, ParsedLine newLine) {
     if (origLine == titleLine) {
+      undoList.add(UndoEditOutputLine('Edit title line', -1, origLine));
       titleLine = newLine;
     } else {
       int pos = outputLines.indexOf(origLine);
+      undoList.add(UndoEditOutputLine('Edit output line', pos, origLine));
       if (pos >= 0) outputLines[pos] = newLine;
     }
     updateAll();
   }
 
   void removeOutputLine(ParsedLine origLine) {
+    int pos = outputLines.indexOf(origLine);
+    undoList.add(UndoRemoveOutputLine('Remove output line', pos, origLine));
     outputLines.remove(origLine);
     updateAll();
   }
 
   void moveOutputLine(ParsedLine line, {bool up = true}) {
     var pos = outputLines.indexOf(line);
+    undoList.add(UndoMoveOutputLine('Move output line', pos, up));
     outputLines.removeAt(pos);
     outputLines.insert(up ? --pos : ++pos, line);
     updateAll();

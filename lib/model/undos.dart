@@ -153,6 +153,37 @@ abstract class Undo {
           isRedo: jsonData['isredo'],
         );
         break;
+      case 'addoutputline':
+        undo = UndoAddOutputLine(
+          jsonData['title'],
+          jsonData['linepos'],
+          isRedo: jsonData['isredo'],
+        );
+        break;
+      case 'removeoutputline':
+        undo = UndoRemoveOutputLine(
+          jsonData['title'],
+          jsonData['linepos'],
+          ParsedLine(jsonData['outputline'], UndoList._modelRef.fieldMap),
+          isRedo: jsonData['isredo'],
+        );
+        break;
+      case 'editoutputline':
+        undo = UndoEditOutputLine(
+          jsonData['title'],
+          jsonData['linepos'],
+          ParsedLine(jsonData['outputline'], UndoList._modelRef.fieldMap),
+          isRedo: jsonData['isredo'],
+        );
+        break;
+      case 'moveoutputline':
+        undo = UndoMoveOutputLine(
+          jsonData['title'],
+          jsonData['linepos'],
+          jsonData['isup'],
+          isRedo: jsonData['isredo'],
+        );
+        break;
       default:
         throw FormatException('Stored undo data is corrupt');
         break;
@@ -482,6 +513,115 @@ class UndoEditSortKeys extends Undo {
     result['sortfields'] = [for (var sortKey in sortFields) sortKey.toString()];
     result['iscustom'] = isCustom;
     result['ischildsort'] = isChildSort;
+    return result;
+  }
+}
+
+class UndoAddOutputLine extends Undo {
+  int linePos;
+
+  UndoAddOutputLine(String title, this.linePos, {bool isRedo = false})
+      : super(title, 'addoutputline', isRedo);
+
+  @override
+  Undo undo() {
+    var redo = UndoRemoveOutputLine(_toggleTitleRedo(title), linePos,
+        UndoList._modelRef.outputLines[linePos],
+        isRedo: !isRedo);
+    UndoList._modelRef.outputLines.removeAt(linePos);
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['linepos'] = linePos;
+    return result;
+  }
+}
+
+class UndoRemoveOutputLine extends Undo {
+  int linePos;
+  ParsedLine outputLine;
+
+  UndoRemoveOutputLine(String title, this.linePos, this.outputLine,
+      {bool isRedo = false})
+      : super(title, 'removeoutputline', isRedo);
+
+  @override
+  Undo undo() {
+    var redo =
+        UndoAddOutputLine(_toggleTitleRedo(title), linePos, isRedo: !isRedo);
+    UndoList._modelRef.outputLines.insert(linePos, outputLine);
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['linepos'] = linePos;
+    result['outputline'] = outputLine.getUnparsedLine();
+    return result;
+  }
+}
+
+class UndoEditOutputLine extends Undo {
+  int linePos;
+  ParsedLine outputLine;
+
+  UndoEditOutputLine(String title, this.linePos, this.outputLine,
+      {bool isRedo = false})
+      : super(title, 'editoutputline', isRedo);
+
+  @override
+  Undo undo() {
+    UndoEditOutputLine redo;
+    if (linePos < 0) {
+      redo = UndoEditOutputLine(
+          _toggleTitleRedo(title), linePos, UndoList._modelRef.titleLine,
+          isRedo: !isRedo);
+      UndoList._modelRef.titleLine = outputLine;
+    } else {
+      redo = UndoEditOutputLine(_toggleTitleRedo(title), linePos,
+          UndoList._modelRef.outputLines[linePos],
+          isRedo: !isRedo);
+      UndoList._modelRef.outputLines[linePos] = outputLine;
+    }
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['linepos'] = linePos;
+    result['outputline'] = outputLine.getUnparsedLine();
+    return result;
+  }
+}
+
+class UndoMoveOutputLine extends Undo {
+  int origLinePos;
+  bool isUp;
+
+  UndoMoveOutputLine(String title, this.origLinePos, this.isUp,
+      {bool isRedo = false})
+      : super(title, 'moveoutputline', isRedo);
+
+  @override
+  Undo undo() {
+    var currLinePos = isUp ? origLinePos - 1 : origLinePos + 1;
+    var redo = UndoMoveOutputLine(_toggleTitleRedo(title), currLinePos, !isUp,
+        isRedo: !isRedo);
+    var outputLine = UndoList._modelRef.outputLines.removeAt(currLinePos);
+    UndoList._modelRef.outputLines.insert(origLinePos, outputLine);
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['linepos'] = origLinePos;
+    result['isup'] = isUp;
     return result;
   }
 }
