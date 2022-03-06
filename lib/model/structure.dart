@@ -157,6 +157,7 @@ class Structure extends ChangeNotifier {
   }
 
   void addNewField(Field field) {
+    undoList.add(UndoAddNewField('Add new field: ${field.name}', field.name));
     fieldMap[field.name] = field;
     updateRuleChildSortFields();
     updateAll();
@@ -164,13 +165,25 @@ class Structure extends ChangeNotifier {
 
   void editField(Field oldField, Field editedField,
       {bool removeChoices = false}) {
+    var undos = <Undo>[];
+    var pos = List.of(fieldMap.values).indexOf(oldField);
+    undos.add(UndoEditField(
+        'Edit field: ${oldField.name}', pos, Field.copy(oldField)));
     if (oldField.name != editedField.name) {
       // Field was renamed.
-      fieldMap.remove(oldField.name);
-      fieldMap[editedField.name] = oldField;
+      var fieldList = List.of(fieldMap.values);
+      fieldMap.clear();
+      for (var fld in fieldList) {
+        if (fld == oldField) {
+          fieldMap[editedField.name] = fld;
+        } else {
+          fieldMap[fld.name] = fld;
+        }
+      }
       for (var leaf in leafNodes) {
         var data = leaf.data[oldField.name];
         if (data != null) {
+          undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
           leaf.data[editedField.name] = data;
           leaf.data.remove(oldField.name);
         }
@@ -179,62 +192,112 @@ class Structure extends ChangeNotifier {
     oldField.updateSettings(editedField);
     if (removeChoices) {
       for (var leaf in leafNodes) {
-        if (!oldField.isStoredTextValid(leaf)) leaf.data.remove(oldField.name);
+        if (!oldField.isStoredTextValid(leaf)) {
+          undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
+          leaf.data.remove(editedField.name);
+        }
       }
+    }
+    if (undos.length > 1) {
+      undoList.add(UndoBatch(undos[0].title, undos));
+    } else {
+      undoList.add(undos[0]);
     }
     updateAll();
   }
 
   // Used for field type changes.
   void replaceField(Field oldField, Field newField) {
+    var undos = <Undo>[];
+    var pos = List.of(fieldMap.values).indexOf(oldField);
+    undos.add(UndoEditField('Edit field: ${oldField.name}', pos, oldField));
     if (oldField.name != newField.name) {
       for (var leaf in leafNodes) {
         var data = leaf.data[oldField.name];
         if (data != null) {
+          undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
           leaf.data[newField.name] = data;
           leaf.data.remove(oldField.name);
         }
       }
     }
-    fieldMap.remove(oldField.name);
-    fieldMap[newField.name] = newField;
-    if (isFieldInTitle(oldField)) titleLine.replaceField(oldField, newField);
+    var fieldList = List.of(fieldMap.values);
+    fieldMap.clear();
+    for (var fld in fieldList) {
+      if (fld == oldField) {
+        fieldMap[newField.name] = newField;
+      } else {
+        fieldMap[fld.name] = fld;
+      }
+    }
+    if (isFieldInTitle(oldField)) {
+      undos.add(UndoEditOutputLine('', -1, titleLine.copy()));
+      titleLine.replaceField(oldField, newField);
+    }
     if (isFieldInOutput(oldField)) {
       for (var line in outputLines.toList()) {
-        line.replaceField(oldField, newField);
+        if (line.fields().contains(oldField)) {
+          int linePos = outputLines.indexOf(line);
+          undos.add(UndoEditOutputLine('', linePos, line.copy()));
+          line.replaceField(oldField, newField);
+        }
       }
     }
     for (var root in rootNodes) {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
-          (item.node as RuleNode).ruleLine.replaceField(oldField, newField);
+          var rule = item.node as RuleNode;
+          if (rule.ruleLine.fields().contains(oldField)) {
+            undos.add(UndoEditRuleLine('', storedNodeId(rule), rule.ruleLine));
+            rule.ruleLine.replaceField(oldField, newField);
+          }
         }
       }
     }
     for (var leaf in leafNodes) {
-      if (!newField.isStoredTextValid(leaf)) leaf.data.remove(newField.name);
+      if (!newField.isStoredTextValid(leaf)) {
+        undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
+        leaf.data.remove(newField.name);
+      }
+    }
+    if (undos.length > 1) {
+      undoList.add(UndoBatch(undos[0].title, undos));
+    } else {
+      undoList.add(undos[0]);
     }
     updateAll();
   }
 
   void deleteField(Field field) {
+    var undos = <Undo>[];
+    var pos = List.of(fieldMap.values).indexOf(field);
+    undos.add(UndoDeleteField('Delete field: ${field.name}', pos, field));
     fieldMap.remove(field.name);
     for (var leaf in leafNodes) {
-      leaf.data.remove(field.name);
+      if (leaf.data.containsKey(field.name)) {
+        undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
+        leaf.data.remove(field.name);
+      }
     }
-    if (isFieldInTitle(field))
+    if (isFieldInTitle(field)) {
+      undos.add(UndoEditOutputLine('', -1, titleLine.copy()));
       titleLine.deleteField(field, replacement: List.of(fieldMap.values)[0]);
+    }
     if (isFieldInOutput(field)) {
       for (var line in outputLines.toList()) {
         if (line.fields().contains(field)) {
+          int linePos = outputLines.indexOf(line);
           if (line.hasMultipleFields()) {
+            undos.add(UndoEditOutputLine('', linePos, line.copy()));
             line.deleteField(field);
           } else {
+            undos.add(UndoRemoveOutputLine('', linePos, line));
             outputLines.remove(line);
           }
         }
       }
       if (outputLines.isEmpty) {
+        undos.add(UndoAddOutputLine('', 0));
         outputLines
             .add(ParsedLine.fromSingleField(List.of(fieldMap.values)[0]));
       }
@@ -246,12 +309,20 @@ class Structure extends ChangeNotifier {
           var rule = item.node as RuleNode;
           if (rule.ruleLine.fields().contains(field)) badRules.add(rule);
           if (rule.isFieldInChildSort(field)) {
+            undos.add(UndoEditSortKeys(
+                '', storedNodeId(rule), rule.childSortFields,
+                isChildSort: true));
             rule.removeChildSortField(field);
           }
         }
       }
     }
     for (var ruleNode in badRules) {
+      undos.add(
+          UndoDeleteTreeNode('', storedNodeId(ruleNode.parent), 0, ruleNode));
+      if (ruleNode.childRuleNode != null) {
+        undos.add(UndoAddTreeNode('', storedNodeId(ruleNode), 0));
+      }
       if (ruleNode.parent != null) {
         if (ruleNode.parent is RuleNode) {
           (ruleNode.parent as RuleNode).childRuleNode = ruleNode.childRuleNode;
@@ -263,6 +334,11 @@ class Structure extends ChangeNotifier {
         rootNodes.remove(ruleNode);
       }
     }
+    if (undos.length > 1) {
+      undoList.add(UndoBatch(undos[0].title, undos));
+    } else {
+      undoList.add(undos[0]);
+    }
     updateRuleChildSortFields();
     updateAll();
   }
@@ -270,6 +346,7 @@ class Structure extends ChangeNotifier {
   void moveField(Field field, {bool up = true}) {
     var fieldList = List.of(fieldMap.values);
     var pos = fieldList.indexOf(field);
+    undoList.add(UndoMoveField('Move field: ${field.name}', pos, up));
     fieldList.removeAt(pos);
     fieldList.insert(up ? --pos : ++pos, field);
     fieldMap.clear();

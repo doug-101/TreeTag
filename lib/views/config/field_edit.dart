@@ -41,7 +41,7 @@ class _FieldEditState extends State<FieldEdit> {
       _formKey.currentState!.save();
       var model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
-        model.addNewField(widget.field);
+        model.addNewField(_editedField);
         return true;
       }
       if (_isFieldTypeChanged) {

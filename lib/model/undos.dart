@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'dart:collection';
+import 'fields.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'structure.dart';
@@ -95,6 +96,37 @@ abstract class Undo {
           jsonData['title'],
           jsonData['nodepos'],
           LeafNode.fromJson(jsonData['nodeobject'], UndoList._modelRef),
+          isRedo: jsonData['isredo'],
+        );
+        break;
+      case 'addnewfield':
+        undo = UndoAddNewField(
+          jsonData['title'],
+          jsonData['fieldname'],
+          isRedo: jsonData['isredo'],
+        );
+        break;
+      case 'editfield':
+        undo = UndoEditField(
+          jsonData['title'],
+          jsonData['fieldpos'],
+          Field.fromJson(jsonData['field']),
+          isRedo: jsonData['isredo'],
+        );
+        break;
+      case 'deletefield':
+        undo = UndoDeleteField(
+          jsonData['title'],
+          jsonData['fieldpos'],
+          Field.fromJson(jsonData['field']),
+          isRedo: jsonData['isredo'],
+        );
+        break;
+      case 'movefield':
+        undo = UndoMoveField(
+          jsonData['title'],
+          jsonData['fieldpos'],
+          jsonData['isup'],
           isRedo: jsonData['isredo'],
         );
         break;
@@ -220,7 +252,7 @@ class UndoBatch extends Undo {
 
   @override
   Undo undo() {
-    var redos = [for (var undoInst in storedUndos) undoInst.undo()];
+    var redos = [for (var undoInst in storedUndos.reversed) undoInst.undo()];
     return UndoBatch(_toggleTitleRedo(title), redos, isRedo: !isRedo);
   }
 
@@ -305,6 +337,141 @@ class UndoDeleteLeafNode extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['nodeobject'] = node.toJson();
+    return result;
+  }
+}
+
+class UndoAddNewField extends Undo {
+  String fieldName;
+
+  UndoAddNewField(String title, this.fieldName, {bool isRedo = false})
+      : super(title, 'addnewfield', isRedo);
+
+  @override
+  Undo undo() {
+    var redo = UndoDeleteField(
+        _toggleTitleRedo(title),
+        List.of(UndoList._modelRef.fieldMap.keys).indexOf(fieldName),
+        UndoList._modelRef.fieldMap[fieldName]!,
+        isRedo: !isRedo);
+    UndoList._modelRef.fieldMap.remove(fieldName);
+    UndoList._modelRef.updateRuleChildSortFields();
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['fieldname'] = fieldName;
+    return result;
+  }
+}
+
+class UndoEditField extends Undo {
+  int fieldPos;
+  Field field;
+
+  UndoEditField(String title, this.fieldPos, this.field, {bool isRedo = false})
+      : super(title, 'editfield', isRedo);
+
+  @override
+  Undo undo() {
+    var fieldList = List.of(UndoList._modelRef.fieldMap.values);
+    var redoField = fieldList[fieldPos].fieldType == field.fieldType
+        ? Field.copy(fieldList[fieldPos])
+        : field;
+    var redo = UndoEditField(_toggleTitleRedo(title), fieldPos, redoField,
+        isRedo: !isRedo);
+    if (field.name != fieldList[fieldPos].name) {
+      // Field was renamed.
+      UndoList._modelRef.fieldMap.clear();
+      for (var fld in fieldList) {
+        if (fld == fieldList[fieldPos]) {
+          UndoList._modelRef.fieldMap[field.name] = fld;
+        } else {
+          UndoList._modelRef.fieldMap[fld.name] = fld;
+        }
+      }
+    }
+    if (fieldList[fieldPos].fieldType == field.fieldType) {
+      fieldList[fieldPos].updateSettings(field);
+    } else {
+      fieldList[fieldPos] = field;
+      UndoList._modelRef.fieldMap.clear();
+      for (var fld in fieldList) {
+        UndoList._modelRef.fieldMap[fld.name] = fld;
+      }
+    }
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['fieldpos'] = fieldPos;
+    result['field'] = field.toJson();
+    return result;
+  }
+}
+
+class UndoDeleteField extends Undo {
+  int fieldPos;
+  Field field;
+
+  UndoDeleteField(String title, this.fieldPos, this.field,
+      {bool isRedo = false})
+      : super(title, 'deletefield', isRedo);
+
+  @override
+  Undo undo() {
+    var redo =
+        UndoAddNewField(_toggleTitleRedo(title), field.name, isRedo: !isRedo);
+    var fieldList = List.of(UndoList._modelRef.fieldMap.values);
+    fieldList.insert(fieldPos, field);
+    UndoList._modelRef.fieldMap.clear();
+    for (var fld in fieldList) {
+      UndoList._modelRef.fieldMap[fld.name] = fld;
+    }
+    UndoList._modelRef.updateRuleChildSortFields();
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['fieldpos'] = fieldPos;
+    result['field'] = field.toJson();
+    return result;
+  }
+}
+
+class UndoMoveField extends Undo {
+  int fieldPos;
+  bool isUp;
+
+  UndoMoveField(String title, this.fieldPos, this.isUp, {bool isRedo = false})
+      : super(title, 'movefield', isRedo);
+
+  @override
+  Undo undo() {
+    var currFieldPos = isUp ? fieldPos - 1 : fieldPos + 1;
+    var redo = UndoMoveField(_toggleTitleRedo(title), currFieldPos, !isUp,
+        isRedo: !isRedo);
+    var fieldList = List.of(UndoList._modelRef.fieldMap.values);
+    UndoList._modelRef.fieldMap.clear();
+    var field = fieldList.removeAt(currFieldPos);
+    fieldList.insert(fieldPos, field);
+    for (var fld in fieldList) {
+      UndoList._modelRef.fieldMap[fld.name] = fld;
+    }
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = super.toJson();
+    result['fieldpos'] = fieldPos;
+    result['isup'] = isUp;
     return result;
   }
 }
@@ -451,7 +618,7 @@ class UndoMoveTitleNode extends Undo {
 
   @override
   Undo undo() {
-    var currNodePos = isUp ? --origNodePos : ++origNodePos;
+    var currNodePos = isUp ? origNodePos - 1 : origNodePos + 1;
     var redo = UndoMoveTitleNode(
         _toggleTitleRedo(title), parentId, currNodePos, !isUp,
         isRedo: !isRedo);
@@ -566,6 +733,7 @@ class UndoRemoveOutputLine extends Undo {
 }
 
 class UndoEditOutputLine extends Undo {
+  // linePos is -1 for the title line.
   int linePos;
   ParsedLine outputLine;
 
