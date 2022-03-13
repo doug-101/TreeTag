@@ -22,6 +22,7 @@ abstract class Field {
   late String name, fieldType, format, initValue, prefix, suffix;
   var _altFormatFields = <Field>[];
   int? _altFormatNumber;
+  Field? altFormatParent;
 
   Field({
     required this.name,
@@ -114,6 +115,7 @@ abstract class Field {
         suffix: jsonData['suffix:$i'] ?? '',
       );
       altField._altFormatNumber = i;
+      altField.altFormatParent = newField;
       newField._altFormatFields.add(altField);
       i++;
     }
@@ -133,11 +135,15 @@ abstract class Field {
     );
     newField._altFormatFields = origField._altFormatFields;
     newField._altFormatNumber = origField._altFormatNumber;
+    newField.altFormatParent = origField.altFormatParent;
     return newField;
   }
 
   void updateSettings(Field otherField) {
-    name = otherField.name;
+    if (name != otherField.name) {
+      name = otherField.name;
+      for (var altField in _altFormatFields) altField.name = otherField.name;
+    }
     format = otherField.format;
     initValue = otherField.initValue;
     prefix = otherField.prefix;
@@ -221,7 +227,14 @@ abstract class Field {
     return null;
   }
 
-  bool isAltFormatField() => _altFormatNumber != null;
+  bool get isAltFormatField => _altFormatNumber != null;
+
+  List<Field> matchingFieldDescendents(List<Field> fields) {
+    return [
+      for (var field in fields)
+        if (field.name == this.name) field
+    ];
+  }
 
   Field createAltFormatField() {
     var altField = Field.createField(
@@ -232,12 +245,30 @@ abstract class Field {
         prefix: prefix,
         suffix: suffix);
     altField._altFormatNumber = _altFormatFields.length;
+    altField.altFormatParent = this;
     _altFormatFields.add(altField);
     return altField;
   }
 
   void removeAltFormatField(Field altField) {
     _altFormatFields.remove(altField);
+    for (int i = 0; i < _altFormatFields.length; i++) {
+      _altFormatFields[i]._altFormatNumber = i;
+    }
+  }
+
+  void removeUnusedAltFormatFields(Set<Field> usedFields) {
+    _altFormatFields.retainWhere((field) => usedFields.contains(field));
+    for (int i = 0; i < _altFormatFields.length; i++) {
+      _altFormatFields[i]._altFormatNumber = i;
+    }
+  }
+
+  void addAltFormatFieldIfMissing(Field altField) {
+    if (!_altFormatFields.contains(altField)) {
+      altField._altFormatNumber = _altFormatFields.length;
+      _altFormatFields.add(altField);
+    }
   }
 
   String lineText() {
@@ -420,8 +451,8 @@ class DateField extends Field {
 
   @override
   int compareNodes(Node firstNode, Node secondNode) {
-    var firstValue = _parseStored(firstNode.data[name] ?? '0000-01-01');
-    var secondValue = _parseStored(secondNode.data[name] ?? '0000-01-01');
+    var firstValue = _parseStored(firstNode.data[name] ?? '0001-01-01');
+    var secondValue = _parseStored(secondNode.data[name] ?? '0001-01-01');
     return firstValue.compareTo(secondValue);
   }
 }

@@ -93,7 +93,7 @@ class _LineEditState extends State<LineEdit> {
                             if (selectedSegment?.field != null) {
                               var altField = selectedSegment!.field!;
                               var altCreated = false;
-                              if (!altField.isAltFormatField()) {
+                              if (!altField.isAltFormatField) {
                                 altField = altField.createAltFormatField();
                                 altCreated = true;
                               }
@@ -104,14 +104,20 @@ class _LineEditState extends State<LineEdit> {
                                       LineFieldEdit(field: altField),
                                 ),
                               );
-                              if (fieldIsChanged) isChanged = true;
-                              if (altCreated) {
-                                if (fieldIsChanged) {
+                              if (fieldIsChanged) {
+                                isChanged = true;
+                                if (altCreated)
                                   selectedSegment!.field = altField;
-                                } else {
+                                if (altField == altField.altFormatParent) {
+                                  // Revert to parent field format if same.
+                                  selectedSegment!.field =
+                                      altField.altFormatParent;
                                   selectedSegment!.field!
                                       .removeAltFormatField(altField);
                                 }
+                              } else if (altCreated) {
+                                selectedSegment!.field!
+                                    .removeAltFormatField(altField);
                               }
                             } else {
                               var text = await textDialog(

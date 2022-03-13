@@ -69,7 +69,7 @@ class _FileControlState extends State<FileControl> {
               icon: const Icon(Icons.add_box),
               onPressed: () async {
                 var filename =
-                    await filenameDialog(label: 'Nane for the new file:');
+                    await filenameDialog(label: 'Name for the new file:');
                 if (filename != null) {
                   var fileObj = File(p.join(workDir.path, filename + '.trtg'));
                   var model = Provider.of<Structure>(context, listen: false);

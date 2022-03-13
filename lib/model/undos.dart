@@ -402,6 +402,7 @@ class UndoEditField extends Undo {
         UndoList._modelRef.fieldMap[fld.name] = fld;
       }
     }
+    UndoList._modelRef.updateAltFormatFields();
     return redo;
   }
 
@@ -517,6 +518,7 @@ class UndoEditRuleLine extends Undo {
         isRedo: !isRedo);
     node.ruleLine = ruleLine;
     node.setDefaultRuleSortFields();
+    UndoList._modelRef.updateAltFormatFields();
     return redo;
   }
 
@@ -555,6 +557,7 @@ class UndoAddTreeNode extends Undo {
     } else {
       (parentNode as RuleNode).childRuleNode = null;
     }
+    UndoList._modelRef.updateAltFormatFields();
     return redo;
   }
 
@@ -594,6 +597,7 @@ class UndoDeleteTreeNode extends Undo {
         (parentNode as RuleNode).childRuleNode = node as RuleNode;
       }
     }
+    UndoList._modelRef.updateAltFormatFields();
     return redo;
   }
 
@@ -696,6 +700,7 @@ class UndoAddOutputLine extends Undo {
         UndoList._modelRef.outputLines[linePos],
         isRedo: !isRedo);
     UndoList._modelRef.outputLines.removeAt(linePos);
+    UndoList._modelRef.updateAltFormatFields();
     return redo;
   }
 
@@ -720,6 +725,7 @@ class UndoRemoveOutputLine extends Undo {
     var redo =
         UndoAddOutputLine(_toggleTitleRedo(title), linePos, isRedo: !isRedo);
     UndoList._modelRef.outputLines.insert(linePos, outputLine);
+    UndoList._modelRef.updateAltFormatFields();
     return redo;
   }
 
@@ -755,6 +761,7 @@ class UndoEditOutputLine extends Undo {
           isRedo: !isRedo);
       UndoList._modelRef.outputLines[linePos] = outputLine;
     }
+    UndoList._modelRef.updateAltFormatFields();
     return redo;
   }
 

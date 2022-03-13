@@ -267,8 +267,8 @@ class RuleNode implements Node {
       groupNode.matchingNodes = nodeData[line]!;
       groupNode.data.clear();
       for (var field in ruleLine.fields()) {
-        groupNode.data[field.name] =
-            groupNode.matchingNodes[0].data[field.name]!;
+        var fieldValue = groupNode.matchingNodes[0].data[field.name];
+        if (fieldValue != null) groupNode.data[field.name] = fieldValue;
       }
       groups.add(groupNode);
     }

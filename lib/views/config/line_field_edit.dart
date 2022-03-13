@@ -27,6 +27,9 @@ class LineFieldEdit extends StatefulWidget {
 
 class _LineFieldEditState extends State<LineFieldEdit> {
   final _formKey = GlobalKey<FormState>();
+  final _fieldFormatKey = GlobalKey<FormFieldState<String>>();
+  final _fieldPrefixKey = GlobalKey<FormFieldState<String>>();
+  final _fieldSuffixKey = GlobalKey<FormFieldState<String>>();
 
   Future<bool> updateOnPop() async {
     if (_formKey.currentState!.validate()) {
@@ -49,7 +52,15 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           IconButton(
             icon: const Icon(Icons.restore),
             onPressed: () {
-              _formKey.currentState!.reset();
+              var parentField = widget.field.altFormatParent;
+              if (parentField != null) {
+                if (parentField.format.isNotEmpty)
+                  _fieldFormatKey.currentState!.didChange(parentField.format);
+                _fieldPrefixKey.currentState!.didChange(parentField.prefix);
+                _fieldSuffixKey.currentState!.didChange(parentField.suffix);
+              } else {
+                _formKey.currentState!.reset();
+              }
             },
           ),
         ],
@@ -63,6 +74,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
             children: <Widget>[
               if (widget.field.format.isNotEmpty)
                 FieldFormatDisplay(
+                  key: _fieldFormatKey,
                   fieldType: widget.field.fieldType,
                   initialFormat: widget.field.format,
                   onSaved: (String? value) {
@@ -70,6 +82,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
                   },
                 ),
               TextFormField(
+                key: _fieldPrefixKey,
                 decoration: InputDecoration(labelText: 'Prefix'),
                 initialValue: widget.field.prefix,
                 onSaved: (String? value) {
@@ -77,6 +90,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
                 },
               ),
               TextFormField(
+                key: _fieldSuffixKey,
                 decoration: InputDecoration(labelText: 'Suffix'),
                 initialValue: widget.field.suffix,
                 onSaved: (String? value) {

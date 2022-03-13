@@ -11,6 +11,7 @@ import '../views/detail_view.dart';
 import '../views/undo_view.dart';
 
 enum MenuItems { editConfig, close, undoView }
+const emptyName = '[Empty Title]';
 
 /// The main indented tree view.
 class TreeView extends StatelessWidget {
@@ -107,7 +108,9 @@ class TreeView extends StatelessWidget {
                   child: _leafIcon,
                   padding: EdgeInsets.only(left: 8.0, right: 8.0),
                 ),
-          Expanded(child: Text(node.title, softWrap: true)),
+          Expanded(
+              child: Text(node.title.isNotEmpty ? node.title : emptyName,
+                  softWrap: true)),
         ]),
       ),
     );

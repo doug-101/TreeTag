@@ -265,6 +265,7 @@ class Structure extends ChangeNotifier {
     } else {
       undoList.add(undos[0]);
     }
+    updateAltFormatFields();
     updateAll();
   }
 
@@ -281,15 +282,17 @@ class Structure extends ChangeNotifier {
     }
     if (isFieldInTitle(field)) {
       undos.add(UndoEditOutputLine('', -1, titleLine.copy()));
-      titleLine.deleteField(field, replacement: List.of(fieldMap.values)[0]);
+      for (var fld in field.matchingFieldDescendents(titleLine.fields()))
+        titleLine.deleteField(fld, replacement: List.of(fieldMap.values)[0]);
     }
     if (isFieldInOutput(field)) {
       for (var line in outputLines.toList()) {
-        if (line.fields().contains(field)) {
+        var fieldMatches = field.matchingFieldDescendents(line.fields());
+        if (fieldMatches.isNotEmpty) {
           int linePos = outputLines.indexOf(line);
           if (line.hasMultipleFields()) {
             undos.add(UndoEditOutputLine('', linePos, line.copy()));
-            line.deleteField(field);
+            for (var fld in fieldMatches) line.deleteField(fld);
           } else {
             undos.add(UndoRemoveOutputLine('', linePos, line));
             outputLines.remove(line);
@@ -307,7 +310,8 @@ class Structure extends ChangeNotifier {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
           var rule = item.node as RuleNode;
-          if (rule.ruleLine.fields().contains(field)) badRules.add(rule);
+          if (field.matchingFieldDescendents(rule.ruleLine.fields()).isNotEmpty)
+            badRules.add(rule);
           if (rule.isFieldInChildSort(field)) {
             undos.add(UndoEditSortKeys(
                 '', storedNodeId(rule), rule.childSortFields,
@@ -340,6 +344,7 @@ class Structure extends ChangeNotifier {
       undoList.add(undos[0]);
     }
     updateRuleChildSortFields();
+    updateAltFormatFields();
     updateAll();
   }
 
@@ -369,12 +374,12 @@ class Structure extends ChangeNotifier {
   }
 
   bool isFieldInTitle(Field field) {
-    return titleLine.fields().contains(field);
+    return field.matchingFieldDescendents(titleLine.fields()).isNotEmpty;
   }
 
   bool isFieldInOutput(Field field) {
     for (var line in outputLines) {
-      if (line.fields().contains(field)) return true;
+      if (field.matchingFieldDescendents(line.fields()).isNotEmpty) return true;
     }
     return false;
   }
@@ -384,7 +389,8 @@ class Structure extends ChangeNotifier {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
           var rule = item.node as RuleNode;
-          if (rule.ruleLine.fields().contains(field)) return true;
+          if (field.matchingFieldDescendents(rule.ruleLine.fields()).isNotEmpty)
+            return true;
         }
       }
     }
@@ -404,6 +410,24 @@ class Structure extends ChangeNotifier {
       if (!field.isStoredTextValid(leaf)) count++;
     }
     return count;
+  }
+
+  void updateAltFormatFields() {
+    var usedFields = <Field>{};
+    usedFields.addAll(titleLine.fields());
+    for (var line in outputLines) usedFields.addAll(line.fields());
+    for (var root in rootNodes) {
+      for (var item in storedNodeGenerator(root))
+        if (item.node is RuleNode)
+          usedFields.addAll((item.node as RuleNode).ruleLine.fields());
+    }
+    usedFields.retainWhere((field) => field.isAltFormatField);
+    for (var field in fieldMap.values)
+      field.removeUnusedAltFormatFields(usedFields);
+    for (var altField in usedFields) {
+      altField.name = altField.altFormatParent!.name;
+      altField.altFormatParent!.addAltFormatFieldIfMissing(altField);
+    }
   }
 
   String storedNodeId(Node? node) {
@@ -474,6 +498,7 @@ class Structure extends ChangeNotifier {
       (newNode.parent! as RuleNode).childRuleNode = newNode;
     }
     newNode.setDefaultRuleSortFields();
+    updateAltFormatFields();
     updateAll();
   }
 
@@ -492,6 +517,7 @@ class Structure extends ChangeNotifier {
     } else {
       undoList.add(editUndo);
     }
+    updateAltFormatFields();
     updateAll();
   }
 
@@ -516,6 +542,7 @@ class Structure extends ChangeNotifier {
       } else {
         (node.parent as RuleNode).childRuleNode = null;
       }
+      updateAltFormatFields();
     }
     updateAll();
   }
@@ -580,6 +607,7 @@ class Structure extends ChangeNotifier {
   void addOutputLine(int pos, ParsedLine newLine) {
     undoList.add(UndoAddOutputLine('Add output line', pos));
     outputLines.insert(pos, newLine);
+    updateAltFormatFields();
     updateAll();
   }
 
@@ -592,6 +620,7 @@ class Structure extends ChangeNotifier {
       undoList.add(UndoEditOutputLine('Edit output line', pos, origLine));
       if (pos >= 0) outputLines[pos] = newLine;
     }
+    updateAltFormatFields();
     updateAll();
   }
 
@@ -599,6 +628,7 @@ class Structure extends ChangeNotifier {
     int pos = outputLines.indexOf(origLine);
     undoList.add(UndoRemoveOutputLine('Remove output line', pos, origLine));
     outputLines.remove(origLine);
+    updateAltFormatFields();
     updateAll();
   }
 

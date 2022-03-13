@@ -9,6 +9,8 @@ import '../model/nodes.dart';
 import '../model/structure.dart';
 import '../views/edit_view.dart';
 
+const emptyName = '[Empty Title]';
+
 /// A detail view that shows node and child output after a long press.
 class DetailView extends StatelessWidget {
   final Node node;
@@ -19,7 +21,7 @@ class DetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(node.title),
+        title: Text(node.title.isNotEmpty ? node.title : emptyName),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.add_circle),
@@ -100,7 +102,9 @@ class DetailView extends StatelessWidget {
                 margin: const EdgeInsets.all(10.0),
                 child: childNode is LeafNode
                     ? Text(childNode.outputs().join('\n'))
-                    : Text(childNode.title),
+                    : Text(childNode.title.isNotEmpty
+                        ? childNode.title
+                        : emptyName),
               ),
             ),
             margin: EdgeInsets.all(5.0),

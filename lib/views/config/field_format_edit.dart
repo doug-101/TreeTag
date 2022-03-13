@@ -14,12 +14,12 @@ class FieldFormatDisplay extends FormField<String> {
   FieldFormatDisplay({
     required String fieldType,
     required String initialFormat,
+    Key? key,
     FormFieldSetter<String>? onSaved,
   }) : super(
             onSaved: onSaved,
             initialValue: initialFormat,
-            // Key required to force update on parent setState.
-            key: Key(initialFormat),
+            key: key,
             builder: (FormFieldState<String> state) {
               return InkWell(
                 onTap: () async {

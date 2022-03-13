@@ -28,7 +28,7 @@ class ParsedLine {
     }
     return newParsedLine;
   }
-  
+
   bool get isEmpty => segments.isEmpty;
 
   void parseLine(String unparsedLine, Map<String, Field> fieldMap) {
@@ -84,7 +84,7 @@ class ParsedLine {
   }
 
   bool hasMultipleFields() {
-    return fields().toSet().length > 1;
+    return fields().map((field) => field.name).toSet().length > 1;
   }
 
   void deleteField(Field field, {Field? replacement}) {
@@ -154,7 +154,7 @@ class LineSegment {
   }
 
   bool replaceField(Field oldField, Field newField) {
-    if (field != null && field == oldField) {
+    if (field != null && field!.name == oldField.name) {
       field = newField;
       return true;
     }
