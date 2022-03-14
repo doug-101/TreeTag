@@ -143,7 +143,7 @@ class _OutputConfigState extends State<OutputConfig> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(heading, style: Theme.of(context).textTheme.overline),
+              Text(heading, style: Theme.of(context).textTheme.caption),
               Padding(
                 padding: EdgeInsets.only(top: 6.0),
                 child: Text.rich(

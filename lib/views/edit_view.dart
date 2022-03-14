@@ -311,7 +311,7 @@ class DateFormField extends FormField<DateTime> {
                   Padding(
                     padding: EdgeInsets.only(top: 10.0),
                     child: Text(heading ?? 'Date',
-                        style: Theme.of(state.context).textTheme.overline),
+                        style: Theme.of(state.context).textTheme.caption),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 5.0),
@@ -360,7 +360,7 @@ class TimeFormField extends FormField<DateTime> {
                   Padding(
                     padding: EdgeInsets.only(top: 10.0),
                     child: Text(heading ?? 'Time',
-                        style: Theme.of(state.context).textTheme.overline),
+                        style: Theme.of(state.context).textTheme.caption),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 5.0),

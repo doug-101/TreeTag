@@ -15,9 +15,9 @@ const emptyName = '[Empty Title]';
 
 /// The main indented tree view.
 class TreeView extends StatelessWidget {
-  final _closedIcon = Icon(Icons.arrow_right, size: 24.0, color: Colors.blue);
-  final _openIcon = Icon(Icons.arrow_drop_down, size: 24.0, color: Colors.blue);
-  final _leafIcon = Icon(Icons.circle, size: 8.0, color: Colors.blue);
+  final _closedIcon = Icon(Icons.arrow_right, size: 24.0);
+  final _openIcon = Icon(Icons.arrow_drop_down, size: 24.0);
+  final _leafIcon = Icon(Icons.circle, size: 8.0);
   late final String headerName;
 
   TreeView({Key? key, required String fileRootName}) : super(key: key) {

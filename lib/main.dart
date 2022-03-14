@@ -19,6 +19,14 @@ void main() {
       create: (context) => Structure(),
       child: MaterialApp(
           title: 'TreeTag',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSwatch(
+              primarySwatch: Colors.teal,
+            ).copyWith(
+              secondary: Colors.green,
+            ),
+            iconTheme: IconThemeData(color: Colors.green),
+          ),
           initialRoute: '/fileControl',
           onGenerateRoute: (settings) {
             switch (settings.name) {

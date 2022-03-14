@@ -44,7 +44,7 @@ class FieldFormatDisplay extends FormField<String> {
                     Padding(
                       padding: EdgeInsets.only(top: 10.0),
                       child: Text('$fieldType Field Format',
-                          style: Theme.of(state.context).textTheme.overline),
+                          style: Theme.of(state.context).textTheme.caption),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 5.0),
@@ -259,7 +259,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
               Padding(
                 padding: EdgeInsets.only(top: 15.0),
                 child: Text('Format Sample',
-                    style: Theme.of(context).textTheme.overline),
+                    style: Theme.of(context).textTheme.caption),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 5.0),

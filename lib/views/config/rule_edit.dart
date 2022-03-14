@@ -72,7 +72,7 @@ class _RuleEditState extends State<RuleEdit> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text('Rule Definition',
-                        style: Theme.of(context).textTheme.overline),
+                        style: Theme.of(context).textTheme.caption),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 10.0),
                       child: Text.rich(
@@ -94,7 +94,7 @@ class _RuleEditState extends State<RuleEdit> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text('Rule Sorting',
-                      style: Theme.of(context).textTheme.overline),
+                      style: Theme.of(context).textTheme.caption),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 10.0),
                     child: ToggleButtons(
@@ -161,7 +161,7 @@ class _RuleEditState extends State<RuleEdit> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text('Child Sorting',
-                        style: Theme.of(context).textTheme.overline),
+                        style: Theme.of(context).textTheme.caption),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 10.0),
                       child: ToggleButtons(
