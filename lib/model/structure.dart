@@ -133,13 +133,14 @@ class Structure extends ChangeNotifier {
   void editNodeData(LeafNode node, Map<String, String> nodeData,
       {bool newNode = false}) {
     if (newNode) {
-      undoList
-          .add(UndoAddLeafNode('Add new leaf node', leafNodes.indexOf(node)));
+      node.data = nodeData;
+      undoList.add(UndoAddLeafNode(
+          'New leaf node: ${node.title}', leafNodes.indexOf(node)));
     } else {
       undoList.add(UndoEditLeafNode(
           'Edit leaf node: ${node.title}', leafNodes.indexOf(node), node.data));
+      node.data = nodeData;
     }
-    node.data = nodeData;
     updateAll();
   }
 
@@ -460,13 +461,13 @@ class Structure extends ChangeNotifier {
   }
 
   void addTitleSibling(TitleNode siblingNode, String newTitle) {
-    var parent = siblingNode.parent as TitleNode;
+    var parent = siblingNode.parent;
     var pos = storedNodePos(siblingNode) + 1;
-    undoList.add(
-        UndoAddTreeNode('Add title sibling node', storedNodeId(parent), pos));
+    undoList.add(UndoAddTreeNode(
+        'Add title node: $newTitle', storedNodeId(parent), pos));
     var newNode = TitleNode(title: newTitle, modelRef: this, parent: parent);
     if (parent != null) {
-      parent.addChildTitleNode(newNode, pos: pos);
+      (parent as TitleNode).addChildTitleNode(newNode, pos: pos);
     } else {
       rootNodes.insert(pos, newNode);
     }
@@ -474,7 +475,7 @@ class Structure extends ChangeNotifier {
   }
 
   void addTitleChild(TitleNode parentNode, String newTitle) {
-    undoList.add(UndoAddTreeNode('Add title child node',
+    undoList.add(UndoAddTreeNode('Add title node: $newTitle',
         storedNodeId(parentNode), parentNode.storedChildren().length));
     var newNode =
         TitleNode(title: newTitle, modelRef: this, parent: parentNode);
@@ -491,7 +492,9 @@ class Structure extends ChangeNotifier {
 
   void addRuleChild(RuleNode newNode) {
     undoList.add(UndoAddTreeNode(
-        'Add rule child node', storedNodeId(newNode.parent), 0));
+        'Add rule node: ${newNode.ruleLine.getUnparsedLine()}',
+        storedNodeId(newNode.parent),
+        0));
     if (newNode.parent is TitleNode) {
       (newNode.parent! as TitleNode).childRuleNode = newNode;
     } else {
@@ -605,7 +608,8 @@ class Structure extends ChangeNotifier {
   }
 
   void addOutputLine(int pos, ParsedLine newLine) {
-    undoList.add(UndoAddOutputLine('Add output line', pos));
+    undoList.add(UndoAddOutputLine(
+        'Add output line: ${newLine.getUnparsedLine()}', pos));
     outputLines.insert(pos, newLine);
     updateAltFormatFields();
     updateAll();
@@ -613,11 +617,13 @@ class Structure extends ChangeNotifier {
 
   void editOutputLine(ParsedLine origLine, ParsedLine newLine) {
     if (origLine == titleLine) {
-      undoList.add(UndoEditOutputLine('Edit title line', -1, origLine));
+      undoList.add(UndoEditOutputLine(
+          'Edit title line: ${origLine.getUnparsedLine()}', -1, origLine));
       titleLine = newLine;
     } else {
       int pos = outputLines.indexOf(origLine);
-      undoList.add(UndoEditOutputLine('Edit output line', pos, origLine));
+      undoList.add(UndoEditOutputLine(
+          'Edit output line: ${origLine.getUnparsedLine()}', pos, origLine));
       if (pos >= 0) outputLines[pos] = newLine;
     }
     updateAltFormatFields();
@@ -626,7 +632,8 @@ class Structure extends ChangeNotifier {
 
   void removeOutputLine(ParsedLine origLine) {
     int pos = outputLines.indexOf(origLine);
-    undoList.add(UndoRemoveOutputLine('Remove output line', pos, origLine));
+    undoList.add(UndoRemoveOutputLine(
+        'Remove output line: ${origLine.getUnparsedLine()}', pos, origLine));
     outputLines.remove(origLine);
     updateAltFormatFields();
     updateAll();
@@ -634,7 +641,8 @@ class Structure extends ChangeNotifier {
 
   void moveOutputLine(ParsedLine line, {bool up = true}) {
     var pos = outputLines.indexOf(line);
-    undoList.add(UndoMoveOutputLine('Move output line', pos, up));
+    undoList.add(UndoMoveOutputLine(
+        'Move output line: ${line.getUnparsedLine()}', pos, up));
     outputLines.removeAt(pos);
     outputLines.insert(up ? --pos : ++pos, line);
     updateAll();
