@@ -1,6 +1,6 @@
 // field_edit.dart, a view to edit a field's details.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -9,7 +9,9 @@ import '../../model/fields.dart';
 import '../../model/structure.dart';
 import 'field_format_edit.dart';
 
-// The field edit widget
+/// The field edit view with a form for all field paramters.
+///
+/// Called from the [FieldConfig] view (part of the [ConfigView]).
 class FieldEdit extends StatefulWidget {
   Field field;
   final bool isNew;
@@ -22,9 +24,14 @@ class FieldEdit extends StatefulWidget {
 }
 
 class _FieldEditState extends State<FieldEdit> {
+  /// A copy of the original field to contain the changes.
   late Field _editedField;
+
   bool _isFieldTypeChanged = false;
+
+  /// A flag showing that the view was closed while editing a new field.
   var _cancelNewFlag = false;
+
   final _formKey = GlobalKey<FormState>();
   final _dropdownState = GlobalKey<FormFieldState>();
 
@@ -58,8 +65,8 @@ class _FieldEditState extends State<FieldEdit> {
           return true;
         }
       }
+      // Used for other changes.
       if (_editedField != widget.field) {
-        // Used for other changes.
         if (_editedField is ChoiceField) {
           var numErrors = model.badFieldCount(_editedField);
           if (numErrors > 0) {
@@ -89,14 +96,17 @@ class _FieldEditState extends State<FieldEdit> {
         title: Text(_editedField.name + ' Field'),
         actions: widget.isNew
             ? <Widget>[
+                // Close control for new fields only.
                 IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      _cancelNewFlag = true;
-                      Navigator.pop(context, null);
-                    }),
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    _cancelNewFlag = true;
+                    Navigator.pop(context, null);
+                  },
+                ),
               ]
             : <Widget>[
+                // Restore control for non-new fields.
                 IconButton(
                   icon: const Icon(Icons.restore),
                   onPressed: () {
@@ -160,7 +170,6 @@ class _FieldEditState extends State<FieldEdit> {
                   if (newType != null && newType != _editedField.fieldType) {
                     if (newType == widget.field.fieldType) {
                       _editedField = Field.copy(widget.field);
-                      // TODO - any resets required?
                       _isFieldTypeChanged = false;
                     } else {
                       _editedField = _editedField.copyToType(newType);
@@ -171,6 +180,7 @@ class _FieldEditState extends State<FieldEdit> {
                 },
               ),
               if (_editedField.format.isNotEmpty)
+                // Defined in field_format_edit.dart.
                 FieldFormatDisplay(
                   fieldType: _editedField.fieldType,
                   initialFormat: _editedField.format,
@@ -181,6 +191,7 @@ class _FieldEditState extends State<FieldEdit> {
                   },
                 ),
               if (_editedField is DateField || _editedField is TimeField)
+                // Defined below.
                 InitNowBoolFormField(
                   initialValue: _editedField.initValue == 'now' ? true : false,
                   heading: _editedField is DateField
@@ -278,6 +289,7 @@ class _FieldEditState extends State<FieldEdit> {
   }
 }
 
+// A [FormField] for setting the date and time init value to now.
 class InitNowBoolFormField extends FormField<bool> {
   InitNowBoolFormField({
     bool? initialValue,

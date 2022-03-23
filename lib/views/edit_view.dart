@@ -1,6 +1,6 @@
 // edit_view.dart, a view to edit data for an existing or a new node.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -11,6 +11,9 @@ import '../model/nodes.dart';
 import '../model/structure.dart';
 
 /// An edit view for node data.
+///
+/// Called from new or edit operations in a [DetailView].
+/// [isNew] is true for newly created nodes, to handle updates properly.
 class EditView extends StatefulWidget {
   final LeafNode node;
   final bool isNew;
@@ -25,6 +28,7 @@ class EditView extends StatefulWidget {
 class _EditViewState extends State<EditView> {
   final _formKey = GlobalKey<FormState>();
   var _isChanged = false;
+  // The [nodeData] is copied to allow undo creation before the edit is saved.
   late final Map<String, String> nodeData;
 
   void initState() {
@@ -34,6 +38,7 @@ class _EditViewState extends State<EditView> {
 
   Future<bool> updateOnPop() async {
     if (_formKey.currentState!.validate()) {
+      // Allow user to discard an unchanged new node.
       if (!_isChanged && widget.isNew) {
         var toBeSaved = await saveUnchangedDialog();
         if (toBeSaved != null && !toBeSaved) {
@@ -41,6 +46,7 @@ class _EditViewState extends State<EditView> {
           return true;
         }
       }
+      // Handle all updates.
       if (_isChanged || widget.isNew) {
         _formKey.currentState!.save();
         widget.node.modelRef
@@ -51,6 +57,7 @@ class _EditViewState extends State<EditView> {
     return false;
   }
 
+  /// Ask user about saving an unchanged new node.
   Future<bool?> saveUnchangedDialog() async {
     return showDialog<bool>(
       context: context,
@@ -108,6 +115,7 @@ class _EditViewState extends State<EditView> {
     );
   }
 
+  /// Return the proper field editor based on field type.
   Widget _fieldEditor(LeafNode node, Field field) {
     if (field is LongTextField) {
       return TextFormField(
@@ -216,6 +224,9 @@ class _EditViewState extends State<EditView> {
   }
 }
 
+/// An editor for an [AutoChoiceField].
+///
+/// Combines a [TextField] with a popup menu.
 class AutoChoiceForm extends FormField<String> {
   AutoChoiceForm({
     String? label,
@@ -283,6 +294,7 @@ class _AutoChoiceFormState extends FormFieldState<String> {
   }
 }
 
+/// Editor for a [DateField].
 class DateFormField extends FormField<DateTime> {
   DateFormField({
     required String fieldFormat,
@@ -330,6 +342,7 @@ class DateFormField extends FormField<DateTime> {
         );
 }
 
+/// Editor for a [TimeField].
 class TimeFormField extends FormField<DateTime> {
   TimeFormField({
     required String fieldFormat,

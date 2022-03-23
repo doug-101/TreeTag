@@ -1,6 +1,6 @@
 // config_view.dart, a view to edit file configurations.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -8,7 +8,10 @@ import 'field_config.dart';
 import 'tree_config.dart';
 import 'output_config.dart';
 
-// The base config view.
+/// The base config view.
+///
+/// Holds three views in tabs: [FieldConfig], [TreeConfig], [OutputConfig].
+/// Called from a menu in the [TreeView].
 class ConfigView extends StatefulWidget {
   @override
   State<ConfigView> createState() => _ConfigViewState();

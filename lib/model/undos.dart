@@ -1,6 +1,6 @@
 // undos.dart, stores and executes undo operations.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:collection';
@@ -9,7 +9,7 @@ import 'nodes.dart';
 import 'parsed_line.dart';
 import 'structure.dart';
 
-/// Storage of an undo list with operations.
+/// Storage of an undo list with undo operations.
 class UndoList extends ListBase<Undo> {
   final _innerList = <Undo>[];
   static late Structure _modelRef;
@@ -39,9 +39,11 @@ class UndoList extends ListBase<Undo> {
 
   void addAll(Iterable<Undo> all) => _innerList.addAll(all);
 
+  /// Perform an undo from the list end to [pos].
   void undoToPos(int pos) {
     var firstUndoPos = indexWhere((undo) => !undo.isRedo, pos);
     var redoList = <Undo>[];
+    // Perform undos backward (last-in, first-out).
     for (int i = length - 1; i >= pos; i--) {
       // Skip and remove all redo's that come after an active undo.
       if (!this[i].isRedo || pos > firstUndoPos) {
@@ -58,9 +60,15 @@ class UndoList extends ListBase<Undo> {
   }
 }
 
+/// Base class for many types of undo operations.
 abstract class Undo {
+
+  /// Displayed in the undo list view for users.
   final String title;
+
+  /// Type name in text for JSON input/output.
   final String undoType;
+
   final bool isRedo;
   DateTime timeStamp = DateTime.now();
 
@@ -233,9 +241,10 @@ abstract class Undo {
     };
   }
 
-  // Subclasses perform the undo and return an opposite redo object.
+  /// Subclasses perform the undo and return an opposite redo object.
   Undo undo();
 
+  /// Return a modified title to specify a redo in place of an undo.
   String _toggleTitleRedo(String title) {
     if (title.isEmpty) return '';
     if (title.startsWith('Redo '))
@@ -244,6 +253,7 @@ abstract class Undo {
   }
 }
 
+/// An undo type that groups several child undos under one parent list entry.
 class UndoBatch extends Undo {
   late List<Undo> storedUndos;
 
@@ -336,6 +346,7 @@ class UndoDeleteLeafNode extends Undo {
   @override
   Map<String, dynamic> toJson() {
     var result = super.toJson();
+    result['nodepos'] = nodePos;
     result['nodeobject'] = node.toJson();
     return result;
   }
@@ -531,6 +542,7 @@ class UndoEditRuleLine extends Undo {
   }
 }
 
+/// Undo class for adding [TitleNode] or [RuleNode] types.
 class UndoAddTreeNode extends Undo {
   String parentId;
   int nodePos;
@@ -570,6 +582,7 @@ class UndoAddTreeNode extends Undo {
   }
 }
 
+/// Undo class for deleting [TitleNode] or [RuleNode] types.
 class UndoDeleteTreeNode extends Undo {
   String parentId;
   int nodePos;
@@ -644,6 +657,7 @@ class UndoMoveTitleNode extends Undo {
   }
 }
 
+/// Undo for custom group sort keys and for custom child sort keys.
 class UndoEditSortKeys extends Undo {
   String nodeId;
   List<SortKey> sortFields;

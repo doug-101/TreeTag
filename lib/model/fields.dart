@@ -1,6 +1,6 @@
 // fields.dart, defines field types and operations in the model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
@@ -17,9 +17,17 @@ final fieldTypes = const [
   'Time'
 ];
 
-/// A stored format for a portion of the data held within a leaf node.
+/// A stored format for a data item held within a leaf node.
 abstract class Field {
-  late String name, fieldType, format, initValue, prefix, suffix;
+  String name;
+  String fieldType;
+  String format;
+  String initValue;
+  String prefix;
+  String suffix;
+
+  /// Similar sub-fields with different formatting.
+  /// Used in specific rules or output lines.
   var _altFormatFields = <Field>[];
   int? _altFormatNumber;
   Field? altFormatParent;
@@ -33,6 +41,9 @@ abstract class Field {
     this.suffix = '',
   });
 
+  // Create a subtype based on the given [fieldType].
+  ///
+  /// Default to a [RegTextField].
   factory Field.createField({
     required String name,
     fieldType = 'Text',
@@ -45,51 +56,71 @@ abstract class Field {
     switch (fieldType) {
       case 'Text':
         newField = RegTextField(
-            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
+          name: name,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
       case 'LongText':
         newField = LongTextField(
-            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
+          name: name,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
       case 'Choice':
         newField = ChoiceField(
-            name: name,
-            format: format,
-            initValue: initValue,
-            prefix: prefix,
-            suffix: suffix);
+          name: name,
+          format: format,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
       case 'AutoChoice':
         newField = AutoChoiceField(
-            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
+          name: name,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
       case 'Number':
         newField = NumberField(
-            name: name,
-            format: format,
-            initValue: initValue,
-            prefix: prefix,
-            suffix: suffix);
+          name: name,
+          format: format,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
       case 'Date':
         newField = DateField(
-            name: name,
-            format: format,
-            initValue: initValue,
-            prefix: prefix,
-            suffix: suffix);
+          name: name,
+          format: format,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
       case 'Time':
         newField = TimeField(
-            name: name,
-            format: format,
-            initValue: initValue,
-            prefix: prefix,
-            suffix: suffix);
+          name: name,
+          format: format,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
       default:
         newField = RegTextField(
-            name: name, initValue: initValue, prefix: prefix, suffix: suffix);
+          name: name,
+          initValue: initValue,
+          prefix: prefix,
+          suffix: suffix,
+        );
         break;
     }
     return newField;
@@ -122,8 +153,9 @@ abstract class Field {
     return newField;
   }
 
-  // Returns a new field with the same settings.
-  // Keeps the _altFormatField; does not make a deep copy
+  /// Returns a new field with the same settings.
+  ///
+  /// Keeps the [_altFormatField]; does not make a deep copy
   factory Field.copy(Field origField) {
     var newField = Field.createField(
       name: origField.name,
@@ -139,6 +171,7 @@ abstract class Field {
     return newField;
   }
 
+  /// Copy settings from [otherField] to svae changes from edit views.
   void updateSettings(Field otherField) {
     if (name != otherField.name) {
       name = otherField.name;
@@ -150,6 +183,9 @@ abstract class Field {
     suffix = otherField.suffix;
   }
 
+  /// Make fields equal if they have the same settings.
+  ///
+  /// Used to detect whether an [_altFormatField] is redundant.
   @override
   bool operator ==(Object otherField) {
     if (runtimeType != otherField.runtimeType) return false;
@@ -161,20 +197,28 @@ abstract class Field {
         suffix == otherField.suffix;
   }
 
+  /// Make fields equal if they have the same settings.
   @override
   int get hashCode =>
       Object.hash(name, fieldType, format, initValue, prefix, suffix);
 
+  /// Return text used in node titles and output lines.
   String outputText(LeafNode node) {
     var storedText = node.data[name] ?? '';
     if (storedText.isEmpty) return '';
     return _formatOutput(storedText);
   }
 
+  /// Return formatted text, including [prefix] and [suffix].
+  ///
+  /// Overridden by other field types with more specific formatting.
   String _formatOutput(String storedText) {
     return prefix + storedText + suffix;
   }
 
+  /// Return a value for a new node or null if not set.
+  ///
+  /// Overridden by some field types for specific needs ("now" for dates/times).
   String? initialValue() {
     if (initValue.isNotEmpty) return initValue;
     return null;
@@ -185,12 +229,14 @@ abstract class Field {
     return true;
   }
 
+  /// Return an error message if [text] would not be valid as stored data.
   String? validateMessage(String? text) {
-    // should return error message if invalid
-    //if (text?.isEmpty ?? false) return '$name field should not be empty';
     return null;
   }
 
+  /// Return -1, 0 or 1 compare values for field data.
+  ///
+  /// Overridden by other field types with more specific sorting keys.
   int compareNodes(Node firstNode, Node secondNode) {
     var firstValue = firstNode.data[name] ?? '';
     var secondValue = secondNode.data[name] ?? '';
@@ -213,6 +259,7 @@ abstract class Field {
     return result;
   }
 
+  /// Create a field with a different type to handle user type changes.
   Field copyToType(String newFieldType) {
     return Field.createField(
       name: name,
@@ -229,6 +276,9 @@ abstract class Field {
 
   bool get isAltFormatField => _altFormatNumber != null;
 
+  /// Return the fields from [fields] that have the same name.
+  ///
+  /// Used to find regular fields as well as [_altFormatFields].
   List<Field> matchingFieldDescendents(List<Field> fields) {
     return [
       for (var field in fields)
@@ -236,6 +286,7 @@ abstract class Field {
     ];
   }
 
+  /// Create a new [_altFormatFields] based on this parent field's settings.
   Field createAltFormatField() {
     var altField = Field.createField(
         name: name,
@@ -257,6 +308,7 @@ abstract class Field {
     }
   }
 
+  /// Remove any [_altFormatFields] not contained in [usedFields].
   void removeUnusedAltFormatFields(Set<Field> usedFields) {
     _altFormatFields.retainWhere((field) => usedFields.contains(field));
     for (int i = 0; i < _altFormatFields.length; i++) {
@@ -264,6 +316,7 @@ abstract class Field {
     }
   }
 
+  /// Add an alt format field if not already present.
   void addAltFormatFieldIfMissing(Field altField) {
     if (!_altFormatFields.contains(altField)) {
       altField._altFormatNumber = _altFormatFields.length;
@@ -271,6 +324,7 @@ abstract class Field {
     }
   }
 
+  /// Return the unparsed version of this field's name.
   String lineText() {
     return _altFormatNumber != null
         ? '{*$name:$_altFormatNumber*}'
@@ -278,6 +332,7 @@ abstract class Field {
   }
 }
 
+/// A plain text field, the default type.
 class RegTextField extends Field {
   RegTextField({
     required String name,
@@ -294,6 +349,7 @@ class RegTextField extends Field {
         );
 }
 
+/// A plain text field that provides more lines in editors.
 class LongTextField extends Field {
   LongTextField({
     required String name,
@@ -310,6 +366,7 @@ class LongTextField extends Field {
         );
 }
 
+/// A field for choosing between pre-defined options.
 class ChoiceField extends Field {
   ChoiceField({
     required String name,
@@ -343,6 +400,7 @@ class ChoiceField extends Field {
   }
 }
 
+/// A field for choosing between previously used options or entering a new one.
 class AutoChoiceField extends Field {
   final options = <String>{};
 
@@ -361,6 +419,7 @@ class AutoChoiceField extends Field {
         );
 }
 
+/// A field that formats numbers and properly sorts them.
 class NumberField extends Field {
   NumberField({
     required String name,
@@ -404,10 +463,12 @@ class NumberField extends Field {
   }
 }
 
+/// A field that formats date values.
 class DateField extends Field {
   DateField({
     required String name,
     format = '',
+    // An [initValue] of 'now' is supported.
     initValue = '',
     prefix = '',
     suffix = '',
@@ -457,10 +518,12 @@ class DateField extends Field {
   }
 }
 
+/// A field that formats time of day values.
 class TimeField extends Field {
   TimeField({
     required String name,
     format = '',
+    // An [initValue] of 'now' is supported.
     initValue = '',
     prefix = '',
     suffix = '',

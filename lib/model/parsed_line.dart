@@ -1,6 +1,6 @@
 // parsed_line.dart, a class to parse and output lines with field content.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -15,6 +15,7 @@ class ParsedLine {
     parseLine(unparsedLine, fieldMap);
   }
 
+  /// Create a line containing only a single field.
   ParsedLine.fromSingleField(Field field) {
     segments.add(LineSegment(field: field));
   }
@@ -31,14 +32,16 @@ class ParsedLine {
 
   bool get isEmpty => segments.isEmpty;
 
+  /// Replace this line by parsing [unparsedLine].
   void parseLine(String unparsedLine, Map<String, Field> fieldMap) {
     segments.clear();
     var start = 0;
     var regExp = RegExp(r'{\*([\w_\-.]+)(:\d+)?\*}');
     for (var match in regExp.allMatches(unparsedLine, start)) {
-      if (match.start > start)
+      if (match.start > start) {
         segments
             .add(LineSegment(text: unparsedLine.substring(start, match.start)));
+      }
       var field = fieldMap[match.group(1)];
       if (field != null) {
         var altFieldStr = match.group(2);
@@ -53,10 +56,12 @@ class ParsedLine {
       }
       start = match.end;
     }
-    if (start < unparsedLine.length)
+    if (start < unparsedLine.length) {
       segments.add(LineSegment(text: unparsedLine.substring(start)));
+    }
   }
 
+  /// Return this line filled in with data fields from [node].
   String formattedLine(LeafNode node) {
     var result = StringBuffer();
     var fieldsBlank = true;
@@ -87,12 +92,16 @@ class ParsedLine {
     return fields().map((field) => field.name).toSet().length > 1;
   }
 
+  /// Remove the [field] from this line.
+  ///
+  /// Replace the [field] with [replacement] if given if there are no other
+  /// fields present.
   void deleteField(Field field, {Field? replacement}) {
     if (fields().contains(field)) {
       if (hasMultipleFields()) {
         var pos = segments.indexWhere((s) => s.field == field);
         while (pos >= 0) {
-          // Remove prefix and suffix text if applicable
+          // Combine prefix and suffix text around deleted field if applicable.
           if (pos > 0 &&
               pos < segments.length - 1 &&
               !segments[pos - 1].hasField &&
@@ -120,6 +129,7 @@ class ParsedLine {
     }
   }
 
+  /// Return this line as Flutter text spans using [fieldStyle] for field names.
   List<TextSpan> richLineSpans(TextStyle fieldStyle) {
     var spans = <TextSpan>[];
     for (var segment in segments) {
@@ -134,6 +144,7 @@ class LineSegment {
   Field? field;
   String? text;
 
+  /// Either a field or a text sring should be supplied (not both).
   LineSegment({this.field, this.text});
 
   bool get hasField => field != null;
@@ -148,11 +159,15 @@ class LineSegment {
     return text ?? '';
   }
 
+  /// Return a Flutter text span using [fieldStyle] for a field name.
   TextSpan richText(TextStyle fieldStyle) {
     if (field != null) return TextSpan(text: field!.name, style: fieldStyle);
     return TextSpan(text: text ?? '');
   }
 
+  /// Replace [oldField] with [newField] if applicable.
+  ///
+  /// Return true if changed.
   bool replaceField(Field oldField, Field newField) {
     if (field != null && field!.name == oldField.name) {
       field = newField;

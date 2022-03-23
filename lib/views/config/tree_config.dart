@@ -1,6 +1,6 @@
 // tree_config.dart, a view to edit the tree structure configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -12,6 +12,9 @@ import 'rule_edit.dart';
 enum MenuItems { titleSibling, titleChild, ruleChild }
 
 // The tree config widget.
+///
+/// Lists all of the stored nodes in a tree.
+/// One of the tabbed items on the [ConfigView].
 class TreeConfig extends StatefulWidget {
   @override
   State<TreeConfig> createState() => _TreeConfigState();
@@ -29,6 +32,7 @@ class _TreeConfigState extends State<TreeConfig> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // Menu for adding nodes.
             PopupMenuButton(
               icon: const Icon(Icons.add_circle_outline),
               onSelected: (result) async {
@@ -86,6 +90,7 @@ class _TreeConfigState extends State<TreeConfig> {
                 ),
               ],
             ),
+            // Button to edit a selected node.
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               onPressed: selectedNode == null
@@ -112,6 +117,7 @@ class _TreeConfigState extends State<TreeConfig> {
                       }
                     },
             ),
+            // Button to delete a node.
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: (selectedNode == null ||
@@ -125,6 +131,7 @@ class _TreeConfigState extends State<TreeConfig> {
                       });
                     },
             ),
+            // Button to move a title node up.
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
               onPressed:
@@ -136,6 +143,7 @@ class _TreeConfigState extends State<TreeConfig> {
                           });
                         },
             ),
+            // Button to move a title node down.
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
               onPressed: (selectedNode == null ||
@@ -159,6 +167,7 @@ class _TreeConfigState extends State<TreeConfig> {
     );
   }
 
+  /// Returns a list of indented tree node cards,
   List<Widget> _treeRows(BuildContext context) {
     var model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =

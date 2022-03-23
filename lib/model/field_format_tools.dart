@@ -1,6 +1,6 @@
 // field_format_tools.dart, functions to work with field format strings.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 final numberFormatMap = const {
@@ -41,6 +41,7 @@ final timeFormatMap = const {
   'a': 'AM/PM marker',
 };
 
+/// Contains either a format code or extra text from a format string.
 class FormatSegment {
   String? formatCode;
   String? extraText;
@@ -48,7 +49,7 @@ class FormatSegment {
   FormatSegment({String? this.formatCode, String? this.extraText});
 }
 
-// Split a format, return segments with codes or extra text.
+/// Split a format, return segments with codes or extra text.
 List<FormatSegment> parseFieldFormat(
     String format, Map<String, String> formatMap) {
   // Use null char to hande escaped (double) single quotes.
@@ -73,9 +74,11 @@ List<FormatSegment> parseFieldFormat(
       if (formatLen == format.length) {
         var matchLen = RegExp(r"\W+").matchAsPrefix(format)?.end;
         if (matchLen != null && matchLen > 0) {
-          result.add(FormatSegment(
-              extraText:
-                  format.substring(0, matchLen).replaceAll("\x00", "'")));
+          result.add(
+            FormatSegment(
+              extraText: format.substring(0, matchLen).replaceAll("\x00", "'"),
+            ),
+          );
           format = format.substring(matchLen);
         } else {
           throw FormatException('Invalid format code');
@@ -86,7 +89,9 @@ List<FormatSegment> parseFieldFormat(
   return result;
 }
 
-// Combine parsed format back into a single format string.
+/// Combine parsed format back into a single format string.
+///
+/// If [condense], combine adjacent text segments.
 String combineFieldFormat(List<FormatSegment> parsedList,
     {bool condense = false}) {
   if (condense) {
@@ -127,21 +132,14 @@ String combineFieldFormat(List<FormatSegment> parsedList,
   return result.toString();
 }
 
+/// Split a [ChoiceField] format into text segments.
 List<String> splitChoiceFormat(String format) {
   format = format.replaceAll(r'\/', '\x00');
   return [for (var s in format.split('/')) s.replaceAll('\x00', '/')];
 }
 
+/// Combime [ChoiceField] text segments into a format string.
 String combineChoiceFormat(List<String> choices) {
   choices = [for (var s in choices) s.replaceAll('/', '\x00')];
   return choices.join('/').replaceAll('\x00', r'\/');
-}
-
-void main() {
-  var list = parseFieldFormat("'Date''s is: 'MMMM d, ''yyyy", dateFormatMap);
-  for (var s in list) {
-    print('Code: ${s.formatCode}  Text: ${s.extraText}');
-  }
-  print('\n');
-  print(combineFieldFormat(list));
 }

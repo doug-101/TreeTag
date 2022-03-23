@@ -1,6 +1,6 @@
 // output_config.dart, a view to edit the title and output line configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -9,7 +9,10 @@ import '../../model/parsed_line.dart';
 import '../../model/structure.dart';
 import 'line_edit.dart';
 
-// The output config widget
+/// The output config widget.
+///
+/// Lists the title line and the output lines.
+/// One of the tabbed items on the [ConfigView].
 class OutputConfig extends StatefulWidget {
   @override
   State<OutputConfig> createState() => _OutputConfigState();
@@ -26,6 +29,7 @@ class _OutputConfigState extends State<OutputConfig> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // Add a new output line before the selection or at the end.
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               onPressed: selectedLine == model.titleLine
@@ -35,13 +39,15 @@ class _OutputConfigState extends State<OutputConfig> {
                       final isChanged = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LineEdit(line: newLine),
+                          builder: (context) =>
+                              LineEdit(line: newLine, title: 'New Output Line'),
                         ),
                       );
                       if (isChanged) {
                         var pos = model.outputLines.length;
-                        if (selectedLine != null)
+                        if (selectedLine != null) {
                           pos = model.outputLines.indexOf(selectedLine!);
+                        }
                         setState(() {
                           model.addOutputLine(pos, newLine);
                           selectedLine = newLine;
@@ -49,16 +55,21 @@ class _OutputConfigState extends State<OutputConfig> {
                       }
                     },
             ),
+            // Edit the selected line.
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               onPressed: selectedLine == null
                   ? null
                   : () async {
+                      final title = selectedLine == model.titleLine
+                          ? 'Title Line Edit'
+                          : 'Output Line Edit';
                       final editedLine = selectedLine!.copy();
                       final isChanged = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LineEdit(line: editedLine),
+                          builder: (context) =>
+                              LineEdit(line: editedLine, title: title),
                         ),
                       );
                       if (isChanged) {
@@ -68,6 +79,7 @@ class _OutputConfigState extends State<OutputConfig> {
                       }
                     },
             ),
+            // Delete the selected line.
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: (selectedLine == null ||
@@ -81,6 +93,7 @@ class _OutputConfigState extends State<OutputConfig> {
                       });
                     },
             ),
+            // Move the selected line up.
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
               onPressed: (selectedLine == null ||
@@ -93,6 +106,7 @@ class _OutputConfigState extends State<OutputConfig> {
                       });
                     },
             ),
+            // Move the selected line down.
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
               onPressed: (selectedLine == null ||
@@ -113,10 +127,10 @@ class _OutputConfigState extends State<OutputConfig> {
             padding: const EdgeInsets.all(10.0),
             child: ListView(
               children: <Widget>[
-                lineRow('Title Line', model.titleLine),
+                _lineRow('Title Line', model.titleLine),
                 Divider(),
                 for (var outLine in model.outputLines)
-                  lineRow('Output Line ${lineNum++}', outLine),
+                  _lineRow('Output Line ${lineNum++}', outLine),
               ],
             ),
           ),
@@ -125,7 +139,7 @@ class _OutputConfigState extends State<OutputConfig> {
     );
   }
 
-  Widget lineRow(String heading, ParsedLine line) {
+  Widget _lineRow(String heading, ParsedLine line) {
     return InkWell(
       onTap: () {
         setState(() {

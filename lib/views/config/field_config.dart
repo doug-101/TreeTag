@@ -1,6 +1,6 @@
 // field_config.dart, a view to edit the field list configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -9,7 +9,11 @@ import '../../model/fields.dart';
 import '../../model/structure.dart';
 import 'field_edit.dart';
 
-// The field config widget.
+/// The field config widget.
+///
+/// Lists all of the fields with edit controls.
+/// One of the tabbed items on the [ConfigView].
+/// Uses the [FieldEdit] view on new fields and fields to be edited.
 class FieldConfig extends StatefulWidget {
   @override
   State<FieldConfig> createState() => _FieldConfigState();
@@ -27,6 +31,7 @@ class _FieldConfigState extends State<FieldConfig> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // Add a new field.
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               onPressed: () async {
@@ -41,6 +46,7 @@ class _FieldConfigState extends State<FieldConfig> {
                 setState(() {});
               },
             ),
+            // Edit the selected field.
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               onPressed: selectedField == null
@@ -55,6 +61,7 @@ class _FieldConfigState extends State<FieldConfig> {
                       setState(() {});
                     },
             ),
+            // Delete the selected field.
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: (selectedField == null || fieldList.length < 2)
@@ -83,6 +90,7 @@ class _FieldConfigState extends State<FieldConfig> {
                       });
                     },
             ),
+            // Move the selected field up.
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
               onPressed: (selectedField == null ||
@@ -94,6 +102,7 @@ class _FieldConfigState extends State<FieldConfig> {
                       });
                     },
             ),
+            // Move the selected field down.
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
               onPressed: (selectedField == null ||
@@ -139,6 +148,7 @@ class _FieldConfigState extends State<FieldConfig> {
     );
   }
 
+  /// Confirm deletes for fields used in [errorText] locations.
   Future<bool?> confirmDeleteDialog(String errorText) async {
     return showDialog<bool>(
       context: context,

@@ -1,6 +1,6 @@
 // main.dart, the main app entry point file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -18,42 +18,43 @@ void main() {
     ChangeNotifierProvider(
       create: (context) => Structure(),
       child: MaterialApp(
-          title: 'TreeTag',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSwatch(
-              primarySwatch: Colors.teal,
-            ).copyWith(
-              secondary: Colors.green,
-            ),
-            iconTheme: IconThemeData(color: Colors.green),
+        title: 'TreeTag',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.teal,
+          ).copyWith(
+            secondary: Colors.green,
           ),
-          initialRoute: '/fileControl',
-          onGenerateRoute: (settings) {
-            switch (settings.name) {
-              case '/fileControl':
-                return MaterialPageRoute(builder: (context) {
-                  return FileControl();
-                });
-              case '/treeView':
-                final fileName = settings.arguments as String;
-                return MaterialPageRoute(builder: (context) {
-                  return TreeView(fileRootName: fileName);
-                });
-              case '/detailView':
-                final node = settings.arguments as Node;
-                return MaterialPageRoute(builder: (context) {
-                  return DetailView(node: node);
-                });
-              case '/configView':
-                return MaterialPageRoute(builder: (context) {
-                  return ConfigView();
-                });
-              case '/undoView':
-                return MaterialPageRoute(builder: (context) {
-                  return UndoView();
-                });
-            }
-          }),
+          iconTheme: IconThemeData(color: Colors.green),
+        ),
+        initialRoute: '/fileControl',
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case '/fileControl':
+              return MaterialPageRoute(builder: (context) {
+                return FileControl();
+              });
+            case '/treeView':
+              final fileName = settings.arguments as String;
+              return MaterialPageRoute(builder: (context) {
+                return TreeView(fileRootName: fileName);
+              });
+            case '/detailView':
+              final node = settings.arguments as Node;
+              return MaterialPageRoute(builder: (context) {
+                return DetailView(node: node);
+              });
+            case '/configView':
+              return MaterialPageRoute(builder: (context) {
+                return ConfigView();
+              });
+            case '/undoView':
+              return MaterialPageRoute(builder: (context) {
+                return UndoView();
+              });
+          }
+        },
+      ),
     ),
   );
 }

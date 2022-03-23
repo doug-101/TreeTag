@@ -1,6 +1,6 @@
-// field_format_edit.dart, a view to edit a field format entity.
+// field_format_edit.dart, a display widget and an edit view for field formats.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -9,7 +9,9 @@ import '../../model/field_format_tools.dart';
 import '../../model/fields.dart';
 import 'choice_format_edit.dart';
 
-// The field format display form field widget.
+/// A form field widget used to display field formats.
+///
+/// Used from [FieldEdit] and [LineFieldEdit] views.
 class FieldFormatDisplay extends FormField<String> {
   FieldFormatDisplay({
     required String fieldType,
@@ -27,8 +29,9 @@ class FieldFormatDisplay extends FormField<String> {
                     state.context,
                     MaterialPageRoute<String?>(
                       builder: (context) {
-                        if (fieldType == 'Choice')
+                        if (fieldType == 'Choice') {
                           return ChoiceFormatEdit(initFormat: state.value!);
+                        }
                         return FieldFormatEdit(
                             fieldType: fieldType, initFormat: state.value!);
                       },
@@ -62,7 +65,10 @@ class FieldFormatDisplay extends FormField<String> {
             });
 }
 
-// The field format edit widget.
+/// The field format edit widget.
+///
+/// Used for Number, Date and Time fields.
+/// Used from the [FieldFormatDisplay], above.
 class FieldFormatEdit extends StatefulWidget {
   final String fieldType;
   final String initFormat;
@@ -76,9 +82,14 @@ class FieldFormatEdit extends StatefulWidget {
 
 class _FieldFormatEditState extends State<FieldFormatEdit> {
   FormatSegment? selectedSegment;
+
+  /// The current format segments in the editor.
   final segments = <FormatSegment>[];
+
+  /// The format strings to use for the applicable field type.
   final formatMap = <String, String>{};
-  bool isChanged = false;
+
+  var isChanged = false;
   final _textEditKey = GlobalKey<FormFieldState>();
 
   @override
@@ -100,13 +111,14 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
         TextStyle(color: Theme.of(context).colorScheme.secondary);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Field Format Edit'),
+        title: Text('${widget.fieldType} Field Format'),
       ),
       body: WillPopScope(
         onWillPop: () async {
           var formatResult = combineFieldFormat(segments, condense: true);
-          if (!_fieldFormatIsValid(widget.fieldType, formatResult))
+          if (!_fieldFormatIsValid(widget.fieldType, formatResult)) {
             return false;
+          }
           Navigator.pop<String?>(
             context,
             isChanged ? formatResult : null,
@@ -126,10 +138,12 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                     onSelected: (result) async {
                       FormatSegment? newSegment;
                       if (result == 'add text') {
+                        // Add a segemnt with extra text.
                         var text = await textDialog();
                         if (text != null)
                           newSegment = FormatSegment(extraText: text);
                       } else {
+                        // Add a segemnt with a format code.
                         newSegment = FormatSegment(formatCode: result);
                       }
                       if (newSegment != null) {
@@ -163,6 +177,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                             selectedSegment?.extraText == null)
                         ? null
                         : () async {
+                            // Edit a segment with extra text.
                             var text = await textDialog(
                                 initText: selectedSegment!.extraText!);
                             if (text != null &&
@@ -179,6 +194,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                     onPressed: (selectedSegment == null || segments.length < 2)
                         ? null
                         : () {
+                            // Delete a segment.
                             setState(() {
                               segments.remove(selectedSegment!);
                               selectedSegment = null;
@@ -192,6 +208,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                             segments.indexOf(selectedSegment!) == 0)
                         ? null
                         : () {
+                            // Move a segment to the left.
                             var pos = segments.indexOf(selectedSegment!);
                             setState(() {
                               segments.removeAt(pos);
@@ -207,6 +224,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                                 segments.length - 1)
                         ? null
                         : () {
+                            // Move a segment to the right.
                             var pos = segments.indexOf(selectedSegment!);
                             setState(() {
                               segments.removeAt(pos);
@@ -238,7 +256,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                               ? Text(formatMap[segment.formatCode]!,
                                   style: contrastStyle)
                               : Text(segment.extraText ?? ''),
-                          // Tap target setting prevents uneven spacing
+                          // Tap target setting prevents uneven spacing.
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           selected: segment == selectedSegment,
@@ -315,6 +333,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
   }
 }
 
+/// Show a preview of the current format.
 String _fieldFormatPreview(String fieldType, String fieldFormat) {
   try {
     if (fieldType == 'Date' || fieldType == 'Time')
@@ -331,6 +350,7 @@ String _fieldFormatPreview(String fieldType, String fieldFormat) {
   return '';
 }
 
+/// Return true of the format is valid.
 bool _fieldFormatIsValid(String fieldType, String fieldFormat) {
   try {
     if (fieldType == 'Date' || fieldType == 'Time')

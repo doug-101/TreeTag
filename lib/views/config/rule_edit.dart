@@ -1,6 +1,6 @@
 // rule_edit.dart, a view to edit a rule node's details.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -10,7 +10,10 @@ import '../../model/structure.dart';
 import 'line_edit.dart';
 import 'sort_edit.dart';
 
-// The rule node edit widget.
+/// The rule node edit view.
+///
+/// Allows editing of rule line, rule sorting and child sorting.
+/// Called from [TreeConfig] widget.
 class RuleEdit extends StatefulWidget {
   final RuleNode node;
   final bool isNew;
@@ -32,15 +35,20 @@ class _RuleEditState extends State<RuleEdit> {
       // A new rule is empty, so it goes directly to the LineEdit.
       // Use a microtask to delay the push until after the build.
       Future.microtask(() async {
-        await Navigator.push(
+        final isChanged = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => LineEdit(line: widget.node.ruleLine),
+            builder: (context) =>
+                LineEdit(line: widget.node.ruleLine, title: 'New Rule Line'),
           ),
         );
-        setState(() {
-          model.addRuleChild(widget.node);
-        });
+        if (isChanged) {
+          setState(() {
+            model.addRuleChild(widget.node);
+          });
+        } else {
+          Navigator.pop(context);
+        }
       });
     }
     return Scaffold(
@@ -51,13 +59,15 @@ class _RuleEditState extends State<RuleEdit> {
         padding: const EdgeInsets.all(10.0),
         child: ListView(
           children: <Widget>[
+            // Displays rule line, edits when tapped.
             InkWell(
               onTap: () async {
                 final newRuleLine = widget.node.ruleLine.copy();
                 final isChanged = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LineEdit(line: newRuleLine),
+                    builder: (context) =>
+                        LineEdit(line: newRuleLine, title: 'Rule Line Edit'),
                   ),
                 );
                 if (isChanged) {
@@ -88,6 +98,7 @@ class _RuleEditState extends State<RuleEdit> {
               ),
             ),
             Divider(),
+            // The rule sorting controls.
             Padding(
               padding: EdgeInsets.all(10.0),
               child: Column(
@@ -149,11 +160,13 @@ class _RuleEditState extends State<RuleEdit> {
                       },
                     ),
                   ),
+                  // Show rule sort field names for reference.
                   Text('[${widget.node.sortFields.join(', ')}]'),
                 ],
               ),
             ),
             Divider(),
+            // The child sorting controls.
             if (widget.node.childRuleNode == null)
               Padding(
                 padding: EdgeInsets.all(10.0),
@@ -214,6 +227,7 @@ class _RuleEditState extends State<RuleEdit> {
                         },
                       ),
                     ),
+                    // Show child sort field names for reference.
                     Text('[${widget.node.childSortFields.join(', ')}]'),
                   ],
                 ),

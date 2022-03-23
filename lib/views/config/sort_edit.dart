@@ -1,6 +1,6 @@
 // sort_edit.dart, a view to edit sorting rules containing fields.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -9,9 +9,14 @@ import '../../model/fields.dart';
 import '../../model/nodes.dart';
 import '../../model/structure.dart';
 
-// The sort edit widget
+/// The sort edit view.
+///
+/// Called from [RuleEdit] to edit custom sort fields, for both rule sort and
+/// child sort fields.
 class SortEdit extends StatefulWidget {
   final List<SortKey> sortKeys;
+
+  /// The fields available if given, otherwise assumes all fields.
   List<Field>? availFields;
 
   SortEdit({Key? key, required this.sortKeys, this.availFields})
@@ -32,10 +37,12 @@ class _SortEditState extends State<SortEdit> {
     var availFieldNames = [
       for (var field in widget.availFields ?? model.fieldMap.values) field.name
     ];
+    // Position number for the field card label.
     var posNum = 1;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sort Edit'),
+        title:
+            Text('${widget.availFields != null ? 'Rule' : 'Child'} Sort Edit'),
       ),
       body: WillPopScope(
         onWillPop: () async {
@@ -49,6 +56,7 @@ class _SortEditState extends State<SortEdit> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  // Add a field to the list.
                   PopupMenuButton(
                     icon: const Icon(Icons.add_circle_outline),
                     enabled: usedFieldNames.length < availFieldNames.length,
@@ -71,6 +79,7 @@ class _SortEditState extends State<SortEdit> {
                           )
                     ],
                   ),
+                  // Swap sort direction for the selected field.
                   IconButton(
                     icon: const Icon(Icons.swap_vert),
                     onPressed: selectedKey == null
@@ -82,6 +91,7 @@ class _SortEditState extends State<SortEdit> {
                             });
                           },
                   ),
+                  // Delete the selected field.
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed:
@@ -95,6 +105,7 @@ class _SortEditState extends State<SortEdit> {
                                 });
                               },
                   ),
+                  // Move the selected field up.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_up),
                     onPressed: (selectedKey == null ||
@@ -109,6 +120,7 @@ class _SortEditState extends State<SortEdit> {
                             });
                           },
                   ),
+                  // Move the selected field down.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_down),
                     onPressed: (selectedKey == null ||
@@ -126,6 +138,7 @@ class _SortEditState extends State<SortEdit> {
                   ),
                 ],
               ),
+              // The list of sort field cards.
               Expanded(
                 child: ListView(
                   children: <Widget>[

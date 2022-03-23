@@ -1,13 +1,15 @@
 // choice_format_edit.dart, a view to edit a choice field format entity.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
 import '../../model/field_format_tools.dart';
 import '../../model/fields.dart';
 
-// The field format edit widget.
+/// The Choice field format edit widget.
+///
+/// Used from the [FieldFormatDisplay] widget.
 class ChoiceFormatEdit extends StatefulWidget {
   final String initFormat;
 
@@ -19,7 +21,10 @@ class ChoiceFormatEdit extends StatefulWidget {
 
 class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
   String? selectedSegment;
+
+  /// The current format segments in the editor.
   final segments = <String>[];
+
   bool isChanged = false;
   final _textEditKey = GlobalKey<FormFieldState>();
 
@@ -52,6 +57,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  // Add a new text segment.
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     onPressed: () async {
@@ -68,6 +74,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                       }
                     },
                   ),
+                  // Edit an existing text segment.
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
                     onPressed: (selectedSegment == null)
@@ -85,6 +92,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                             }
                           },
                   ),
+                  // Delete a text segment.
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: (selectedSegment == null || segments.length < 2)
@@ -97,6 +105,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                             });
                           },
                   ),
+                  // Move a segment to the left.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_up),
                     onPressed: (selectedSegment == null ||
@@ -111,6 +120,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                             });
                           },
                   ),
+                  // Move a segment to the right.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_down),
                     onPressed: (selectedSegment == null ||

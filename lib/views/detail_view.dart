@@ -1,6 +1,6 @@
 // detail_view.dart, a view showing node and child output.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -11,7 +11,11 @@ import '../views/edit_view.dart';
 
 const emptyName = '[Empty Title]';
 
-/// A detail view that shows node and child output after a long press.
+/// A detail view that shows node and child output.
+///
+/// This view is opened after a long press on a [TreeView].
+/// Shows details of a single node if passed a [LeafNode].
+/// Shows a node and children if passed a [TitleNode] or a [GroupNode].
 class DetailView extends StatelessWidget {
   final Node node;
 
@@ -25,6 +29,7 @@ class DetailView extends StatelessWidget {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.add_circle),
+            // Create a new node using some data copied from the shown nodes.
             onPressed: () {
               var model = Provider.of<Structure>(context, listen: false);
               var newNode = model.newNode(copyFromNode: node);
@@ -39,6 +44,7 @@ class DetailView extends StatelessWidget {
           if (node is LeafNode)
             IconButton(
               icon: const Icon(Icons.edit),
+              // Edit the shown [LeafNode].
               onPressed: () {
                 Navigator.push(
                   context,
@@ -50,6 +56,7 @@ class DetailView extends StatelessWidget {
           if (node is LeafNode)
             IconButton(
               icon: const Icon(Icons.delete),
+              // Delete the shown [LeafNode].
               onPressed: () {
                 var model = Provider.of<Structure>(context, listen: false);
                 model.deleteNode(node as LeafNode);
@@ -71,6 +78,7 @@ class DetailView extends StatelessWidget {
     var items = <Widget>[];
     if (node.modelRef.obsoleteNodes.contains(node)) {
       items.add(
+        // Show a deleted or removed notation if the node is already gone.
         Card(
           child: Container(
             margin: const EdgeInsets.all(10.0),
@@ -89,11 +97,12 @@ class DetailView extends StatelessWidget {
         ),
       );
     } else {
-      // node is GroupNode or TitleNode
+      // Show node and children for [GroupNode] or [TitleNode].
       for (var childNode in node.childNodes()) {
         items.add(
           Card(
             child: InkWell(
+              // open a new child [DetailView] for a tapped child.
               onTap: () {
                 Navigator.pushNamed(context, '/detailView',
                     arguments: childNode);

@@ -1,6 +1,6 @@
 // file_control.dart, a view showing options for opening a new or existing file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -13,9 +13,10 @@ import 'package:provider/provider.dart';
 import 'tree_view.dart';
 import '../model/structure.dart';
 
-/// Provides a simple view with buttons to open files.
+/// Provides a file listview with options for new files, open files, etc.
 ///
-/// Buttons include new file, file browse and recent files (future).
+/// File handling options include new, open, copy, add from folder, rename,
+/// and delete.
 class FileControl extends StatefulWidget {
   @override
   State<FileControl> createState() => _FileControlState();
@@ -24,9 +25,9 @@ class FileControl extends StatefulWidget {
 enum MenuItems { addFromFolder, copy, copyToFolder, rename, delete }
 
 class _FileControlState extends State<FileControl> {
-  late Directory workDir;
-  var fileList = <File>[];
-  var selectFiles = <File>{};
+  late final Directory _workDir;
+  final _fileList = <File>[];
+  final _selectedFiles = <File>{};
   final _filenameEditKey = GlobalKey<FormFieldState>();
 
   @override
@@ -37,20 +38,21 @@ class _FileControlState extends State<FileControl> {
 
   void _findWorkDir() async {
     if (Platform.isAndroid) {
+      // Use "external" user-accessible location if possible.
       var dir = await getExternalStorageDirectory();
       if (dir == null) dir = await getApplicationDocumentsDirectory();
-      workDir = dir;
+      _workDir = dir;
     } else {
-      workDir = await getApplicationDocumentsDirectory();
+      _workDir = await getApplicationDocumentsDirectory();
     }
     _updateFileList();
   }
 
   void _updateFileList() async {
-    fileList.clear();
-    selectFiles.clear();
-    await for (var entity in workDir.list()) {
-      if (entity != null && entity is File) fileList.add(entity);
+    _fileList.clear();
+    _selectedFiles.clear();
+    await for (var entity in _workDir.list()) {
+      if (entity != null && entity is File) _fileList.add(entity);
     }
     setState(() {});
   }
@@ -59,11 +61,11 @@ class _FileControlState extends State<FileControl> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text((selectFiles.isEmpty)
+        title: Text((_selectedFiles.isEmpty)
             ? 'TreeTag Files'
-            : '${selectFiles.length} Selected'),
+            : '${_selectedFiles.length} Selected'),
         actions: <Widget>[
-          if (selectFiles.isEmpty)
+          if (_selectedFiles.isEmpty)
             IconButton(
               // New file command.
               icon: const Icon(Icons.add_box),
@@ -71,7 +73,7 @@ class _FileControlState extends State<FileControl> {
                 var filename =
                     await filenameDialog(label: 'Name for the new file:');
                 if (filename != null) {
-                  var fileObj = File(p.join(workDir.path, filename + '.trtg'));
+                  var fileObj = File(p.join(_workDir.path, '$filename.trtg'));
                   var model = Provider.of<Structure>(context, listen: false);
                   model.newFile(fileObj);
                   Navigator.pushNamed(context, '/treeView', arguments: filename)
@@ -81,15 +83,16 @@ class _FileControlState extends State<FileControl> {
                 }
               },
             ),
-          if (selectFiles.length == 1)
+          if (_selectedFiles.length == 1)
             IconButton(
+              // Command to show path, modified date & size for a selected file.
               icon: const Icon(Icons.info),
               onPressed: () {
-                fileInfoDialog(File(selectFiles.first.path));
+                fileInfoDialog(File(_selectedFiles.first.path));
               },
             ),
           PopupMenuButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.more_vert),
             onSelected: (result) async {
               switch (result) {
                 case MenuItems.addFromFolder:
@@ -99,7 +102,7 @@ class _FileControlState extends State<FileControl> {
                     var cachePath = answer.files.single.path;
                     if (cachePath != null) {
                       var newName = p.basenameWithoutExtension(cachePath);
-                      var newPath = p.join(workDir.path, newName + '.trtg');
+                      var newPath = p.join(_workDir.path, '$newName.trtg');
                       if (File(newPath).existsSync()) {
                         var ans = await confirmOverwriteDialog(newName);
                         if (ans == null || !ans) {
@@ -117,18 +120,18 @@ class _FileControlState extends State<FileControl> {
                   break;
                 case MenuItems.copy:
                   var initName =
-                      p.basenameWithoutExtension(selectFiles.first.path);
+                      p.basenameWithoutExtension(_selectedFiles.first.path);
                   var answer = await filenameDialog(
                     initName: initName,
                     label: 'Copy "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath = p.join(workDir.path, answer + '.trtg');
+                    var newPath = p.join(_workDir.path, '$answer.trtg');
                     if (File(newPath).existsSync()) {
                       var ans = await confirmOverwriteDialog(answer);
                       if (ans == null || !ans) break;
                     }
-                    await selectFiles.first.copy(newPath);
+                    await _selectedFiles.first.copy(newPath);
                     setState(() {
                       _updateFileList();
                     });
@@ -138,15 +141,15 @@ class _FileControlState extends State<FileControl> {
                   String? folder = await FilePicker.platform.getDirectoryPath();
                   if (folder != null) {
                     var newPath =
-                        p.join(folder, p.basename(selectFiles.first.path));
+                        p.join(folder, p.basename(_selectedFiles.first.path));
                     if (File(newPath).existsSync()) {
-                      var ans = await confirmOverwriteDialog(
-                          p.basenameWithoutExtension(selectFiles.first.path));
+                      var ans = await confirmOverwriteDialog(p
+                          .basenameWithoutExtension(_selectedFiles.first.path));
                       if (ans == null || !ans) break;
                     }
                     if (await Permission.storage.request().isGranted) {
                       try {
-                        await selectFiles.first.copy(newPath);
+                        await _selectedFiles.first.copy(newPath);
                       } on FileSystemException {
                         await errorConfirmDialog('Could not write to $newPath');
                       }
@@ -159,18 +162,18 @@ class _FileControlState extends State<FileControl> {
                   break;
                 case MenuItems.rename:
                   var initName =
-                      p.basenameWithoutExtension(selectFiles.first.path);
+                      p.basenameWithoutExtension(_selectedFiles.first.path);
                   var answer = await filenameDialog(
                     initName: initName,
                     label: 'Rename "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath = p.join(workDir.path, answer + '.trtg');
+                    var newPath = p.join(_workDir.path, '$answer.trtg');
                     if (File(newPath).existsSync()) {
                       var ans = await confirmOverwriteDialog(answer);
                       if (ans == null || !ans) break;
                     }
-                    await selectFiles.first.rename(newPath);
+                    await _selectedFiles.first.rename(newPath);
                     setState(() {
                       _updateFileList();
                     });
@@ -179,7 +182,7 @@ class _FileControlState extends State<FileControl> {
                 case MenuItems.delete:
                   var deleteOk = await confirmDeleteDialog();
                   if (deleteOk ?? false) {
-                    for (var file in selectFiles) {
+                    for (var file in _selectedFiles) {
                       file.deleteSync();
                     }
                     setState(() {
@@ -190,27 +193,27 @@ class _FileControlState extends State<FileControl> {
               }
             },
             itemBuilder: (context) => [
-              if (selectFiles.isEmpty)
+              if (_selectedFiles.isEmpty)
                 PopupMenuItem(
                   child: Text('Add from folder'),
                   value: MenuItems.addFromFolder,
                 ),
-              if (selectFiles.length == 1)
+              if (_selectedFiles.length == 1)
                 PopupMenuItem(
                   child: Text('Create a copy'),
                   value: MenuItems.copy,
                 ),
-              if (selectFiles.isNotEmpty)
+              if (_selectedFiles.isNotEmpty)
                 PopupMenuItem(
                   child: Text('Copy to folder'),
                   value: MenuItems.copyToFolder,
                 ),
-              if (selectFiles.length == 1)
+              if (_selectedFiles.length == 1)
                 PopupMenuItem(
                   child: Text('Rename'),
                   value: MenuItems.rename,
                 ),
-              if (selectFiles.isNotEmpty)
+              if (_selectedFiles.isNotEmpty)
                 PopupMenuItem(
                   child: Text('Delete'),
                   value: MenuItems.delete,
@@ -220,46 +223,40 @@ class _FileControlState extends State<FileControl> {
         ],
       ),
       body: ListView(
-        children: _fileRows(context),
+        children: <Widget>[
+          for (var fileObj in _fileList)
+            Card(
+              color: (_selectedFiles.contains(fileObj))
+                  ? Theme.of(context).highlightColor
+                  : null,
+              child: ListTile(
+                title: Text(p.basenameWithoutExtension(fileObj.path)),
+                onTap: () {
+                  var model = Provider.of<Structure>(context, listen: false);
+                  model.openFile(fileObj);
+                  Navigator.pushNamed(context, '/treeView',
+                          arguments: p.basenameWithoutExtension(fileObj.path))
+                      .then((value) async {
+                    _updateFileList();
+                  });
+                },
+                onLongPress: () {
+                  setState(() {
+                    if (_selectedFiles.contains(fileObj)) {
+                      _selectedFiles.remove(fileObj);
+                    } else {
+                      _selectedFiles.add(fileObj);
+                    }
+                  });
+                },
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  List<Widget> _fileRows(BuildContext context) {
-    final items = <Widget>[];
-    for (var fileObj in fileList) {
-      items.add(
-        Card(
-          color: (selectFiles.contains(fileObj))
-              ? Theme.of(context).highlightColor
-              : null,
-          child: ListTile(
-            title: Text(p.basenameWithoutExtension(fileObj.path)),
-            onTap: () {
-              var model = Provider.of<Structure>(context, listen: false);
-              model.openFile(fileObj);
-              Navigator.pushNamed(context, '/treeView',
-                      arguments: p.basenameWithoutExtension(fileObj.path))
-                  .then((value) async {
-                _updateFileList();
-              });
-            },
-            onLongPress: () {
-              setState(() {
-                if (selectFiles.contains(fileObj)) {
-                  selectFiles.remove(fileObj);
-                } else {
-                  selectFiles.add(fileObj);
-                }
-              });
-            },
-          ),
-        ),
-      );
-    }
-    return items;
-  }
-
+  /// Prompt the user for a new filename.
   Future<String?> filenameDialog({String? initName, String? label}) async {
     return showDialog<String>(
       context: context,
@@ -328,9 +325,9 @@ class _FileControlState extends State<FileControl> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirm Delete?'),
-          content: Text(selectFiles.length == 1
+          content: Text(_selectedFiles.length == 1
               ? 'Delete 1 item?'
-              : 'Delete ${selectFiles.length} items?'),
+              : 'Delete ${_selectedFiles.length} items?'),
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),
@@ -373,8 +370,8 @@ class _FileControlState extends State<FileControl> {
         return AlertDialog(
           title:
               Text('File Info - ${p.basenameWithoutExtension(fileObj.path)}'),
-          content: Text('Full Path: ${fileObj.path}\n\n' +
-              'Last Modiified: ${fileObj.lastModifiedSync().toString()}\n\n' +
+          content: Text('Full Path: ${fileObj.path}\n\n'
+              'Last Modiified: ${fileObj.lastModifiedSync().toString()}\n\n'
               'Size: ${fileObj.statSync().size} bytes'),
           actions: <Widget>[
             TextButton(

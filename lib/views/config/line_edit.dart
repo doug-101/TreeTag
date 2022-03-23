@@ -1,6 +1,6 @@
 // line_edit.dart, a view to edit an output field line or a rule field line.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -9,19 +9,23 @@ import '../../model/parsed_line.dart';
 import '../../model/structure.dart';
 import 'line_field_edit.dart';
 
-// The line edit widget.
+/// The line edit view that edits a line with fields nad text.
+///
+/// Called from both [RuleEdit] and [OutputConfig] views.
 class LineEdit extends StatefulWidget {
   final ParsedLine line;
+  final String title;
 
-  LineEdit({Key? key, required this.line}) : super(key: key);
+  LineEdit({Key? key, required this.line, this.title = 'Line Edit'})
+      : super(key: key);
 
   @override
   State<LineEdit> createState() => _LineEditState();
 }
 
 class _LineEditState extends State<LineEdit> {
-  LineSegment? selectedSegment;
-  bool isChanged = false;
+  LineSegment? _selectedSegment;
+  var _isChanged = false;
   final _textEditKey = GlobalKey<FormFieldState>();
 
   @override
@@ -31,7 +35,15 @@ class _LineEditState extends State<LineEdit> {
         TextStyle(color: Theme.of(context).colorScheme.secondary);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Line Edit'),
+        title: Text(widget.title),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+          ),
+        ],
       ),
       body: WillPopScope(
         onWillPop: () async {
@@ -39,7 +51,7 @@ class _LineEditState extends State<LineEdit> {
             await noEmptyDialog();
             return false;
           }
-          Navigator.pop(context, isChanged);
+          Navigator.pop(context, _isChanged);
           return true;
         },
         child: Padding(
@@ -49,6 +61,7 @@ class _LineEditState extends State<LineEdit> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  // Add a field or text.
                   PopupMenuButton(
                     icon: const Icon(Icons.add_circle_outline),
                     onSelected: (result) async {
@@ -63,12 +76,12 @@ class _LineEditState extends State<LineEdit> {
                       }
                       if (newSegment != null) {
                         var pos = widget.line.segments.length;
-                        if (selectedSegment != null)
-                          pos = widget.line.segments.indexOf(selectedSegment!);
+                        if (_selectedSegment != null)
+                          pos = widget.line.segments.indexOf(_selectedSegment!);
                         setState(() {
                           widget.line.segments.insert(pos, newSegment!);
-                          selectedSegment = newSegment;
-                          isChanged = true;
+                          _selectedSegment = newSegment;
+                          _isChanged = true;
                         });
                       }
                     },
@@ -85,13 +98,14 @@ class _LineEditState extends State<LineEdit> {
                         )
                     ],
                   ),
+                  // Edit the selected segment.
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
-                    onPressed: selectedSegment == null
+                    onPressed: _selectedSegment == null
                         ? null
                         : () async {
-                            if (selectedSegment?.field != null) {
-                              var altField = selectedSegment!.field!;
+                            if (_selectedSegment?.field != null) {
+                              var altField = _selectedSegment!.field!;
                               var altCreated = false;
                               if (!altField.isAltFormatField) {
                                 altField = altField.createAltFormatField();
@@ -105,81 +119,86 @@ class _LineEditState extends State<LineEdit> {
                                 ),
                               );
                               if (fieldIsChanged) {
-                                isChanged = true;
+                                _isChanged = true;
                                 if (altCreated)
-                                  selectedSegment!.field = altField;
+                                  _selectedSegment!.field = altField;
                                 if (altField == altField.altFormatParent) {
                                   // Revert to parent field format if same.
-                                  selectedSegment!.field =
+                                  _selectedSegment!.field =
                                       altField.altFormatParent;
-                                  selectedSegment!.field!
+                                  _selectedSegment!.field!
                                       .removeAltFormatField(altField);
                                 }
                               } else if (altCreated) {
-                                selectedSegment!.field!
+                                _selectedSegment!.field!
                                     .removeAltFormatField(altField);
                               }
                             } else {
                               var text = await textDialog(
-                                  initText: selectedSegment!.text!);
+                                  initText: _selectedSegment!.text!);
                               if (text != null &&
-                                  text != selectedSegment!.text) {
+                                  text != _selectedSegment!.text) {
                                 setState(() {
-                                  selectedSegment!.text = text;
-                                  isChanged = true;
+                                  _selectedSegment!.text = text;
+                                  _isChanged = true;
                                 });
                               }
                             }
                           },
                   ),
+                  // Delete the selected segment.
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: (selectedSegment == null ||
+                    onPressed: (_selectedSegment == null ||
                             widget.line.segments.length < 2)
                         ? null
                         : () {
                             setState(() {
-                              widget.line.segments.remove(selectedSegment!);
-                              selectedSegment = null;
-                              isChanged = true;
+                              widget.line.segments.remove(_selectedSegment!);
+                              _selectedSegment = null;
+                              _isChanged = true;
                             });
                           },
                   ),
+                  // Move the selected segment to the left.
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
-                    onPressed: (selectedSegment == null ||
-                            widget.line.segments.indexOf(selectedSegment!) == 0)
+                    onPressed: (_selectedSegment == null ||
+                            widget.line.segments.indexOf(_selectedSegment!) ==
+                                0)
                         ? null
                         : () {
                             var pos =
-                                widget.line.segments.indexOf(selectedSegment!);
+                                widget.line.segments.indexOf(_selectedSegment!);
                             setState(() {
                               widget.line.segments.removeAt(pos);
                               widget.line.segments
-                                  .insert(pos - 1, selectedSegment!);
-                              isChanged = true;
+                                  .insert(pos - 1, _selectedSegment!);
+                              _isChanged = true;
                             });
                           },
                   ),
+                  // Move the selected segment to the right.
                   IconButton(
                     icon: const Icon(Icons.arrow_forward),
-                    onPressed: (selectedSegment == null ||
-                            widget.line.segments.indexOf(selectedSegment!) ==
+                    onPressed: (_selectedSegment == null ||
+                            widget.line.segments.indexOf(_selectedSegment!) ==
                                 widget.line.segments.length - 1)
                         ? null
                         : () {
                             var pos =
-                                widget.line.segments.indexOf(selectedSegment!);
+                                widget.line.segments.indexOf(_selectedSegment!);
                             setState(() {
                               widget.line.segments.removeAt(pos);
                               widget.line.segments
-                                  .insert(pos + 1, selectedSegment!);
-                              isChanged = true;
+                                  .insert(pos + 1, _selectedSegment!);
+                              _isChanged = true;
                             });
                           },
                   ),
                 ],
               ),
+              // The chips for the segments.
               Flexible(
                 flex: 1,
                 child: ListView(
@@ -201,13 +220,13 @@ class _LineEditState extends State<LineEdit> {
                           label: segment.hasField
                               ? Text(segment.field!.name, style: contrastStyle)
                               : Text(segment.text ?? ''),
-                          selected: segment == selectedSegment,
+                          selected: segment == _selectedSegment,
                           onSelected: (bool isSelected) {
                             setState(() {
                               if (isSelected) {
-                                selectedSegment = segment;
+                                _selectedSegment = segment;
                               } else {
-                                selectedSegment = null;
+                                _selectedSegment = null;
                               }
                             });
                           },

@@ -1,25 +1,32 @@
-// struct.dart, top level storage for the tree model.
+// structure.dart, top level storage for the tree model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show json;
 import 'dart:io' show File;
-import 'package:flutter/foundation.dart'; // contains ChangeNotifier
+// foundation.dart includes [ChangeNotifier].
+import 'package:flutter/foundation.dart';
 
 import 'fields.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'undos.dart';
 
-/// Top-level storage for tree formats and nodes.
+/// Top-level storage for tree formats, nodes and undo operations.
+///
+/// Includes methods for all operations that modify this model.
+/// [ChangeNotifier] is used to handle view state updates.
 class Structure extends ChangeNotifier {
-  var rootNodes = <Node>[];
-  var leafNodes = <LeafNode>[];
-  var obsoleteNodes = <Node>{};
-  var fieldMap = <String, Field>{};
+  final rootNodes = <Node>[];
+  final leafNodes = <LeafNode>[];
+
+  /// Rencently deleted nodes, used by [DetailView] to label old pages.
+  final obsoleteNodes = <Node>{};
+
+  final fieldMap = <String, Field>{};
   late ParsedLine titleLine;
-  var outputLines = <ParsedLine>[];
+  final outputLines = <ParsedLine>[];
   var fileObject = File('.');
   late UndoList undoList;
 
@@ -28,6 +35,7 @@ class Structure extends ChangeNotifier {
     undoList = UndoList(this);
   }
 
+  /// Open an existng file using the JSON data in [fileObj].
   void openFile(File fileObj) {
     clearModel();
     var autoChoiceFields = <AutoChoiceField>[];
@@ -52,14 +60,18 @@ class Structure extends ChangeNotifier {
     if (autoChoiceFields.isNotEmpty) {
       for (var leaf in leafNodes) {
         for (var field in autoChoiceFields) {
-          if (leaf.data[field.name] != null)
+          if (leaf.data[field.name] != null) {
             field.options.add(leaf.data[field.name]!);
+          }
         }
       }
     }
     undoList = UndoList.fromJson(jsonData['undos'] ?? [], this);
   }
 
+  /// Start a new, skeleton file.
+  ///
+  /// The data and future changes will be saved to [fileObj].
   void newFile(File fileObj) {
     clearModel();
     fileObject = fileObj;
@@ -84,14 +96,15 @@ class Structure extends ChangeNotifier {
     saveFile();
   }
 
+  /// Empty the model to prepare for opening a file or starting a new file.
   void clearModel() {
-    rootNodes = [];
-    leafNodes = [];
-    obsoleteNodes = {};
-    fieldMap = {};
+    rootNodes.clear();
+    leafNodes.clear();
+    obsoleteNodes.clear();
+    fieldMap.clear();
     titleLine = ParsedLine('', fieldMap);
-    outputLines = [];
-    undoList = UndoList(this);
+    outputLines.clear();
+    undoList.clear();
   }
 
   void saveFile() async {
@@ -108,11 +121,17 @@ class Structure extends ChangeNotifier {
     await fileObject.writeAsString(json.encode(jsonData));
   }
 
+  /// Opens or closes a node based on a tap in the [TreeView].
   void toggleNodeOpen(Node node) {
     node.isOpen = !node.isOpen;
     notifyListeners();
   }
 
+  /// Creates a new node using some data copied from [copyFromNode] if given.
+  ///
+  /// Called from the [DetailView].
+  /// Does not create undo objects or update views - that is done in
+  /// [editNodeData()] after the user edits the new node.
   LeafNode newNode({Node? copyFromNode}) {
     var data = Map<String, String>.of(copyFromNode?.data ?? <String, String>{});
     if (copyFromNode is GroupNode) {
@@ -130,6 +149,7 @@ class Structure extends ChangeNotifier {
     return newNode;
   }
 
+  /// Called from the [DetailView] to update new or edited node data.
   void editNodeData(LeafNode node, Map<String, String> nodeData,
       {bool newNode = false}) {
     if (newNode) {
@@ -144,6 +164,9 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from the [DetailView] to delete a node.
+  ///
+  /// Can also be called from [EditView] to remove an unwanted new node.
   void deleteNode(LeafNode node, {bool withUndo = true}) {
     if (withUndo)
       undoList.add(
@@ -157,6 +180,7 @@ class Structure extends ChangeNotifier {
     saveFile();
   }
 
+  /// Called from the [FieldEdit] view to add a new [field].
   void addNewField(Field field) {
     undoList.add(UndoAddNewField('Add new field: ${field.name}', field.name));
     fieldMap[field.name] = field;
@@ -164,6 +188,9 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from the [FieldEdit] view to add settings from [editedField].
+  ///
+  /// Choices from [ChoiceField] need to be updated if [removeChoices].
   void editField(Field oldField, Field editedField,
       {bool removeChoices = false}) {
     var undos = <Undo>[];
@@ -207,7 +234,9 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
-  // Used for field type changes.
+  /// Used for field type changes.
+  ///
+  /// Called from the [FieldEdit] view.
   void replaceField(Field oldField, Field newField) {
     var undos = <Undo>[];
     var pos = List.of(fieldMap.values).indexOf(oldField);
@@ -222,6 +251,7 @@ class Structure extends ChangeNotifier {
         }
       }
     }
+    // Replace the field stored in the [fieldMap].
     var fieldList = List.of(fieldMap.values);
     fieldMap.clear();
     for (var fld in fieldList) {
@@ -244,6 +274,7 @@ class Structure extends ChangeNotifier {
         }
       }
     }
+    // Replace field in rules.
     for (var root in rootNodes) {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
@@ -255,6 +286,7 @@ class Structure extends ChangeNotifier {
         }
       }
     }
+    // Remove invalid [LeafNode] data.
     for (var leaf in leafNodes) {
       if (!newField.isStoredTextValid(leaf)) {
         undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
@@ -270,6 +302,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [FieldConfig] to remove a field.
   void deleteField(Field field) {
     var undos = <Undo>[];
     var pos = List.of(fieldMap.values).indexOf(field);
@@ -349,6 +382,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [FieldConfig] to move a field up or down.
   void moveField(Field field, {bool up = true}) {
     var fieldList = List.of(fieldMap.values);
     var pos = fieldList.indexOf(field);
@@ -413,6 +447,7 @@ class Structure extends ChangeNotifier {
     return count;
   }
 
+  /// Update all alt format fields by removing unused and updating parents.
   void updateAltFormatFields() {
     var usedFields = <Field>{};
     usedFields.addAll(titleLine.fields());
@@ -423,8 +458,9 @@ class Structure extends ChangeNotifier {
           usedFields.addAll((item.node as RuleNode).ruleLine.fields());
     }
     usedFields.retainWhere((field) => field.isAltFormatField);
-    for (var field in fieldMap.values)
+    for (var field in fieldMap.values) {
       field.removeUnusedAltFormatFields(usedFields);
+    }
     for (var altField in usedFields) {
       altField.name = altField.altFormatParent!.name;
       altField.altFormatParent!.addAltFormatFieldIfMissing(altField);
@@ -460,6 +496,7 @@ class Structure extends ChangeNotifier {
     return rootNodes.indexOf(node);
   }
 
+  /// Called from [TreeConfig] to add a title node as a sibling.
   void addTitleSibling(TitleNode siblingNode, String newTitle) {
     var parent = siblingNode.parent;
     var pos = storedNodePos(siblingNode) + 1;
@@ -474,6 +511,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [TreeConfig] to add a title node as a child.
   void addTitleChild(TitleNode parentNode, String newTitle) {
     undoList.add(UndoAddTreeNode('Add title node: $newTitle',
         storedNodeId(parentNode), parentNode.storedChildren().length));
@@ -483,6 +521,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [TreeConfig] to edit an existing title node.
   void editTitle(TitleNode node, String newTitle) {
     undoList.add(UndoEditTitleNode(
         'Edit title node: ${node.title}', storedNodeId(node), node.title));
@@ -524,6 +563,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [TreeConfig] to delete a title or rule node.
   void deleteTreeNode(Node node) {
     if (node is TitleNode) {
       undoList.add(UndoDeleteTreeNode('Delete title node: ${node.title}',
@@ -550,6 +590,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [TreeConfig] to move a title node up or down.
   void moveTitleNode(TitleNode node, {bool up = true}) {
     var siblings =
         node.parent != null ? node.parent!.storedChildren() : rootNodes;
@@ -571,6 +612,7 @@ class Structure extends ChangeNotifier {
     return false;
   }
 
+  /// Called from [RuleEdit] to set default rule sort keys.
   void ruleSortKeysToDefault(RuleNode node) {
     undoList.add(UndoEditSortKeys(
         'Rule sort keys to default', storedNodeId(node), node.sortFields,
@@ -580,6 +622,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [RuleEdit] to set default child sort keys.
   void childSortKeysToDefault(RuleNode node) {
     undoList.add(UndoEditSortKeys(
         'Child sort keys to default', storedNodeId(node), node.childSortFields,
@@ -589,6 +632,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [RuleEdit] to set custom rule sort keys.
   void updateRuleSortKeys(RuleNode node, List<SortKey> newKeys) {
     undoList.add(UndoEditSortKeys(
         'Edit rule sort keys', storedNodeId(node), node.sortFields,
@@ -598,6 +642,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [RuleEdit] to set custom child sort keys.
   void updateChildSortKeys(RuleNode node, List<SortKey> newKeys) {
     undoList.add(UndoEditSortKeys(
         'Edit child sort keys', storedNodeId(node), node.childSortFields,
@@ -607,6 +652,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [OutputConfig] to add a new output line.
   void addOutputLine(int pos, ParsedLine newLine) {
     undoList.add(UndoAddOutputLine(
         'Add output line: ${newLine.getUnparsedLine()}', pos));
@@ -615,6 +661,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [OutputConfig] to edit a title line or an output line.
   void editOutputLine(ParsedLine origLine, ParsedLine newLine) {
     if (origLine == titleLine) {
       undoList.add(UndoEditOutputLine(
@@ -630,6 +677,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [OutputConfig] to delete an output line.
   void removeOutputLine(ParsedLine origLine) {
     int pos = outputLines.indexOf(origLine);
     undoList.add(UndoRemoveOutputLine(
@@ -639,6 +687,7 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [OutputConfig] to move an output line up or down.
   void moveOutputLine(ParsedLine line, {bool up = true}) {
     var pos = outputLines.indexOf(line);
     undoList.add(UndoMoveOutputLine(
@@ -648,12 +697,14 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Update tree children, view states and save the file.
   void updateAll() {
     updateAllChildren();
     notifyListeners();
     saveFile();
   }
 
+  /// Update all of the tree children.
   void updateAllChildren({bool forceUpdate = true}) {
     obsoleteNodes.clear();
     for (var root in rootNodes) {
@@ -662,6 +713,7 @@ class Structure extends ChangeNotifier {
   }
 }
 
+/// Update the cildren of a given [node].
 void updateChildren(Node node, {bool forceUpdate = true}) {
   if (node.isOpen) {
     if (node.isStale) {
@@ -672,10 +724,11 @@ void updateChildren(Node node, {bool forceUpdate = true}) {
       updateChildren(child, forceUpdate: forceUpdate);
     }
   } else if (forceUpdate && node.hasChildren) {
-    node.isStale == true;
+    node.isStale = true;
   }
 }
 
+/// Used to store a node with its ident level in the tree.
 class LeveledNode {
   late final Node node;
   late final int level;
@@ -683,6 +736,7 @@ class LeveledNode {
   LeveledNode(this.node, this.level);
 }
 
+/// Generate all of the nodes in the tree.
 Iterable<LeveledNode> nodeGenerator(Node node,
     {int level = 0, bool forceUpdate = false}) sync* {
   yield LeveledNode(node, level);
@@ -695,23 +749,14 @@ Iterable<LeveledNode> nodeGenerator(Node node,
       yield* nodeGenerator(child, level: level + 1, forceUpdate: forceUpdate);
     }
   } else if (forceUpdate && node.hasChildren) {
-    node.isStale == true;
+    node.isStale = true;
   }
 }
 
+/// Generate all of the stored nodes.
 Iterable<LeveledNode> storedNodeGenerator(Node node, {int level = 0}) sync* {
   yield LeveledNode(node, level);
   for (var child in node.storedChildren()) {
     yield* storedNodeGenerator(child, level: level + 1);
-  }
-}
-
-void main(List<String> args) {
-  var struct = Structure();
-  struct.openFile(File(args[0]));
-  for (var root in struct.rootNodes) {
-    for (var leveledNode in nodeGenerator(root)) {
-      print('   ' * leveledNode.level + leveledNode.node.title);
-    }
   }
 }

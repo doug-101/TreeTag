@@ -1,6 +1,6 @@
 // line_field_edit.dart, a view to customize a field's details in a line.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2021, Douglas W. Bell.
+// Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -8,9 +8,13 @@ import '../../model/fields.dart';
 import '../../model/structure.dart';
 import 'field_format_edit.dart';
 
-// The line field edit widget
+// The field edit view with a form for only format, prefix and suffix.
+//
+// Called from [LineEdit] views for fields in rules and output lines.
 class LineFieldEdit extends StatefulWidget {
   final Field field;
+
+  // Original values stored to determine whetehr there are changes.
   late final String origFormat;
   late final String origPrefix;
   late final String origSuffix;
@@ -27,6 +31,8 @@ class LineFieldEdit extends StatefulWidget {
 
 class _LineFieldEditState extends State<LineFieldEdit> {
   final _formKey = GlobalKey<FormState>();
+
+  // Keys are needed to allow a reset back to the alt format's parent field.
   final _fieldFormatKey = GlobalKey<FormFieldState<String>>();
   final _fieldPrefixKey = GlobalKey<FormFieldState<String>>();
   final _fieldSuffixKey = GlobalKey<FormFieldState<String>>();
@@ -49,13 +55,15 @@ class _LineFieldEditState extends State<LineFieldEdit> {
       appBar: AppBar(
         title: Text(widget.field.name + ' Line Field'),
         actions: <Widget>[
+          // Reset back to the alt format's parent field.
           IconButton(
             icon: const Icon(Icons.restore),
             onPressed: () {
               var parentField = widget.field.altFormatParent;
               if (parentField != null) {
-                if (parentField.format.isNotEmpty)
+                if (parentField.format.isNotEmpty) {
                   _fieldFormatKey.currentState!.didChange(parentField.format);
+                }
                 _fieldPrefixKey.currentState!.didChange(parentField.prefix);
                 _fieldSuffixKey.currentState!.didChange(parentField.suffix);
               } else {
@@ -73,6 +81,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           child: ListView(
             children: <Widget>[
               if (widget.field.format.isNotEmpty)
+                // Defined in field_format_edit.dart.
                 FieldFormatDisplay(
                   key: _fieldFormatKey,
                   fieldType: widget.field.fieldType,
