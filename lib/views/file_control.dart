@@ -54,6 +54,7 @@ class _FileControlState extends State<FileControl> {
     await for (var entity in _workDir.list()) {
       if (entity != null && entity is File) _fileList.add(entity);
     }
+    _fileList.sort((a, b) => a.path.compareTo(b.path));
     setState(() {});
   }
 
