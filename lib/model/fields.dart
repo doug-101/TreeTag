@@ -171,7 +171,7 @@ abstract class Field {
     return newField;
   }
 
-  /// Copy settings from [otherField] to svae changes from edit views.
+  /// Copy settings from [otherField] to save changes from edit views.
   void updateSettings(Field otherField) {
     if (name != otherField.name) {
       name = otherField.name;

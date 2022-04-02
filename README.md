@@ -139,7 +139,7 @@ node will be shown.
 
 The summary view for the group node is also shown when editing an existing group
 node. Tapping the rule definition at the top will start the rule line editor
-described above.  Rule sorting settings are shown below the rule definition.
+described above.  Group sorting settings are shown below the rule definition.
 This defines how the group's headings are sorted.  The default sorts using the
 fields from the rule line in ascending order.  The custom button can be used to
 define other sequences.  Finally, if the group node has no child nodes, child

@@ -53,7 +53,7 @@ class _RuleEditState extends State<RuleEdit> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rule Node'),
+        title: Text('Group Node'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -104,7 +104,7 @@ class _RuleEditState extends State<RuleEdit> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Rule Sorting',
+                  Text('Group Sorting',
                       style: Theme.of(context).textTheme.caption),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 10.0),

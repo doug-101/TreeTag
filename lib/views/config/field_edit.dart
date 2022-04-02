@@ -33,7 +33,10 @@ class _FieldEditState extends State<FieldEdit> {
   var _cancelNewFlag = false;
 
   final _formKey = GlobalKey<FormState>();
-  final _dropdownState = GlobalKey<FormFieldState>();
+  final _dropdownTypeKey = GlobalKey<FormFieldState<String>>();
+  final _fieldFormatKey = GlobalKey<FormFieldState<String>>();
+  final _fieldInitBoolKey = GlobalKey<FormFieldState<bool>>();
+  final _fieldInitStrKey = GlobalKey<FormFieldState<String>>();
 
   @override
   void initState() {
@@ -115,6 +118,12 @@ class _FieldEditState extends State<FieldEdit> {
                       _isFieldTypeChanged = false;
                     }
                     _formKey.currentState!.reset();
+                    // It's unclear why the format needs to be set separately
+                    // to avoid needing two reset presses.
+                    if (_fieldFormatKey.currentState != null) {
+                      _fieldFormatKey.currentState!
+                          .didChange(_editedField.format);
+                    }
                     setState(() {});
                   },
                 ),
@@ -153,7 +162,7 @@ class _FieldEditState extends State<FieldEdit> {
                 },
               ),
               DropdownButtonFormField<String>(
-                key: _dropdownState,
+                key: _dropdownTypeKey,
                 decoration: InputDecoration(labelText: 'Field Type'),
                 value: _editedField.fieldType,
                 items: [
@@ -174,6 +183,17 @@ class _FieldEditState extends State<FieldEdit> {
                     } else {
                       _editedField = _editedField.copyToType(newType);
                       _isFieldTypeChanged = true;
+                      _fieldFormatKey.currentState!
+                          .didChange(_editedField.format);
+                      if (_editedField.initValue.isNotEmpty) {
+                        _editedField.initValue = '';
+                        if (_fieldInitBoolKey.currentState != null) {
+                          _fieldInitBoolKey.currentState!.didChange(false);
+                        }
+                        if (_fieldInitStrKey.currentState != null) {
+                          _fieldInitStrKey.currentState!.didChange('');
+                        }
+                      }
                     }
                   }
                   setState(() {});
@@ -182,6 +202,7 @@ class _FieldEditState extends State<FieldEdit> {
               if (_editedField.format.isNotEmpty)
                 // Defined in field_format_edit.dart.
                 FieldFormatDisplay(
+                  key: _fieldFormatKey,
                   fieldType: _editedField.fieldType,
                   initialFormat: _editedField.format,
                   onSaved: (String? value) async {
@@ -193,6 +214,7 @@ class _FieldEditState extends State<FieldEdit> {
               if (_editedField is DateField || _editedField is TimeField)
                 // Defined below.
                 InitNowBoolFormField(
+                  key: _fieldInitBoolKey,
                   initialValue: _editedField.initValue == 'now' ? true : false,
                   heading: _editedField is DateField
                       ? 'Initial Value to Current Date'
@@ -206,8 +228,9 @@ class _FieldEditState extends State<FieldEdit> {
               else
                 // Initial value for other fields.
                 TextFormField(
+                  key: _fieldInitStrKey,
                   decoration: InputDecoration(labelText: 'Initial Value'),
-                  initialValue: widget.field.initValue,
+                  initialValue: _editedField.initValue,
                   validator: _editedField.validateMessage,
                   onSaved: (String? value) {
                     if (value != null) {
@@ -294,10 +317,12 @@ class InitNowBoolFormField extends FormField<bool> {
   InitNowBoolFormField({
     bool? initialValue,
     String? heading,
+    Key? key,
     FormFieldSetter<bool>? onSaved,
   }) : super(
           onSaved: onSaved,
           initialValue: initialValue,
+          key: key,
           builder: (FormFieldState<bool> state) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
