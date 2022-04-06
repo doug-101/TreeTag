@@ -274,11 +274,11 @@ class _FieldEditState extends State<FieldEdit> {
               'Field type change will cause $numErrors nodes to lose data.'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Keep changes'),
+              child: const Text('KEEP CHANGES'),
               onPressed: () => Navigator.pop(context, true),
             ),
             TextButton(
-              child: const Text('Discard changes'),
+              child: const Text('DISCARD CHANGES'),
               onPressed: () => Navigator.pop(context, false),
             ),
           ],
@@ -298,11 +298,11 @@ class _FieldEditState extends State<FieldEdit> {
               'Choice field changes will cause $numErrors nodes to lose data.'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Keep changes'),
+              child: const Text('KEEP CHANGES'),
               onPressed: () => Navigator.pop(context, true),
             ),
             TextButton(
-              child: const Text('Discard changes'),
+              child: const Text('DISCARD CHANGES'),
               onPressed: () => Navigator.pop(context, false),
             ),
           ],

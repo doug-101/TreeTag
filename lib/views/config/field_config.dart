@@ -163,7 +163,7 @@ class _FieldConfigState extends State<FieldConfig> {
               onPressed: () => Navigator.pop(context, true),
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
               onPressed: () => Navigator.pop(context, false),
             ),
           ],

@@ -68,11 +68,11 @@ class _EditViewState extends State<EditView> {
           content: const Text('Save unmodified new node?'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Save'),
+              child: const Text('SAVE'),
               onPressed: () => Navigator.pop(context, true),
             ),
             TextButton(
-              child: const Text('Discard'),
+              child: const Text('DISCARD'),
               onPressed: () => Navigator.pop(context, false),
             ),
           ],

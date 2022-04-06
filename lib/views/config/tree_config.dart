@@ -242,7 +242,7 @@ class _TreeConfigState extends State<TreeConfig> {
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
               onPressed: () => Navigator.pop(context, null),
             ),
           ],

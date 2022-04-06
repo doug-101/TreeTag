@@ -10,7 +10,7 @@ import '../model/structure.dart';
 import '../views/detail_view.dart';
 import '../views/undo_view.dart';
 
-enum MenuItems { editConfig, close, undoView }
+enum MenuItems { editConfig, undoView, about, close }
 const emptyName = '[Empty Title]';
 const _closedIcon = Icon(Icons.arrow_right, size: 24.0);
 const _openIcon = Icon(Icons.arrow_drop_down, size: 24.0);
@@ -45,6 +45,16 @@ class TreeView extends StatelessWidget {
                 case MenuItems.undoView:
                   Navigator.pushNamed(context, '/undoView');
                   break;
+                case MenuItems.about:
+                  showAboutDialog(
+                    context: context,
+                    applicationName: 'TreeTag',
+                    applicationVersion: 'Version $treeTagVersion',
+                    applicationLegalese: '©2022 by Douglas W. Bell',
+                    applicationIcon:
+                        Image.asset('assets/images/tree_icon_48.png'),
+                  );
+                  break;
                 case MenuItems.close:
                   Navigator.pop(context);
                   break;
@@ -59,6 +69,12 @@ class TreeView extends StatelessWidget {
                 child: Text('View Undo Steps'),
                 value: MenuItems.undoView,
               ),
+              PopupMenuDivider(),
+              PopupMenuItem<MenuItems>(
+                child: Text('About TreeTag'),
+                value: MenuItems.about,
+              ),
+              PopupMenuDivider(),
               PopupMenuItem<MenuItems>(
                 child: Text('Close File'),
                 value: MenuItems.close,

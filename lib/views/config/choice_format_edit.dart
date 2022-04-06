@@ -206,7 +206,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
               onPressed: () => Navigator.pop(context, null),
             ),
           ],

@@ -323,7 +323,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
               onPressed: () => Navigator.pop(context, null),
             ),
           ],

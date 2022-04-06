@@ -287,7 +287,7 @@ class _FileControlState extends State<FileControl> {
               },
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
               onPressed: () => Navigator.pop(context, null),
             ),
           ],
@@ -310,7 +310,7 @@ class _FileControlState extends State<FileControl> {
               onPressed: () => Navigator.pop(context, true),
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
               onPressed: () => Navigator.pop(context, false),
             ),
           ],
@@ -335,7 +335,7 @@ class _FileControlState extends State<FileControl> {
               onPressed: () => Navigator.pop(context, true),
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
               onPressed: () => Navigator.pop(context, false),
             ),
           ],
