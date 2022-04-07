@@ -37,8 +37,8 @@ android {
         applicationId "org.bellz.treetag"
         minSdkVersion 29
         targetSdkVersion 30
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        versionCode 1
+        versionName "0.0.0"
     }
 
     buildTypes {
