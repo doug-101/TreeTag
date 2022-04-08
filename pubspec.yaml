@@ -42,10 +42,12 @@ dev_dependencies:
     sdk: flutter
 
 flutter_icons:
-  ios: true
   android: true
-  image_path_ios: "assets/launcher/tree_icon_1024.png"
+  ios: true
   image_path_android: "assets/launcher/tree_icon_1024.png"
+  image_path_ios: "assets/launcher/tree_icon_1024_white.png"
+  adaptive_icon_foreground: "assets/launcher/tree_icon_108.png"
+  adaptive_icon_background: "#ffffff"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

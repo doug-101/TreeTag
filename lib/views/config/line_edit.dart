@@ -76,8 +76,9 @@ class _LineEditState extends State<LineEdit> {
                       }
                       if (newSegment != null) {
                         var pos = widget.line.segments.length;
-                        if (_selectedSegment != null)
+                        if (_selectedSegment != null) {
                           pos = widget.line.segments.indexOf(_selectedSegment!);
+                        }
                         setState(() {
                           widget.line.segments.insert(pos, newSegment!);
                           _selectedSegment = newSegment;
@@ -120,8 +121,9 @@ class _LineEditState extends State<LineEdit> {
                               );
                               if (fieldIsChanged) {
                                 _isChanged = true;
-                                if (altCreated)
+                                if (altCreated) {
                                   _selectedSegment!.field = altField;
+                                }
                                 if (altField == altField.altFormatParent) {
                                   // Revert to parent field format if same.
                                   _selectedSegment!.field =
