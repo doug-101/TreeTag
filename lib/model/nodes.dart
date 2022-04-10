@@ -377,6 +377,9 @@ class LeafNode implements Node {
   var isStale = false;
   var availableNodes = <LeafNode>[];
 
+  /// Stores group parents for leaf instances with expanded output.
+  final _expandedParents = <Node>{};
+
   LeafNode({required this.data, required this.modelRef});
 
   LeafNode.fromJson(Map<String, dynamic> jsonData, this.modelRef) {
@@ -391,6 +394,14 @@ class LeafNode implements Node {
 
   List<String> outputs() {
     return [for (var line in modelRef.outputLines) line.formattedLine(this)];
+  }
+
+  bool isExpanded(Node parent) => _expandedParents.contains(parent);
+
+  void toggleExpanded(Node parent) {
+    if (!_expandedParents.remove(parent)) {
+      _expandedParents.add(parent);
+    }
   }
 
   Map<String, dynamic> toJson() {

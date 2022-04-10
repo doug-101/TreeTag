@@ -50,7 +50,9 @@ file list.
 
 In the tree view, title and grouping nodes are proceeded by small triangles.
 These nodes can be tapped to expand or collapse the node's children.  The leaf
-nodes, proceeded by circles, contain the data.  They have no children.
+nodes, proceeded by circles, contain the data.  They have no children but they
+can be tapped to toggle between showing a single title line (the default) or
+the output lines.
 
 A long press on a node will open up a detail view listing that node's children
 (for title and grouping nodes) or the node output (for a leaf node). The detail
@@ -150,9 +152,9 @@ custom button can be used to define other sequences.
 ### Configure Output
 
 The Output tab of the Configuration view shows a title line followed by one or
-more output lines.  The title line defines how a leaf node is shown in the main
-tree view.  The output lines are combined to define how a leaf node is shown in
-the detail view.
+more output lines.  The title line defines how a leaf node is shown as a single
+line in the main tree view.  The output lines are combined to define how a leaf
+node is shown with multiple lines in the main tree view and in the detail view.
 
 Tapping a title or output line toggles its selection.  There are icons above the
 lines to add a new output line ("+"), edit a line (pencil), delete an output

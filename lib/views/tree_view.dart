@@ -107,6 +107,12 @@ class TreeView extends StatelessWidget {
   /// A single widget for a tree node.
   Widget _row(LeveledNode leveledNode, BuildContext context) {
     final node = leveledNode.node;
+    String nodeText;
+    if (node is LeafNode && node.isExpanded(leveledNode.parent!)) {
+      nodeText = node.outputs().join('\n');
+    } else {
+      nodeText = node.title.isNotEmpty ? node.title : emptyName;
+    }
     return Container(
       padding:
           EdgeInsets.fromLTRB(25.0 * leveledNode.level + 4.0, 8.0, 4.0, 8.0),
@@ -114,12 +120,18 @@ class TreeView extends StatelessWidget {
         onTap: () {
           if (node.hasChildren) {
             node.modelRef.toggleNodeOpen(node);
+          } else if (node is LeafNode) {
+            node.modelRef.toggleNodeExpanded(node, leveledNode.parent!);
           }
         },
         onLongPress: () {
           Navigator.pushNamed(context, '/detailView', arguments: node);
         },
         child: Row(
+          crossAxisAlignment: node.hasChildren
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           children: <Widget>[
             node.hasChildren
                 ? Container(
@@ -129,9 +141,7 @@ class TreeView extends StatelessWidget {
                     child: _leafIcon,
                     padding: EdgeInsets.only(left: 8.0, right: 8.0),
                   ),
-            Expanded(
-                child: Text(node.title.isNotEmpty ? node.title : emptyName,
-                    softWrap: true)),
+            Expanded(child: Text(nodeText, softWrap: true)),
           ],
         ),
       ),

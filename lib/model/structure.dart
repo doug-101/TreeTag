@@ -130,6 +130,14 @@ class Structure extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Expands or contracts a [LeafNode] at [parentNode] instance.
+  ///
+  /// This either shows or hides the full output.
+  void toggleNodeExpanded(LeafNode node, Node parentNode) {
+    node.toggleExpanded(parentNode);
+    notifyListeners();
+  }
+
   /// Creates a new node using some data copied from [copyFromNode] if given.
   ///
   /// Called from the [DetailView].
@@ -733,23 +741,26 @@ void updateChildren(Node node, {bool forceUpdate = true}) {
 
 /// Used to store a node with its ident level in the tree.
 class LeveledNode {
-  late final Node node;
-  late final int level;
+  final Node node;
+  final int level;
+  /// parent, used in [nodeGenerator], stores group parents of leaf instances.
+  final Node? parent;
 
-  LeveledNode(this.node, this.level);
+  LeveledNode(this.node, this.level, {this.parent});
 }
 
 /// Generate all of the nodes in the tree.
 Iterable<LeveledNode> nodeGenerator(Node node,
-    {int level = 0, bool forceUpdate = false}) sync* {
-  yield LeveledNode(node, level);
+    {int level = 0, Node? parent, bool forceUpdate = false}) sync* {
+  yield LeveledNode(node, level, parent: parent);
   if (node.isOpen) {
     if (node.isStale) {
       forceUpdate = true;
       node.isStale = false;
     }
     for (var child in node.childNodes(forceUpdate: forceUpdate)) {
-      yield* nodeGenerator(child, level: level + 1, forceUpdate: forceUpdate);
+      yield* nodeGenerator(child,
+          level: level + 1, parent: node, forceUpdate: forceUpdate);
     }
   } else if (forceUpdate && node.hasChildren) {
     node.isStale = true;
