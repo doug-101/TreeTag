@@ -110,9 +110,10 @@ class Structure extends ChangeNotifier {
   }
 
   void saveFile() async {
-    var jsonData = await <String, dynamic>{
-      'template': [for (var root in rootNodes) root.toJson()]
+    var jsonData = <String, dynamic>{
+      'properties': {'ttversion': treeTagVersion},
     };
+    jsonData['template'] = await [for (var root in rootNodes) root.toJson()];
     jsonData['fields'] =
         await [for (var field in fieldMap.values) field.toJson()];
     jsonData['titleline'] = titleLine.getUnparsedLine();

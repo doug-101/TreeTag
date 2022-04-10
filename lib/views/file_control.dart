@@ -232,14 +232,21 @@ class _FileControlState extends State<FileControl> {
                   : null,
               child: ListTile(
                 title: Text(p.basenameWithoutExtension(fileObj.path)),
-                onTap: () {
+                onTap: () async {
                   var model = Provider.of<Structure>(context, listen: false);
-                  model.openFile(fileObj);
-                  Navigator.pushNamed(context, '/treeView',
-                          arguments: p.basenameWithoutExtension(fileObj.path))
-                      .then((value) async {
-                    _updateFileList();
-                  });
+                  try {
+                    model.openFile(fileObj);
+                    Navigator.pushNamed(context, '/treeView',
+                            arguments: p.basenameWithoutExtension(fileObj.path))
+                        .then((value) async {
+                      _updateFileList();
+                    });
+                  } on FormatException {
+                    await errorConfirmDialog(
+                      'Could not open file:  '
+                      '${p.basenameWithoutExtension(fileObj.path)}',
+                    );
+                  }
                 },
                 onLongPress: () {
                   setState(() {
