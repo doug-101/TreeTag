@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
 import '../views/detail_view.dart';
+import '../views/edit_view.dart';
 import '../views/undo_view.dart';
 
 enum MenuItems { editConfig, undoView, about, close }
@@ -35,6 +36,20 @@ class TreeView extends StatelessWidget {
         automaticallyImplyLeading: false,
         title: Text(headerName),
         actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.add_circle),
+            // Create a new node to add to the tree.
+            onPressed: () {
+              var model = Provider.of<Structure>(context, listen: false);
+              var newNode = model.newNode();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditView(node: newNode, isNew: true),
+                ),
+              );
+            },
+          ),
           PopupMenuButton<MenuItems>(
             icon: const Icon(Icons.more_vert),
             onSelected: (MenuItems result) {

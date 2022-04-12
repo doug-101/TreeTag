@@ -58,6 +58,12 @@ A long press on a node will open up a detail view listing that node's children
 (for title and grouping nodes) or the node output (for a leaf node). The detail
 view is described in the next section.
 
+The "+" icon at the top will create a new leaf node and show it in an edit view.
+Once the editing is complete, the new node will be properly placed into the
+tree.  In many cases, it's easier to start new nodes from the detail view of a
+group or leaf node, since at least some of the fields will initially be
+populated to match the group or leaf.
+
 The three-dots menu includes commands for the configuration editor and for the
 undo list, both described in the following sections.
 

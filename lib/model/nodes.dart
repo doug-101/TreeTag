@@ -393,7 +393,11 @@ class LeafNode implements Node {
   String get title => modelRef.titleLine.formattedLine(this);
 
   List<String> outputs() {
-    return [for (var line in modelRef.outputLines) line.formattedLine(this)];
+    var lines = [
+      for (var line in modelRef.outputLines) line.formattedLine(this)
+    ];
+    lines.removeWhere((line) => line.isEmpty);
+    return lines;
   }
 
   bool isExpanded(Node parent) => _expandedParents.contains(parent);

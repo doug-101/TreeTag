@@ -140,7 +140,7 @@ class Structure extends ChangeNotifier {
 
   /// Creates a new node using some data copied from [copyFromNode] if given.
   ///
-  /// Called from the [DetailView].
+  /// Called from the [DetailView] and the [TreeView].
   /// Does not create undo objects or update views - that is done in
   /// [editNodeData()] after the user edits the new node.
   LeafNode newNode({Node? copyFromNode}) {
