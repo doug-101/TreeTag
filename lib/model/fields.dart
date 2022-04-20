@@ -238,8 +238,8 @@ abstract class Field {
   ///
   /// Overridden by other field types with more specific sorting keys.
   int compareNodes(Node firstNode, Node secondNode) {
-    var firstValue = firstNode.data[name] ?? '';
-    var secondValue = secondNode.data[name] ?? '';
+    var firstValue = firstNode.data[name]?.toLowerCase() ?? '';
+    var secondValue = secondNode.data[name]?.toLowerCase() ?? '';
     return firstValue.compareTo(secondValue);
   }
 
