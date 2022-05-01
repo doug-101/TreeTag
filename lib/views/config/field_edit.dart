@@ -183,8 +183,10 @@ class _FieldEditState extends State<FieldEdit> {
                     } else {
                       _editedField = _editedField.copyToType(newType);
                       _isFieldTypeChanged = true;
-                      _fieldFormatKey.currentState!
-                          .didChange(_editedField.format);
+                      if (_fieldFormatKey.currentState != null) {
+                        _fieldFormatKey.currentState!
+                            .didChange(_editedField.format);
+                      }
                       if (_editedField.initValue.isNotEmpty) {
                         _editedField.initValue = '';
                         if (_fieldInitBoolKey.currentState != null) {

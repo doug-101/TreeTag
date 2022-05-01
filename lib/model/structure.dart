@@ -59,6 +59,9 @@ class Structure extends ChangeNotifier {
     for (var leaf in jsonData['leaves'] ?? []) {
       leafNodes.add(LeafNode.fromJson(leaf, this));
     }
+    if (fieldMap.isEmpty || rootNodes.isEmpty || outputLines.isEmpty) {
+      throw FormatException('Missing sections in file');
+    }
     if (autoChoiceFields.isNotEmpty) {
       for (var leaf in leafNodes) {
         for (var field in autoChoiceFields) {
@@ -85,13 +88,17 @@ class Structure extends ChangeNotifier {
     root.isOpen = true;
     rootNodes.add(root);
     root.childRuleNode = RuleNode(
-        rule: fieldMap[categoryFieldName]!.lineText(),
-        modelRef: this,
-        parent: root);
-    leafNodes.add(LeafNode(data: {
-      mainFieldName: 'Sample Node',
-      categoryFieldName: 'First Category',
-    }, modelRef: this));
+      rule: fieldMap[categoryFieldName]!.lineText(),
+      modelRef: this,
+      parent: root,
+    );
+    leafNodes.add(LeafNode(
+      data: {
+        mainFieldName: 'Sample Node',
+        categoryFieldName: 'First Category',
+      },
+      modelRef: this,
+    ));
     titleLine = ParsedLine(fieldMap[mainFieldName]!.lineText(), fieldMap);
     outputLines.add(ParsedLine.fromSingleField(fieldMap[mainFieldName]!));
     outputLines.add(ParsedLine.fromSingleField(fieldMap[categoryFieldName]!));
@@ -743,6 +750,7 @@ void updateChildren(Node node, {bool forceUpdate = true}) {
 class LeveledNode {
   final Node node;
   final int level;
+
   /// parent, used in [nodeGenerator], stores group parents of leaf instances.
   final Node? parent;
 

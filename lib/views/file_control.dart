@@ -12,6 +12,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'tree_view.dart';
 import '../model/structure.dart';
+import '../model/treeline_import.dart';
+
+const _fileExtension = '.trtg';
 
 /// Provides a file listview with options for new files, open files, etc.
 ///
@@ -74,7 +77,18 @@ class _FileControlState extends State<FileControl> {
                 var filename =
                     await filenameDialog(label: 'Name for the new file:');
                 if (filename != null) {
-                  var fileObj = File(p.join(_workDir.path, '$filename.trtg'));
+                  var fileObj = File(
+                    p.join(_workDir.path, _addExtensionIfNone(filename)),
+                  );
+                  if (fileObj.existsSync()) {
+                    var ans = await confirmOverwriteDialog(
+                      _addExtensionIfNone(filename),
+                    );
+                    if (ans == null || !ans) {
+                      FilePicker.platform.clearTemporaryFiles();
+                      return;
+                    }
+                  }
                   var model = Provider.of<Structure>(context, listen: false);
                   model.newFile(fileObj);
                   Navigator.pushNamed(context, '/treeView', arguments: filename)
@@ -102,8 +116,8 @@ class _FileControlState extends State<FileControl> {
                   if (answer != null) {
                     var cachePath = answer.files.single.path;
                     if (cachePath != null) {
-                      var newName = p.basenameWithoutExtension(cachePath);
-                      var newPath = p.join(_workDir.path, '$newName.trtg');
+                      var newName = p.basename(cachePath);
+                      var newPath = p.join(_workDir.path, newName);
                       if (File(newPath).existsSync()) {
                         var ans = await confirmOverwriteDialog(newName);
                         if (ans == null || !ans) {
@@ -120,14 +134,16 @@ class _FileControlState extends State<FileControl> {
                   }
                   break;
                 case MenuItems.copy:
-                  var initName =
-                      p.basenameWithoutExtension(_selectedFiles.first.path);
+                  var initName = _selectedFiles.first.path.endsWith(_fileExtension)
+                      ? p.basenameWithoutExtension(_selectedFiles.first.path)
+                      : p.basename(_selectedFiles.first.path);
                   var answer = await filenameDialog(
                     initName: initName,
                     label: 'Copy "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath = p.join(_workDir.path, '$answer.trtg');
+                    var newPath =
+                        p.join(_workDir.path, _addExtensionIfNone(answer));
                     if (File(newPath).existsSync()) {
                       var ans = await confirmOverwriteDialog(answer);
                       if (ans == null || !ans) break;
@@ -162,14 +178,16 @@ class _FileControlState extends State<FileControl> {
                   }
                   break;
                 case MenuItems.rename:
-                  var initName =
-                      p.basenameWithoutExtension(_selectedFiles.first.path);
+                  var initName = _selectedFiles.first.path.endsWith(_fileExtension)
+                      ? p.basenameWithoutExtension(_selectedFiles.first.path)
+                      : p.basename(_selectedFiles.first.path);
                   var answer = await filenameDialog(
                     initName: initName,
                     label: 'Rename "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath = p.join(_workDir.path, '$answer.trtg');
+                    var newPath =
+                        p.join(_workDir.path, _addExtensionIfNone(answer));
                     if (File(newPath).existsSync()) {
                       var ans = await confirmOverwriteDialog(answer);
                       if (ans == null || !ans) break;
@@ -231,7 +249,17 @@ class _FileControlState extends State<FileControl> {
                   ? Theme.of(context).highlightColor
                   : null,
               child: ListTile(
-                title: Text(p.basenameWithoutExtension(fileObj.path)),
+                title: Text.rich(
+                  TextSpan(
+                    text: '${p.basenameWithoutExtension(fileObj.path)} ',
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: p.extension(fileObj.path),
+                        style: Theme.of(context).textTheme.caption,
+                      ),
+                    ],
+                  ),
+                ),
                 onTap: () async {
                   var model = Provider.of<Structure>(context, listen: false);
                   try {
@@ -242,10 +270,41 @@ class _FileControlState extends State<FileControl> {
                       _updateFileList();
                     });
                   } on FormatException {
-                    await errorConfirmDialog(
-                      'Could not open file:  '
-                      '${p.basenameWithoutExtension(fileObj.path)}',
-                    );
+                    try {
+                      var import = TreeLineImport(fileObj);
+                      var typeName =
+                          await importTypeChoiceDialog(import.formatNames());
+                      if (typeName != null) {
+                        model.clearModel();
+                        import.convertNodeType(typeName, model);
+                        var baseFilename =
+                            p.basenameWithoutExtension(fileObj.path);
+                        model.fileObject = File(p.join(
+                            _workDir.path, _addExtensionIfNone(baseFilename)));
+                        if (model.fileObject.existsSync()) {
+                          var ans = await confirmOverwriteDialog(
+                            _addExtensionIfNone(baseFilename),
+                          );
+                          if (ans == null || !ans) {
+                            FilePicker.platform.clearTemporaryFiles();
+                            return;
+                          }
+                        }
+                        model.saveFile();
+                        Navigator.pushNamed(
+                          context,
+                          '/treeView',
+                          arguments: baseFilename,
+                        ).then((value) async {
+                          _updateFileList();
+                        });
+                      }
+                    } on FormatException {
+                      await errorConfirmDialog(
+                        'Could not open file:  '
+                        '${p.basenameWithoutExtension(fileObj.path)}',
+                      );
+                    }
                   }
                 },
                 onLongPress: () {
@@ -370,6 +429,28 @@ class _FileControlState extends State<FileControl> {
     );
   }
 
+  /// Dialog to select node type for imports from TreeLine files.
+  Future<String?> importTypeChoiceDialog(List<String> choices) async {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('TreeLine File Import\nChoose Node Type'),
+          children: <Widget>[
+            for (var choice in choices)
+              SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(context, choice);
+                },
+                child: Text(choice),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   void fileInfoDialog(File fileObj) async {
     await showDialog<bool>(
       context: context,
@@ -391,4 +472,15 @@ class _FileControlState extends State<FileControl> {
       },
     );
   }
+}
+
+/// Add a default TreeTag extension unless an extension is already there.
+String _addExtensionIfNone(String filename) {
+  if (filename.endsWith('.')) {
+    filename = filename.substring(0, filename.length - 1);
+  }
+  if (filename.lastIndexOf('.') < 1) {
+    filename = '$filename$_fileExtension';
+  }
+  return filename;
 }
