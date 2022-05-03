@@ -5,6 +5,7 @@
 
 import 'dart:convert' show json;
 import 'dart:io' show File;
+import 'package:html_unescape/html_unescape_small.dart';
 import 'field_format_tools.dart';
 import 'fields.dart';
 import 'nodes.dart';
@@ -19,18 +20,26 @@ class TreeLineImport {
     jsonData = json.decode(fileObj.readAsStringSync());
   }
 
+  /// Return a list of node format types that could be converted.
   List<String> formatNames() {
     return [for (var format in jsonData['formats']) format['formatname'] ?? ''];
   }
 
+  /// Convert the nodes matching [typeName] in the [jsonData] to a TreeTag file.
   void convertNodeType(String typeName, Structure model) {
     var boolFieldNames = <String>{};
+    var textFieldNames = <String>{};
     var formatData = jsonData['formats']
         .firstWhere((item) => item['formatname'] == typeName);
     for (var fieldData in formatData['fields'] ?? []) {
       if (fieldData['fieldtype'] == 'Boolean') {
+        // Convert a Boolean field to a Choice field.
         fieldData['fieldtype'] = 'Choice';
         boolFieldNames.add(fieldData['fieldname']);
+      } else if (fieldData['fieldtype'] == 'Text' ||
+          fieldData['fieldtype'] == 'HtmlText') {
+        // Store text field names for later tag conversions.
+        textFieldNames.add(fieldData['fieldname']);
       }
       var field = Field.fromJson(fieldData);
       model.fieldMap[field.name] = field;
@@ -42,6 +51,9 @@ class TreeLineImport {
     for (var lineString in formatData['outputlines'] ?? []) {
       model.outputLines.add(ParsedLine(lineString ?? '', model.fieldMap));
     }
+    var lineEndExp = RegExp(r'<br\s*/?>', multiLine: true);
+    var htmlTagExp = RegExp(r'<[^>]*>', multiLine: true);
+    var unescape = HtmlUnescape();
     for (var nodeInfo in jsonData['nodes']) {
       if (nodeInfo['format'] == typeName && nodeInfo['data'] != null) {
         var leafNode = LeafNode.fromJson(nodeInfo['data'], model);
@@ -57,6 +69,12 @@ class TreeLineImport {
               } else {
                 leafNode.data[field.name] = splitChoiceFormat(field.format)[1];
               }
+            } else if (textFieldNames.contains(field.name)) {
+              var text = leafNode.data[field.name]!;
+              text = text.replaceAll(lineEndExp, '\n');
+              text = text.replaceAll(htmlTagExp, '');
+              text = unescape.convert(text);
+              leafNode.data[field.name] = text;
             } else if (!field.isStoredTextValid(leafNode)) {
               leafNode.data.remove(field.name);
             }
@@ -75,6 +93,7 @@ class TreeLineImport {
   }
 }
 
+/// Change the Date and Time field formats to match the Dart tags.
 String _adjustDateTimeFormat(String origFormat) {
   final replacements = const {
     '%-d': 'd',
