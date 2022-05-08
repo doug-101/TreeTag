@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import '../common_dialogs.dart' as commonDialogs;
 import '../../model/field_format_tools.dart';
 import '../../model/fields.dart';
 
@@ -26,7 +27,6 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
   final segments = <String>[];
 
   bool isChanged = false;
-  final _textEditKey = GlobalKey<FormFieldState>();
 
   @override
   void initState() {
@@ -61,7 +61,11 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     onPressed: () async {
-                      var text = await textDialog();
+                      var text = await commonDialogs.textDialog(
+                        context: context,
+                        title: 'Choice Field Format',
+                        label: 'Segment Text',
+                      );
                       if (text != null && !segments.contains(text)) {
                         var pos = segments.length;
                         if (selectedSegment != null)
@@ -80,8 +84,12 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                     onPressed: (selectedSegment == null)
                         ? null
                         : () async {
-                            var text =
-                                await textDialog(initText: selectedSegment);
+                            var text = await commonDialogs.textDialog(
+                              context: context,
+                              initText: selectedSegment,
+                              title: 'Choice Field Format',
+                              label: 'Segment Text',
+                            );
                             if (text != null && !segments.contains(text)) {
                               setState(() {
                                 var pos = segments.indexOf(selectedSegment!);
@@ -177,41 +185,6 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<String?> textDialog({String? initText}) async {
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Choice Field Format'),
-          content: TextFormField(
-            key: _textEditKey,
-            decoration: InputDecoration(labelText: 'Segment Text'),
-            initialValue: initText ?? '',
-            validator: (String? text) {
-              if (text?.isEmpty ?? false) return 'Cannot be empty';
-              return null;
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                if (_textEditKey.currentState!.validate()) {
-                  Navigator.pop(context, _textEditKey.currentState!.value);
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('CANCEL'),
-              onPressed: () => Navigator.pop(context, null),
-            ),
-          ],
-        );
-      },
     );
   }
 }

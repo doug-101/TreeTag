@@ -5,9 +5,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
+import 'choice_format_edit.dart';
+import '../common_dialogs.dart' as commonDialogs;
 import '../../model/field_format_tools.dart';
 import '../../model/fields.dart';
-import 'choice_format_edit.dart';
 
 /// A form field widget used to display field formats.
 ///
@@ -90,7 +91,6 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
   final formatMap = <String, String>{};
 
   var isChanged = false;
-  final _textEditKey = GlobalKey<FormFieldState>();
 
   @override
   void initState() {
@@ -139,7 +139,11 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                       FormatSegment? newSegment;
                       if (result == 'add text') {
                         // Add a segemnt with extra text.
-                        var text = await textDialog();
+                        var text = await commonDialogs.textDialog(
+                          context: context,
+                          title: 'Field Format',
+                          label: 'Segment Text',
+                        );
                         if (text != null)
                           newSegment = FormatSegment(extraText: text);
                       } else {
@@ -178,8 +182,12 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                         ? null
                         : () async {
                             // Edit a segment with extra text.
-                            var text = await textDialog(
-                                initText: selectedSegment!.extraText!);
+                            var text = await commonDialogs.textDialog(
+                              context: context,
+                              initText: selectedSegment!.extraText!,
+                              title: 'Field Format',
+                              label: 'Segment Text',
+                            );
                             if (text != null &&
                                 text != selectedSegment!.extraText) {
                               setState(() {
@@ -294,41 +302,6 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<String?> textDialog({String? initText}) async {
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Field Format'),
-          content: TextFormField(
-            key: _textEditKey,
-            decoration: InputDecoration(labelText: 'Segment Text'),
-            initialValue: initText ?? '',
-            validator: (String? text) {
-              if (text?.isEmpty ?? false) return 'Cannot be empty';
-              return null;
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                if (_textEditKey.currentState!.validate()) {
-                  Navigator.pop(context, _textEditKey.currentState!.value);
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('CANCEL'),
-              onPressed: () => Navigator.pop(context, null),
-            ),
-          ],
-        );
-      },
     );
   }
 }

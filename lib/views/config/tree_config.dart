@@ -5,9 +5,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'rule_edit.dart';
+import '../common_dialogs.dart' as commonDialogs;
 import '../../model/nodes.dart';
 import '../../model/structure.dart';
-import 'rule_edit.dart';
 
 enum MenuItems { titleSibling, titleChild, ruleChild }
 
@@ -22,7 +23,6 @@ class TreeConfig extends StatefulWidget {
 
 class _TreeConfigState extends State<TreeConfig> {
   Node? selectedNode;
-  final _titleEditKey = GlobalKey<FormFieldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,11 @@ class _TreeConfigState extends State<TreeConfig> {
               onSelected: (result) async {
                 switch (result) {
                   case MenuItems.titleSibling:
-                    var name = await titleDialog(label: 'New title text');
+                    var name = await commonDialogs.textDialog(
+                      context: context,
+                      title: 'Title Name',
+                      label: 'New title text',
+                    );
                     if (name != null) {
                       setState(() {
                         model.addTitleSibling(selectedNode! as TitleNode, name);
@@ -46,7 +50,11 @@ class _TreeConfigState extends State<TreeConfig> {
                     }
                     break;
                   case MenuItems.titleChild:
-                    var name = await titleDialog(label: 'New title text');
+                    var name = await commonDialogs.textDialog(
+                      context: context,
+                      title: 'Title Name',
+                      label: 'New title text',
+                    );
                     if (name != null) {
                       setState(() {
                         model.addTitleChild(selectedNode! as TitleNode, name);
@@ -98,8 +106,12 @@ class _TreeConfigState extends State<TreeConfig> {
                   : () async {
                       if (selectedNode! is TitleNode) {
                         var node = selectedNode! as TitleNode;
-                        var name = await titleDialog(
-                            initName: node.title, label: 'Edit title text');
+                        var name = await commonDialogs.textDialog(
+                          context: context,
+                          initText: node.title,
+                          title: 'Title Name',
+                          label: 'Edit title text',
+                        );
                         if (name != null) {
                           setState(() {
                             model.editTitle(node, name);
@@ -214,40 +226,5 @@ class _TreeConfigState extends State<TreeConfig> {
       }
     }
     return items;
-  }
-
-  Future<String?> titleDialog({String? initName, String? label}) async {
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Title Name'),
-          content: TextFormField(
-            key: _titleEditKey,
-            decoration: InputDecoration(labelText: label ?? ''),
-            initialValue: initName ?? '',
-            validator: (String? text) {
-              if (text?.isEmpty ?? false) return 'Cannot be empty';
-              return null;
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                if (_titleEditKey.currentState!.validate()) {
-                  Navigator.pop(context, _titleEditKey.currentState!.value);
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('CANCEL'),
-              onPressed: () => Navigator.pop(context, null),
-            ),
-          ],
-        );
-      },
-    );
   }
 }

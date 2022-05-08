@@ -71,7 +71,8 @@ group or leaf node, since at least some of the fields will initially be
 populated to match the group or leaf.
 
 The three-dots menu includes commands for the configuration editor and for the
-undo list, both described in the following sections.
+undo list, both described in the following sections.  There is also a command to
+export the current data to a TreeLine file.
 
 ### Detail View
 

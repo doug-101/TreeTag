@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'common_dialogs.dart' as commonDialogs;
 import '../model/field_format_tools.dart';
 import '../model/fields.dart';
 import '../model/nodes.dart';
@@ -40,7 +41,13 @@ class _EditViewState extends State<EditView> {
     if (_formKey.currentState!.validate()) {
       // Allow user to discard an unchanged new node.
       if (!_isChanged && widget.isNew) {
-        var toBeSaved = await saveUnchangedDialog();
+        var toBeSaved = await commonDialogs.okCancelDialog(
+          context: context,
+          title: 'Save Unchanged',
+          label: 'Save unmodified new node?',
+          trueButtonText: 'SAVE',
+          falseButtonText: 'DISCARD',
+        );
         if (toBeSaved != null && !toBeSaved) {
           widget.node.modelRef.deleteNode(widget.node, withUndo: false);
           return true;
@@ -55,30 +62,6 @@ class _EditViewState extends State<EditView> {
       return true;
     }
     return false;
-  }
-
-  /// Ask user about saving an unchanged new node.
-  Future<bool?> saveUnchangedDialog() async {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Save Unchanged?'),
-          content: const Text('Save unmodified new node?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('SAVE'),
-              onPressed: () => Navigator.pop(context, true),
-            ),
-            TextButton(
-              child: const Text('DISCARD'),
-              onPressed: () => Navigator.pop(context, false),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override

@@ -746,19 +746,32 @@ void updateChildren(Node node, {bool forceUpdate = true}) {
   }
 }
 
+/// Generate nodes for all of the nodes in the branch.
+Iterable<Node> allNodeGenerator(Node node,
+    {Node? parent, bool forceUpdate = false}) sync* {
+  yield node;
+  if (node.isStale) {
+    forceUpdate = true;
+    node.isStale = false;
+  }
+  for (var child in node.childNodes(forceUpdate: forceUpdate)) {
+    yield* allNodeGenerator(child, parent: node, forceUpdate: forceUpdate);
+  }
+}
+
 /// Used to store a node with its ident level in the tree.
 class LeveledNode {
   final Node node;
   final int level;
 
-  /// parent, used in [nodeGenerator], stores group parents of leaf instances.
+  /// parent, used in [leveledNodeGenerator], stores group parents of leaf instances.
   final Node? parent;
 
   LeveledNode(this.node, this.level, {this.parent});
 }
 
-/// Generate all of the nodes in the tree.
-Iterable<LeveledNode> nodeGenerator(Node node,
+/// Generate [LeveledNodes] for all of the open nodes in the branch.
+Iterable<LeveledNode> leveledNodeGenerator(Node node,
     {int level = 0, Node? parent, bool forceUpdate = false}) sync* {
   yield LeveledNode(node, level, parent: parent);
   if (node.isOpen) {
@@ -767,7 +780,7 @@ Iterable<LeveledNode> nodeGenerator(Node node,
       node.isStale = false;
     }
     for (var child in node.childNodes(forceUpdate: forceUpdate)) {
-      yield* nodeGenerator(child,
+      yield* leveledNodeGenerator(child,
           level: level + 1, parent: node, forceUpdate: forceUpdate);
     }
   } else if (forceUpdate && node.hasChildren) {
@@ -775,7 +788,7 @@ Iterable<LeveledNode> nodeGenerator(Node node,
   }
 }
 
-/// Generate all of the stored nodes.
+/// Generate [LeveledNodes] for all of the stored nodes.
 Iterable<LeveledNode> storedNodeGenerator(Node node, {int level = 0}) sync* {
   yield LeveledNode(node, level);
   for (var child in node.storedChildren()) {

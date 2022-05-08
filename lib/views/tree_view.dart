@@ -3,15 +3,20 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:convert' show json;
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
+import 'common_dialogs.dart' as commonDialogs;
+import 'detail_view.dart';
+import 'edit_view.dart';
+import 'undo_view.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
-import '../views/detail_view.dart';
-import '../views/edit_view.dart';
-import '../views/undo_view.dart';
+import '../model/treeline_export.dart';
 
-enum MenuItems { editConfig, undoView, about, close }
+enum MenuItems { editConfig, undoView, export, about, close }
 const emptyName = '[Empty Title]';
 const _closedIcon = Icon(Icons.arrow_right, size: 24.0);
 const _openIcon = Icon(Icons.arrow_drop_down, size: 24.0);
@@ -52,13 +57,35 @@ class TreeView extends StatelessWidget {
           ),
           PopupMenuButton<MenuItems>(
             icon: const Icon(Icons.more_vert),
-            onSelected: (MenuItems result) {
+            onSelected: (MenuItems result) async {
               switch (result) {
                 case MenuItems.editConfig:
                   Navigator.pushNamed(context, '/configView');
                   break;
                 case MenuItems.undoView:
                   Navigator.pushNamed(context, '/undoView');
+                  break;
+                case MenuItems.export:
+                  var model = Provider.of<Structure>(context, listen: false);
+                  var exportData = TreeLineExport(model).jsonData();
+                  var fileObj =
+                      File('${p.withoutExtension(model.fileObject.path)}.trln');
+                  if (fileObj.existsSync()) {
+                    var ans = await commonDialogs.okCancelDialog(
+                      context: context,
+                      title: 'Confirm Overwrite',
+                      label:
+                          'File ${p.basename(fileObj.path)} already exists.\n\n'
+                          'Overwrite it?',
+                    );
+                    if (ans == null || !ans) break;
+                  }
+                  await fileObj.writeAsString(json.encode(exportData));
+                  await commonDialogs.okDialog(
+                    context: context,
+                    title: 'Export',
+                    label: 'File ${p.basename(fileObj.path)} was written.',
+                  );
                   break;
                 case MenuItems.about:
                   showAboutDialog(
@@ -83,6 +110,11 @@ class TreeView extends StatelessWidget {
               PopupMenuItem<MenuItems>(
                 child: Text('View Undo Steps'),
                 value: MenuItems.undoView,
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem<MenuItems>(
+                child: Text('Export to TreeLine'),
+                value: MenuItems.export,
               ),
               PopupMenuDivider(),
               PopupMenuItem<MenuItems>(
@@ -112,7 +144,7 @@ class TreeView extends StatelessWidget {
   List<Widget> _itemRows(Structure model, BuildContext context) {
     final items = <Widget>[];
     for (var root in model.rootNodes) {
-      for (var leveledNode in nodeGenerator(root)) {
+      for (var leveledNode in leveledNodeGenerator(root)) {
         items.add(_row(leveledNode, context));
       }
     }

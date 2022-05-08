@@ -5,9 +5,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'line_field_edit.dart';
+import '../common_dialogs.dart' as commonDialogs;
 import '../../model/parsed_line.dart';
 import '../../model/structure.dart';
-import 'line_field_edit.dart';
 
 /// The line edit view that edits a line with fields nad text.
 ///
@@ -48,7 +49,11 @@ class _LineEditState extends State<LineEdit> {
       body: WillPopScope(
         onWillPop: () async {
           if (widget.line.isEmpty) {
-            await noEmptyDialog();
+            await commonDialogs.okDialog(
+              context: context,
+              title: 'Cannot be empty',
+              label: 'Must add a field or a text entry',
+            );
             return false;
           }
           Navigator.pop(context, _isChanged);
@@ -67,7 +72,11 @@ class _LineEditState extends State<LineEdit> {
                     onSelected: (result) async {
                       LineSegment? newSegment;
                       if (result == 'add text') {
-                        var text = await textDialog();
+                        var text = await commonDialogs.textDialog(
+                          context: context,
+                          title: 'Title Name',
+                          label: 'Segment Text',
+                        );
                         if (text != null) newSegment = LineSegment(text: text);
                       } else {
                         var field = model.fieldMap[result];
@@ -136,8 +145,12 @@ class _LineEditState extends State<LineEdit> {
                                     .removeAltFormatField(altField);
                               }
                             } else {
-                              var text = await textDialog(
-                                  initText: _selectedSegment!.text!);
+                              var text = await commonDialogs.textDialog(
+                                context: context,
+                                initText: _selectedSegment!.text!,
+                                title: 'Title Name',
+                                label: 'Segment Text',
+                              );
                               if (text != null &&
                                   text != _selectedSegment!.text) {
                                 setState(() {
@@ -242,60 +255,6 @@ class _LineEditState extends State<LineEdit> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<String?> textDialog({String? initText}) async {
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Title Name'),
-          content: TextFormField(
-            key: _textEditKey,
-            decoration: InputDecoration(labelText: 'Segment Text'),
-            initialValue: initText ?? '',
-            validator: (String? text) {
-              if (text?.isEmpty ?? false) return 'Cannot be empty';
-              return null;
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                if (_textEditKey.currentState!.validate()) {
-                  Navigator.pop(context, _textEditKey.currentState!.value);
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('CANCEL'),
-              onPressed: () => Navigator.pop(context, null),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<bool?> noEmptyDialog() async {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Cannot be empty'),
-          content: const Text('Must add a field or a text entry'),
-          actions: <Widget>[
-            TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.pop(context, true);
-                }),
-          ],
-        );
-      },
     );
   }
 }

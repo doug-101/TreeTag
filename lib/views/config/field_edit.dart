@@ -5,9 +5,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'field_format_edit.dart';
+import '../common_dialogs.dart' as commonDialogs;
 import '../../model/fields.dart';
 import '../../model/structure.dart';
-import 'field_format_edit.dart';
 
 /// The field edit view with a form for all field paramters.
 ///
@@ -57,7 +58,14 @@ class _FieldEditState extends State<FieldEdit> {
       if (_isFieldTypeChanged) {
         var numErrors = model.badFieldCount(_editedField);
         if (numErrors > 0) {
-          var doKeep = await _keepTypeChangeDialog(numErrors: numErrors);
+          var doKeep = await commonDialogs.okCancelDialog(
+            context: context,
+            title: 'Change Type for Data',
+            label:
+                'Field type change will cause $numErrors nodes to lose data.',
+            trueButtonText: 'KEEP CHANGES',
+            falseButtonText: 'DISCARD CHANGES',
+          );
           if (doKeep != null && !doKeep) {
             _editedField = _editedField.copyToType(widget.field.fieldType);
             _isFieldTypeChanged = false;
@@ -73,7 +81,14 @@ class _FieldEditState extends State<FieldEdit> {
         if (_editedField is ChoiceField) {
           var numErrors = model.badFieldCount(_editedField);
           if (numErrors > 0) {
-            var doKeep = await _keepChoiceErrorDialog(numErrors: numErrors);
+            var doKeep = await commonDialogs.okCancelDialog(
+              context: context,
+              title: 'Choice Data Mismatch',
+              label:
+                  'Choice field changes will cause $numErrors nodes to lose data.',
+              trueButtonText: 'KEEP CHANGES',
+              falseButtonText: 'DISCARD CHANGES',
+            );
             if (doKeep != null && doKeep) {
               removeChoices = true;
             } else {
@@ -262,54 +277,6 @@ class _FieldEditState extends State<FieldEdit> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<bool?> _keepTypeChangeDialog({required int numErrors}) async {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Change Type for Data'),
-          content: Text(
-              'Field type change will cause $numErrors nodes to lose data.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('KEEP CHANGES'),
-              onPressed: () => Navigator.pop(context, true),
-            ),
-            TextButton(
-              child: const Text('DISCARD CHANGES'),
-              onPressed: () => Navigator.pop(context, false),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<bool?> _keepChoiceErrorDialog({required int numErrors}) async {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Choice Data Mismatch'),
-          content: Text(
-              'Choice field changes will cause $numErrors nodes to lose data.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('KEEP CHANGES'),
-              onPressed: () => Navigator.pop(context, true),
-            ),
-            TextButton(
-              child: const Text('DISCARD CHANGES'),
-              onPressed: () => Navigator.pop(context, false),
-            ),
-          ],
-        );
-      },
     );
   }
 }

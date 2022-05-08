@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import '../common_dialogs.dart' as commonDialogs;
 import 'package:provider/provider.dart';
 import '../../model/fields.dart';
 import '../../model/structure.dart';
@@ -81,7 +82,12 @@ class _FieldConfigState extends State<FieldConfig> {
                         }
                       }
                       if (errorText.isNotEmpty) {
-                        var ans = await confirmDeleteDialog(errorText.join());
+                        var ans = await commonDialogs.okCancelDialog(
+                          context: context,
+                          title: 'Confirm Delete',
+                          label:
+                              'This field is used ${errorText.join()}. Continue?',
+                        );
                         if (ans == null || !ans) return;
                       }
                       setState(() {
@@ -145,30 +151,6 @@ class _FieldConfigState extends State<FieldConfig> {
           ),
         ),
       ],
-    );
-  }
-
-  /// Confirm deletes for fields used in [errorText] locations.
-  Future<bool?> confirmDeleteDialog(String errorText) async {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Delete?'),
-          content: Text('This field is used $errorText. Continue?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.pop(context, true),
-            ),
-            TextButton(
-              child: const Text('CANCEL'),
-              onPressed: () => Navigator.pop(context, false),
-            ),
-          ],
-        );
-      },
     );
   }
 }
