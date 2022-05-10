@@ -13,7 +13,7 @@ import 'nodes.dart';
 import 'parsed_line.dart';
 import 'undos.dart';
 
-const treeTagVersion = '0.0.2';
+const treeTagVersion = '0.0.3';
 
 /// Top-level storage for tree formats, nodes and undo operations.
 ///
