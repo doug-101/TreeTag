@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'dart:io';
+// TODO; Note that zenity is a requirement for file_picker under Linux.
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
@@ -55,7 +56,11 @@ class _FileControlState extends State<FileControl> {
     _fileList.clear();
     _selectedFiles.clear();
     await for (var entity in _workDir.list()) {
-      if (entity != null && entity is File) _fileList.add(entity);
+      if (entity != null &&
+          entity is File &&
+          !p.basename(entity.path).startsWith('.')) {
+        _fileList.add(entity);
+      }
     }
     _fileList.sort((a, b) => a.path.compareTo(b.path));
     setState(() {});

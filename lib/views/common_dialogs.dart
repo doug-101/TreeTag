@@ -110,6 +110,9 @@ Future<String?> filenameDialog({
             if (text?.isEmpty ?? false) return 'Cannot be empty';
             if (text?.contains('/') ?? false)
               return 'Cannot contain "/" characters';
+            if (text?.startsWith('.') ?? false) {
+              return 'Cannot start with a "."';
+            }
             if (text == initName) return 'A new name is required';
             return null;
           },
