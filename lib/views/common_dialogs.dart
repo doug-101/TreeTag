@@ -105,6 +105,7 @@ Future<String?> filenameDialog({
         content: TextFormField(
           key: _filenameEditKey,
           decoration: InputDecoration(labelText: label ?? ''),
+          autofocus: true,
           initialValue: initName ?? '',
           validator: (String? text) {
             if (text?.isEmpty ?? false) return 'Cannot be empty';
@@ -158,6 +159,7 @@ Future<String?> textDialog({
         content: TextFormField(
           key: _textEditKey,
           decoration: InputDecoration(labelText: label),
+          autofocus: true,
           initialValue: initText ?? '',
           validator: (String? text) {
             if (!allowEmpty && (text?.isEmpty ?? false)) {

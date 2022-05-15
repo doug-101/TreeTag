@@ -153,6 +153,7 @@ class _FieldEditState extends State<FieldEdit> {
             children: <Widget>[
               TextFormField(
                 decoration: InputDecoration(labelText: 'Field Name'),
+                autofocus: widget.isNew,
                 initialValue: _editedField.name,
                 validator: (String? text) {
                   if (text == null) return null;
