@@ -43,8 +43,8 @@ android {
         applicationId "org.bellz.treetag"
         minSdkVersion 19
         targetSdkVersion 31
-        versionCode 3
-        versionName "0.0.3"
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
     }
 
    signingConfigs {

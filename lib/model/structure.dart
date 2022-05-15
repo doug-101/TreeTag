@@ -7,13 +7,12 @@ import 'dart:convert' show json;
 import 'dart:io' show File;
 // foundation.dart includes [ChangeNotifier].
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'fields.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'undos.dart';
-
-const treeTagVersion = '0.0.3';
 
 /// Top-level storage for tree formats, nodes and undo operations.
 ///
@@ -117,8 +116,9 @@ class Structure extends ChangeNotifier {
   }
 
   void saveFile() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
     var jsonData = <String, dynamic>{
-      'properties': {'ttversion': treeTagVersion},
+      'properties': {'ttversion': packageInfo.version},
     };
     jsonData['template'] = await [for (var root in rootNodes) root.toJson()];
     jsonData['fields'] =

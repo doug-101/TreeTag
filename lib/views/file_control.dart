@@ -66,6 +66,62 @@ class _FileControlState extends State<FileControl> {
     setState(() {});
   }
 
+  void _openTappedFile(File fileObj) async {
+    var model = Provider.of<Structure>(context, listen: false);
+    try {
+      model.openFile(fileObj);
+      Navigator.pushNamed(context, '/treeView',
+              arguments: p.basenameWithoutExtension(fileObj.path))
+          .then((value) async {
+        _updateFileList();
+      });
+    } on FormatException {
+      try {
+        var import = TreeLineImport(fileObj);
+        var typeName = await commonDialogs.choiceDialog(
+          context: context,
+          choices: import.formatNames(),
+          title: 'TreeLine File Import\n\nChoose Node Type',
+        );
+        if (typeName != null) {
+          model.clearModel();
+          import.convertNodeType(typeName, model);
+          var baseFilename = p.basenameWithoutExtension(fileObj.path);
+          var fileWithExt = _addExtensionIfNone(baseFilename);
+          model.fileObject = File(p.join(_workDir.path, fileWithExt));
+          if (model.fileObject.existsSync()) {
+            var ans = await commonDialogs.okCancelDialog(
+              context: context,
+              title: 'Confirm Overwrite',
+              label: 'File $fileWithExt already exists.\n\n'
+                  'Overwrite it?',
+            );
+            if (ans == null || !ans) {
+              FilePicker.platform.clearTemporaryFiles();
+              return;
+            }
+          }
+          model.saveFile();
+          Navigator.pushNamed(
+            context,
+            '/treeView',
+            arguments: baseFilename,
+          ).then((value) async {
+            _updateFileList();
+          });
+        }
+      } on FormatException {
+        await commonDialogs.okDialog(
+          context: context,
+          title: 'Error',
+          label: 'Could not open file: '
+              '${p.basenameWithoutExtension(fileObj.path)}',
+          isDissmissable: false,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -299,76 +355,8 @@ class _FileControlState extends State<FileControl> {
               color: (_selectedFiles.contains(fileObj))
                   ? Theme.of(context).highlightColor
                   : null,
-              child: ListTile(
-                title: Text.rich(
-                  TextSpan(
-                    text: '${p.basenameWithoutExtension(fileObj.path)} ',
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: p.extension(fileObj.path),
-                        style: Theme.of(context).textTheme.caption,
-                      ),
-                    ],
-                  ),
-                ),
+              child: InkWell(
                 onTap: () async {
-                  var model = Provider.of<Structure>(context, listen: false);
-                  try {
-                    model.openFile(fileObj);
-                    Navigator.pushNamed(context, '/treeView',
-                            arguments: p.basenameWithoutExtension(fileObj.path))
-                        .then((value) async {
-                      _updateFileList();
-                    });
-                  } on FormatException {
-                    try {
-                      var import = TreeLineImport(fileObj);
-                      var typeName = await commonDialogs.choiceDialog(
-                        context: context,
-                        choices: import.formatNames(),
-                        title: 'TreeLine File Import\n\nChoose Node Type',
-                      );
-                      if (typeName != null) {
-                        model.clearModel();
-                        import.convertNodeType(typeName, model);
-                        var baseFilename =
-                            p.basenameWithoutExtension(fileObj.path);
-                        var fileWithExt = _addExtensionIfNone(baseFilename);
-                        model.fileObject =
-                            File(p.join(_workDir.path, fileWithExt));
-                        if (model.fileObject.existsSync()) {
-                          var ans = await commonDialogs.okCancelDialog(
-                            context: context,
-                            title: 'Confirm Overwrite',
-                            label:
-                                'File $fileWithExt already exists.\n\nOverwrite it?',
-                          );
-                          if (ans == null || !ans) {
-                            FilePicker.platform.clearTemporaryFiles();
-                            return;
-                          }
-                        }
-                        model.saveFile();
-                        Navigator.pushNamed(
-                          context,
-                          '/treeView',
-                          arguments: baseFilename,
-                        ).then((value) async {
-                          _updateFileList();
-                        });
-                      }
-                    } on FormatException {
-                      await commonDialogs.okDialog(
-                        context: context,
-                        title: 'Error',
-                        label: 'Could not open file: '
-                            '${p.basenameWithoutExtension(fileObj.path)}',
-                        isDissmissable: false,
-                      );
-                    }
-                  }
-                },
-                onLongPress: () {
                   setState(() {
                     if (_selectedFiles.contains(fileObj)) {
                       _selectedFiles.remove(fileObj);
@@ -377,6 +365,25 @@ class _FileControlState extends State<FileControl> {
                     }
                   });
                 },
+                onLongPress: () {
+                  _openTappedFile(fileObj);
+                },
+                onDoubleTap: () {
+                  _openTappedFile(fileObj);
+                },
+                child: ListTile(
+                  title: Text.rich(
+                    TextSpan(
+                      text: '${p.basenameWithoutExtension(fileObj.path)} ',
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: p.extension(fileObj.path),
+                          style: Theme.of(context).textTheme.caption,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
         ],

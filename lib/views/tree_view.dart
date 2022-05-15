@@ -6,6 +6,7 @@
 import 'dart:convert' show json;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'common_dialogs.dart' as commonDialogs;
@@ -88,10 +89,11 @@ class TreeView extends StatelessWidget {
                   );
                   break;
                 case MenuItems.about:
+                  PackageInfo packageInfo = await PackageInfo.fromPlatform();
                   showAboutDialog(
                     context: context,
                     applicationName: 'TreeTag',
-                    applicationVersion: 'Version $treeTagVersion',
+                    applicationVersion: 'Version ${packageInfo.version}',
                     applicationLegalese: '©2022 by Douglas W. Bell',
                     applicationIcon:
                         Image.asset('assets/images/tree_icon_48.png'),

@@ -33,10 +33,10 @@ This app is not yet in any app stores.
 
 When TreeTag opens, it shows a list of files in the app's private storage
 folder.  It will be empty the first time the app is run.  A tap on a file name
-will open the file.  A long press will select the file.
+will select the file.  A double tap or a long press will open the file.
 
 In addition to opening TreeTag files (with a .trtg file extension), it can also
-import files from treeLine (with a .trln file extension).  Tapping on these
+import files from TreeLine (with a .trln file extension).  Tapping on these
 files will show a prompt to select a single node type to be imported.  Imports
 should only be done from basic TreeLine files - formatting and complex field
 types are not currently supported.
