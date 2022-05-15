@@ -116,6 +116,12 @@ Future<String?> filenameDialog({
             if (text == initName) return 'A new name is required';
             return null;
           },
+          onFieldSubmitted: (value) {
+            // Complete the dialog when the user presses enter.
+            if (_filenameEditKey.currentState!.validate()) {
+              Navigator.pop(context, _filenameEditKey.currentState!.value);
+            }
+          },
         ),
         actions: <Widget>[
           TextButton(
@@ -158,6 +164,12 @@ Future<String?> textDialog({
               return 'Cannot be empty';
             }
             return null;
+          },
+          onFieldSubmitted: (value) {
+            // Complete the dialog when the user presses enter.
+            if (_textEditKey.currentState!.validate()) {
+              Navigator.pop(context, _textEditKey.currentState!.value);
+            }
           },
         ),
         actions: <Widget>[
