@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 final _filenameEditKey = GlobalKey<FormFieldState>();
 final _textEditKey = GlobalKey<FormFieldState>();
@@ -190,5 +191,18 @@ Future<String?> textDialog({
         ],
       );
     },
+  );
+}
+
+Future<void> aboutDialog({
+  required BuildContext context,
+}) async {
+  final packageInfo = await PackageInfo.fromPlatform();
+  showAboutDialog(
+    context: context,
+    applicationName: 'TreeTag',
+    applicationVersion: 'Version ${packageInfo.version}',
+    applicationLegalese: '©2022 by Douglas W. Bell',
+    applicationIcon: Image.asset('assets/images/tree_icon_48.png'),
   );
 }

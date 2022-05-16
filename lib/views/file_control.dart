@@ -125,6 +125,36 @@ class _FileControlState extends State<FileControl> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              child: Text(
+                'TreeTag',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: 36,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('About TreeTag'),
+              onTap: () {
+                Navigator.pop(context);
+                commonDialogs.aboutDialog(context: context);
+              },
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: Text((_selectedFiles.isEmpty)
             ? 'TreeTag Files'
@@ -174,8 +204,8 @@ class _FileControlState extends State<FileControl> {
                   title:
                       'File Info - ${p.basenameWithoutExtension(fileObj.path)}',
                   label: 'Full Path: ${fileObj.path}\n\n'
-                      'Last Modiified: ${fileObj.lastModifiedSync().toString()}\n\n'
-                      'Size: ${fileObj.statSync().size} bytes',
+                      'Last Modiified: ${fileObj.lastModifiedSync().toString()}'
+                      '\n\nSize: ${fileObj.statSync().size} bytes',
                 );
               },
             ),
