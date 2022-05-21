@@ -6,6 +6,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'model/structure.dart';
 import 'model/nodes.dart';
 import 'views/detail_view.dart';
@@ -13,6 +14,11 @@ import 'views/file_control.dart';
 import 'views/tree_view.dart';
 import 'views/undo_view.dart';
 import 'views/config/config_view.dart';
+
+/// [prefs] is the global shared_preferences instance.
+///
+/// It is nitialized in file_control.dart.
+late final SharedPreferences prefs;
 
 void main() {
   LicenseRegistry.addLicense(

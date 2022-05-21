@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'common_dialogs.dart' as commonDialogs;
 import 'detail_view.dart';
 import 'edit_view.dart';
+import 'setting_edit.dart';
 import 'undo_view.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
@@ -108,6 +109,15 @@ class TreeView extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingEdit(),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.info_outline),

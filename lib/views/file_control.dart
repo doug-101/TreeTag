@@ -11,8 +11,11 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'common_dialogs.dart' as commonDialogs;
+import 'setting_edit.dart';
 import 'tree_view.dart';
+import '../main.dart' show prefs;
 import '../model/structure.dart';
 import '../model/treeline_import.dart';
 
@@ -30,7 +33,6 @@ class FileControl extends StatefulWidget {
 enum MenuItems { addFromFolder, copy, copyToFolder, rename, delete }
 
 class _FileControlState extends State<FileControl> {
-  late final Directory _workDir;
   final _fileList = <File>[];
   final _selectedFiles = <File>{};
 
@@ -40,14 +42,20 @@ class _FileControlState extends State<FileControl> {
     _findWorkDir();
   }
 
+  /// Initialize global references if necessary and find the working directory.
   void _findWorkDir() async {
-    if (Platform.isAndroid) {
-      // Use "external" user-accessible location if possible.
-      var dir = await getExternalStorageDirectory();
-      if (dir == null) dir = await getApplicationDocumentsDirectory();
-      _workDir = dir;
-    } else {
-      _workDir = await getApplicationDocumentsDirectory();
+    prefs = await SharedPreferences.getInstance();
+    if (prefs.getString('workdir') == null) {
+      Directory? workDir;
+      if (Platform.isAndroid) {
+        // Use "external" user-accessible location if possible.
+        workDir = await getExternalStorageDirectory();
+      }
+      if (workDir == null) {
+        // For failed external stroage or for non-Android platforms.
+        workDir = await getApplicationDocumentsDirectory();
+      }
+      await prefs.setString('workdir', workDir.path);
     }
     _updateFileList();
   }
@@ -55,12 +63,23 @@ class _FileControlState extends State<FileControl> {
   void _updateFileList() async {
     _fileList.clear();
     _selectedFiles.clear();
-    await for (var entity in _workDir.list()) {
-      if (entity != null &&
-          entity is File &&
-          !p.basename(entity.path).startsWith('.')) {
-        _fileList.add(entity);
+    try {
+      await for (var entity in Directory(prefs.getString('workdir')!).list()) {
+        if (entity != null &&
+            entity is File &&
+            (!(prefs.getBool('hidedotfiles') ?? true) ||
+                !p.basename(entity.path).startsWith('.'))) {
+          _fileList.add(entity);
+        }
       }
+    } on FileSystemException {
+      await commonDialogs.okDialog(
+        context: context,
+        title: 'Error',
+        label: 'Could not read from working directory: '
+            '${prefs.getString('workdir')!}',
+        isDissmissable: false,
+      );
     }
     _fileList.sort((a, b) => a.path.compareTo(b.path));
     setState(() {});
@@ -88,7 +107,8 @@ class _FileControlState extends State<FileControl> {
           import.convertNodeType(typeName, model);
           var baseFilename = p.basenameWithoutExtension(fileObj.path);
           var fileWithExt = _addExtensionIfNone(baseFilename);
-          model.fileObject = File(p.join(_workDir.path, fileWithExt));
+          model.fileObject =
+              File(p.join(prefs.getString('workdir')!, fileWithExt));
           if (model.fileObject.existsSync()) {
             var ans = await commonDialogs.okCancelDialog(
               context: context,
@@ -143,6 +163,16 @@ class _FileControlState extends State<FileControl> {
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingEdit(),
+                  ),
+                );
+                _updateFileList();
+              },
             ),
             ListTile(
               leading: const Icon(Icons.info_outline),
@@ -171,7 +201,8 @@ class _FileControlState extends State<FileControl> {
                 );
                 if (filename != null) {
                   var fileWithExt = _addExtensionIfNone(filename);
-                  var fileObj = File(p.join(_workDir.path, fileWithExt));
+                  var fileObj =
+                      File(p.join(prefs.getString('workdir')!, fileWithExt));
                   if (fileObj.existsSync()) {
                     var ans = await commonDialogs.okCancelDialog(
                       context: context,
@@ -215,12 +246,16 @@ class _FileControlState extends State<FileControl> {
               switch (result) {
                 case MenuItems.addFromFolder:
                   FilePickerResult? answer =
-                      await FilePicker.platform.pickFiles();
+                      await FilePicker.platform.pickFiles(
+                    initialDirectory: prefs.getString('workdir')!,
+                    dialogTitle: 'Select File to be Added',
+                  );
                   if (answer != null) {
                     var cachePath = answer.files.single.path;
                     if (cachePath != null) {
                       var newName = p.basename(cachePath);
-                      var newPath = p.join(_workDir.path, newName);
+                      var newPath =
+                          p.join(prefs.getString('workdir')!, newName);
                       if (File(newPath).existsSync()) {
                         var ans = await commonDialogs.okCancelDialog(
                           context: context,
@@ -252,8 +287,8 @@ class _FileControlState extends State<FileControl> {
                     label: 'Copy "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath =
-                        p.join(_workDir.path, _addExtensionIfNone(answer));
+                    var newPath = p.join(prefs.getString('workdir')!,
+                        _addExtensionIfNone(answer));
                     if (File(newPath).existsSync()) {
                       var ans = await commonDialogs.okCancelDialog(
                         context: context,
@@ -269,7 +304,10 @@ class _FileControlState extends State<FileControl> {
                   }
                   break;
                 case MenuItems.copyToFolder:
-                  String? folder = await FilePicker.platform.getDirectoryPath();
+                  String? folder = await FilePicker.platform.getDirectoryPath(
+                    initialDirectory: prefs.getString('workdir')!,
+                    dialogTitle: 'Select Directory for Copy',
+                  );
                   if (folder != null) {
                     var newPath =
                         p.join(folder, p.basename(_selectedFiles.first.path));
@@ -313,8 +351,8 @@ class _FileControlState extends State<FileControl> {
                     label: 'Rename "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath =
-                        p.join(_workDir.path, _addExtensionIfNone(answer));
+                    var newPath = p.join(prefs.getString('workdir')!,
+                        _addExtensionIfNone(answer));
                     if (File(newPath).existsSync()) {
                       var ans = await commonDialogs.okCancelDialog(
                         context: context,

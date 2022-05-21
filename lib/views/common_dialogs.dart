@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../main.dart' show prefs;
 
 final _filenameEditKey = GlobalKey<FormFieldState>();
 final _textEditKey = GlobalKey<FormFieldState>();
@@ -112,7 +113,8 @@ Future<String?> filenameDialog({
             if (text?.isEmpty ?? false) return 'Cannot be empty';
             if (text?.contains('/') ?? false)
               return 'Cannot contain "/" characters';
-            if (text?.startsWith('.') ?? false) {
+            if ((text?.startsWith('.') ?? false) &&
+                (prefs.getBool('hidedotfiles') ?? true)) {
               return 'Cannot start with a "."';
             }
             if (text == initName) return 'A new name is required';

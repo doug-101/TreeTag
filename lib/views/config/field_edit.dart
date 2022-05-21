@@ -282,7 +282,7 @@ class _FieldEditState extends State<FieldEdit> {
   }
 }
 
-// A [FormField] for setting the date and time init value to now.
+/// A [FormField] for setting the date and time init value to now.
 class InitNowBoolFormField extends FormField<bool> {
   InitNowBoolFormField({
     bool? initialValue,
