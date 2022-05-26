@@ -36,6 +36,7 @@ class TreeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var model = Provider.of<Structure>(context, listen: false);
     return Scaffold(
       drawer: Drawer(
         child: ListView(
@@ -74,7 +75,6 @@ class TreeView extends StatelessWidget {
               title: const Text('Export to TreeLine'),
               onTap: () async {
                 Navigator.pop(context);
-                var model = Provider.of<Structure>(context, listen: false);
                 var exportData = TreeLineExport(model).jsonData();
                 var fileObj =
                     File('${p.withoutExtension(model.fileObject.path)}.trln');
@@ -133,26 +133,27 @@ class TreeView extends StatelessWidget {
       appBar: AppBar(
         title: Text(headerName),
         actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.add_circle),
-            // Create a new node to add to the tree.
-            onPressed: () {
-              var model = Provider.of<Structure>(context, listen: false);
-              var newNode = model.newNode();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditView(node: newNode, isNew: true),
-                ),
-              );
-            },
-          ),
+          if (!model.hasWideDisplay)
+            IconButton(
+              icon: const Icon(Icons.add_circle),
+              // Create a new node to add to the tree.
+              onPressed: () {
+                var model = Provider.of<Structure>(context, listen: false);
+                var newNode = model.newNode();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditView(node: newNode, isNew: true),
+                  ),
+                );
+              },
+            ),
         ],
       ),
       body: Consumer<Structure>(
         builder: (context, model, child) {
           return ListView(
-            children: _itemRows(model, context),
+            children: _itemRows(context),
           );
         },
       ),
@@ -160,7 +161,8 @@ class TreeView extends StatelessWidget {
   }
 
   /// The widgets for each node in the tree.
-  List<Widget> _itemRows(Structure model, BuildContext context) {
+  List<Widget> _itemRows(BuildContext context) {
+    var model = Provider.of<Structure>(context, listen: false);
     final items = <Widget>[];
     for (var root in model.rootNodes) {
       for (var leveledNode in leveledNodeGenerator(root)) {
@@ -172,6 +174,7 @@ class TreeView extends StatelessWidget {
 
   /// A single widget for a tree node.
   Widget _row(LeveledNode leveledNode, BuildContext context) {
+    var model = Provider.of<Structure>(context, listen: false);
     final node = leveledNode.node;
     String nodeText;
     if (node is LeafNode && node.isExpanded(leveledNode.parent!)) {
@@ -185,13 +188,18 @@ class TreeView extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           if (node.hasChildren) {
-            node.modelRef.toggleNodeOpen(node);
+            model.toggleNodeOpen(node);
           } else if (node is LeafNode) {
-            node.modelRef.toggleNodeExpanded(node, leveledNode.parent!);
+            model.toggleNodeExpanded(node, leveledNode.parent!);
           }
         },
         onLongPress: () {
-          Navigator.pushNamed(context, '/detailView', arguments: node);
+          if (model.hasWideDisplay) {
+            model.addDetailViewNode(node, doClearFirst: true);
+          } else {
+            model.addDetailViewNode(node, doClearFirst: true, doUpdate: false);
+            Navigator.pushNamed(context, '/detailView');
+          }
         },
         child: Row(
           crossAxisAlignment: node.hasChildren

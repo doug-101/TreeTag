@@ -22,6 +22,9 @@ class Structure extends ChangeNotifier {
   final rootNodes = <Node>[];
   final leafNodes = <LeafNode>[];
 
+  /// The node series currently shown in the [DetailView].
+  final detailViewNodes = <Node>[];
+
   /// Rencently deleted nodes, used by [DetailView] to label old pages.
   final obsoleteNodes = <Node>{};
 
@@ -30,6 +33,8 @@ class Structure extends ChangeNotifier {
   final outputLines = <ParsedLine>[];
   var fileObject = File('.');
   late UndoList undoList;
+
+  var hasWideDisplay = false;
 
   Structure() {
     titleLine = ParsedLine('', fieldMap);
@@ -108,6 +113,7 @@ class Structure extends ChangeNotifier {
   void clearModel() {
     rootNodes.clear();
     leafNodes.clear();
+    detailViewNodes.clear();
     obsoleteNodes.clear();
     fieldMap.clear();
     titleLine = ParsedLine('', fieldMap);
@@ -143,6 +149,31 @@ class Structure extends ChangeNotifier {
   void toggleNodeExpanded(LeafNode node, Node parentNode) {
     node.toggleExpanded(parentNode);
     notifyListeners();
+  }
+
+  /// Return the last node in [detailViewNodes] or null if none present.
+  Node? lastDetailViewNode() {
+    if (detailViewNodes.isNotEmpty) return detailViewNodes.last;
+    return null;
+  }
+
+  /// Remove the last node in [detailViewNodes] and do an update.
+  ///
+  /// Return true if at least one node remains.
+  bool removeDetailViewNode() {
+    if (detailViewNodes.isNotEmpty) {
+      detailViewNodes.removeLast();
+      notifyListeners();
+    }
+    return detailViewNodes.isNotEmpty;
+  }
+
+  /// Add a child to [detailViewNodes] and do an update if [doUpdate].
+  void addDetailViewNode(Node node,
+      {bool doClearFirst = false, bool doUpdate = true}) {
+    if (doClearFirst) detailViewNodes.clear();
+    detailViewNodes.add(node);
+    if (doUpdate) notifyListeners();
   }
 
   /// Creates a new node using some data copied from [copyFromNode] if given.
