@@ -14,8 +14,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'adaptive_split.dart';
 import 'common_dialogs.dart' as commonDialogs;
+import 'sample_control.dart';
 import 'setting_edit.dart';
-import 'tree_view.dart';
 import '../main.dart' show prefs;
 import '../model/structure.dart';
 import '../model/treeline_import.dart';
@@ -125,7 +125,7 @@ class _FileControlState extends State<FileControl> {
           model.saveFile();
           Navigator.pushNamed(
             context,
-            '/treeView',
+            '/adaptiveSplit',
             arguments: baseFilename,
           ).then((value) async {
             _updateFileList();
@@ -161,6 +161,21 @@ class _FileControlState extends State<FileControl> {
                 ),
               ),
             ),
+            ListTile(
+              leading: const Icon(Icons.lightbulb_outline),
+              title: const Text('Sample Files'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SampleControl(),
+                  ),
+                );
+                _updateFileList();
+              },
+            ),
+            Divider(),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
@@ -218,7 +233,8 @@ class _FileControlState extends State<FileControl> {
                   }
                   var model = Provider.of<Structure>(context, listen: false);
                   model.newFile(fileObj);
-                  Navigator.pushNamed(context, '/treeView', arguments: filename)
+                  Navigator.pushNamed(context, '/adaptiveSplit',
+                          arguments: filename)
                       .then((value) async {
                     _updateFileList();
                   });
@@ -310,27 +326,30 @@ class _FileControlState extends State<FileControl> {
                     dialogTitle: 'Select Directory for Copy',
                   );
                   if (folder != null) {
-                    var newPath =
-                        p.join(folder, p.basename(_selectedFiles.first.path));
-                    var fileNoExt =
-                        p.basenameWithoutExtension(_selectedFiles.first.path);
-                    if (File(newPath).existsSync()) {
-                      var ans = await commonDialogs.okCancelDialog(
-                        context: context,
-                        title: 'Confirm Overwrite',
-                        label:
-                            'File $fileNoExt already exists.\n\nOverwrite it?',
-                      );
-                      if (ans == null || !ans) break;
-                    }
-                    if (await Permission.storage.request().isGranted) {
+                    if (Platform.isLinux ||
+                        Platform.isWindows ||
+                        Platform.isMacOS ||
+                        await Permission.storage.request().isGranted) {
                       try {
-                        await _selectedFiles.first.copy(newPath);
+                        for (var file in _selectedFiles) {
+                          var newPath = p.join(folder, p.basename(file.path));
+                          var fileNoExt = p.basenameWithoutExtension(file.path);
+                          if (File(newPath).existsSync()) {
+                            var ans = await commonDialogs.okCancelDialog(
+                              context: context,
+                              title: 'Confirm Overwrite',
+                              label: 'File $fileNoExt already exists.\n\n'
+                                  'Overwrite it?',
+                            );
+                            if (ans == null || !ans) break;
+                          }
+                          await file.copy(newPath);
+                        }
                       } on FileSystemException {
                         await commonDialogs.okDialog(
                           context: context,
                           title: 'Error',
-                          label: 'Could not write to $newPath',
+                          label: 'Could not write to $folder',
                           isDissmissable: false,
                         );
                       }

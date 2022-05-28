@@ -43,10 +43,14 @@ class Structure extends ChangeNotifier {
 
   /// Open an existng file using the JSON data in [fileObj].
   void openFile(File fileObj) {
+    fileObject = fileObj;
+    openFromData(json.decode(fileObj.readAsStringSync()));
+  }
+
+  /// Open an existng file using the given JSON data.
+  void openFromData(dynamic jsonData) {
     clearModel();
     var autoChoiceFields = <AutoChoiceField>[];
-    fileObject = fileObj;
-    var jsonData = json.decode(fileObj.readAsStringSync());
     for (var fieldData in jsonData['fields'] ?? []) {
       var field = Field.fromJson(fieldData);
       fieldMap[field.name] = field;

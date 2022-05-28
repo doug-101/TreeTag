@@ -18,7 +18,7 @@ import 'views/config/config_view.dart';
 
 /// [prefs] is the global shared_preferences instance.
 ///
-/// It is nitialized in file_control.dart.
+/// It is initialized in file_control.dart.
 late final SharedPreferences prefs;
 
 void main() {
