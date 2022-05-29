@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'common_dialogs.dart' as commonDialogs;
 import 'detail_view.dart';
 import 'edit_view.dart';
+import 'help_view.dart';
 import 'setting_edit.dart';
 import 'undo_view.dart';
 import '../model/nodes.dart';
@@ -115,6 +116,20 @@ class TreeView extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => SettingEdit(),
+                  ),
+                );
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('Help View'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HelpView(),
                   ),
                 );
               },

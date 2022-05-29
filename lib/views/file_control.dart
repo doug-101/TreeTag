@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'adaptive_split.dart';
 import 'common_dialogs.dart' as commonDialogs;
+import 'help_view.dart';
 import 'sample_control.dart';
 import 'setting_edit.dart';
 import '../main.dart' show prefs;
@@ -188,6 +189,20 @@ class _FileControlState extends State<FileControl> {
                   ),
                 );
                 _updateFileList();
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('Help View'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HelpView(),
+                  ),
+                );
               },
             ),
             ListTile(
