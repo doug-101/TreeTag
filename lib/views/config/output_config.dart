@@ -75,6 +75,7 @@ class _OutputConfigState extends State<OutputConfig> {
                       if (isChanged) {
                         setState(() {
                           model.editOutputLine(selectedLine!, editedLine);
+                          selectedLine = editedLine;
                         });
                       }
                     },
