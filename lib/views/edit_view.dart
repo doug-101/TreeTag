@@ -159,7 +159,9 @@ class _EditViewState extends State<EditView> {
         initialValue: nodeData[field.name] ?? '',
         validator: field.validateMessage,
         onSaved: (String? value) {
-          if (value != null) nodeData[field.name] = num.parse(value).toString();
+          if (value != null && value.isNotEmpty) {
+            nodeData[field.name] = num.parse(value).toString();
+          }
         },
       );
     }
