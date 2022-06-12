@@ -3,10 +3,12 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_size/window_size.dart';
 import 'model/structure.dart';
 import 'model/nodes.dart';
 import 'views/detail_view.dart';
@@ -42,6 +44,11 @@ void main() {
       ),
     ),
   );
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    setWindowTitle('TreeTag');
+    setWindowMinSize(const Size(160, 160));
+  }
   runApp(
     ChangeNotifierProvider(
       create: (context) => Structure(),

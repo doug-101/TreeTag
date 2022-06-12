@@ -42,6 +42,11 @@ dependencies:
   split_view: ^3.1.0
   uuid: ^3.0.6
 
+  window_size:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding.git
+      path: plugins/window_size
+
 dev_dependencies:
   flutter_launcher_icons:
   flutter_test:
