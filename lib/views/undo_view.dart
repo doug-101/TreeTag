@@ -20,12 +20,27 @@ class UndoView extends StatefulWidget {
 }
 
 class _UndoViewState extends State<UndoView> {
-
   /// Sets the view to undo all items greater than this position.
   int? undoToPos;
 
   /// Sets the view to delete all undos earlier than this position.
   int? deleteToPos;
+
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 500),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +61,7 @@ class _UndoViewState extends State<UndoView> {
           title: Text('Undo List'),
         ),
         body: ListView(
+          controller: _scrollController,
           children: _undoCards(),
         ),
       ),
@@ -55,6 +71,7 @@ class _UndoViewState extends State<UndoView> {
   List<Widget> _undoCards() {
     var model = Provider.of<Structure>(context, listen: false);
     var cards = <Widget>[];
+
     /// Flag to show whether there are undo items ealier than redo items.
     var hasPrevUndo = false;
     for (var pos = 0; pos < model.undoList.length; pos++) {
