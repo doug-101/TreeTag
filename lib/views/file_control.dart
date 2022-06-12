@@ -12,8 +12,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'adaptive_split.dart';
 import 'common_dialogs.dart' as commonDialogs;
+import 'frame_view.dart';
 import 'help_view.dart';
 import 'sample_control.dart';
 import 'setting_edit.dart';
@@ -91,7 +91,7 @@ class _FileControlState extends State<FileControl> {
     var model = Provider.of<Structure>(context, listen: false);
     try {
       model.openFile(fileObj);
-      Navigator.pushNamed(context, '/adaptiveSplit',
+      Navigator.pushNamed(context, '/frameView',
               arguments: p.basenameWithoutExtension(fileObj.path))
           .then((value) async {
         _updateFileList();
@@ -126,7 +126,7 @@ class _FileControlState extends State<FileControl> {
           model.saveFile();
           Navigator.pushNamed(
             context,
-            '/adaptiveSplit',
+            '/frameView',
             arguments: baseFilename,
           ).then((value) async {
             _updateFileList();
@@ -248,7 +248,7 @@ class _FileControlState extends State<FileControl> {
                   }
                   var model = Provider.of<Structure>(context, listen: false);
                   model.newFile(fileObj);
-                  Navigator.pushNamed(context, '/adaptiveSplit',
+                  Navigator.pushNamed(context, '/frameView',
                           arguments: filename)
                       .then((value) async {
                     _updateFileList();

@@ -9,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'adaptive_split.dart';
 import 'common_dialogs.dart' as commonDialogs;
+import 'frame_view.dart';
 import '../main.dart' show prefs;
 import '../model/structure.dart';
 
@@ -68,7 +68,7 @@ class _SampleControlState extends State<SampleControl> {
       model.openFromData(json.decode(data));
       model.fileObject = newFile;
     }
-    Navigator.pushNamed(context, '/adaptiveSplit',
+    Navigator.pushNamed(context, '/frameView',
             arguments: p.basenameWithoutExtension(path))
         .then((value) async {
       Navigator.pop(context);

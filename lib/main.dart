@@ -9,9 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'model/structure.dart';
 import 'model/nodes.dart';
-import 'views/adaptive_split.dart';
 import 'views/detail_view.dart';
 import 'views/file_control.dart';
+import 'views/frame_view.dart';
 import 'views/tree_view.dart';
 import 'views/undo_view.dart';
 import 'views/config/config_view.dart';
@@ -62,10 +62,10 @@ void main() {
               return MaterialPageRoute(builder: (context) {
                 return FileControl();
               });
-            case '/adaptiveSplit':
+            case '/frameView':
               final fileName = settings.arguments as String;
               return MaterialPageRoute(builder: (context) {
-                return AdaptiveSplit(fileRootName: fileName);
+                return FrameView(fileRootName: fileName);
               });
             case '/treeView':
               final fileName = settings.arguments as String;

@@ -156,7 +156,7 @@ class Structure extends ChangeNotifier {
   }
 
   /// Return the last node in [detailViewNodes] or null if none present.
-  Node? lastDetailViewNode() {
+  Node? currentDetailViewNode() {
     if (detailViewNodes.isNotEmpty) return detailViewNodes.last;
     return null;
   }
