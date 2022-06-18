@@ -3,8 +3,10 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../main.dart' show prefs;
 import '../model/nodes.dart';
 import '../model/structure.dart';
 
@@ -45,6 +47,10 @@ class TreeView extends StatelessWidget {
 
   /// A single widget for a tree node.
   Widget _row(LeveledNode leveledNode, BuildContext context) {
+    var spacing = (prefs.getBool('linespacing') ??
+            Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+        ? 2.0
+        : 8.0;
     var model = Provider.of<Structure>(context, listen: false);
     final node = leveledNode.node;
     String nodeText;
@@ -54,8 +60,8 @@ class TreeView extends StatelessWidget {
       nodeText = node.title.isNotEmpty ? node.title : emptyName;
     }
     return Container(
-      padding:
-          EdgeInsets.fromLTRB(25.0 * leveledNode.level + 4.0, 8.0, 4.0, 8.0),
+      padding: EdgeInsets.fromLTRB(
+          25.0 * leveledNode.level + 4.0, spacing, 4.0, spacing),
       child: GestureDetector(
         onTap: () {
           if (node.hasChildren) {

@@ -6,7 +6,9 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../main.dart' show prefs;
+import '../model/structure.dart';
 
 /// A user settings view.
 class SettingEdit extends StatefulWidget {
@@ -69,6 +71,20 @@ class _SettingEditState extends State<SettingEdit> {
                 onSaved: (bool? value) async {
                   if (value != null) {
                     await prefs.setBool('hidedotfiles', value);
+                  }
+                },
+              ),
+              BoolFormField(
+                initialValue: prefs.getBool('linespacing') ??
+                    (Platform.isLinux ||
+                        Platform.isWindows ||
+                        Platform.isMacOS),
+                heading: 'Tight text line spacing',
+                onSaved: (bool? value) async {
+                  if (value != null) {
+                    await prefs.setBool('linespacing', value);
+                    Provider.of<Structure>(context, listen: false)
+                        .notifyListeners();
                   }
                 },
               ),

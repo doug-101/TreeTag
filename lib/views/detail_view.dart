@@ -3,8 +3,10 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../main.dart' show prefs;
 import '../model/nodes.dart';
 import '../model/structure.dart';
 
@@ -22,6 +24,14 @@ class DetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var innerMargin = (prefs.getBool('linespacing') ??
+            Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+        ? const EdgeInsets.symmetric(vertical: 4, horizontal: 10)
+        : const EdgeInsets.all(10.0);
+    var outerMargin = (prefs.getBool('linespacing') ??
+            Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+        ? const EdgeInsets.symmetric(vertical: 3, horizontal: 5)
+        : const EdgeInsets.all(5.0);
     return Consumer<Structure>(
       builder: (context, model, child) {
         var rootNode = model.currentDetailViewNode();
@@ -32,7 +42,7 @@ class DetailView extends StatelessWidget {
               // Show a deleted or removed notation if the node is already gone.
               Card(
                 child: Container(
-                  margin: const EdgeInsets.all(10.0),
+                  margin: innerMargin,
                   child: Text(
                       rootNode is LeafNode ? 'Node Deleted' : 'Group Removed',
                       style: TextStyle(color: Colors.red)),
@@ -43,7 +53,7 @@ class DetailView extends StatelessWidget {
             cards.add(
               Card(
                 child: Container(
-                  margin: const EdgeInsets.all(10.0),
+                  margin: innerMargin,
                   child: Text(rootNode.outputs().join('\n')),
                 ),
               ),
@@ -59,7 +69,7 @@ class DetailView extends StatelessWidget {
                       model.addDetailViewNode(childNode);
                     },
                     child: Container(
-                      margin: const EdgeInsets.all(10.0),
+                      margin: innerMargin,
                       child: childNode is LeafNode
                           ? Text(childNode.outputs().join('\n'))
                           : Text(childNode.title.isNotEmpty
@@ -67,7 +77,7 @@ class DetailView extends StatelessWidget {
                               : emptyTitleName),
                     ),
                   ),
-                  margin: EdgeInsets.all(5.0),
+                  margin: outerMargin,
                 ),
               );
             }
