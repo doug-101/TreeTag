@@ -59,7 +59,7 @@ class TreeView extends StatelessWidget {
     } else {
       nodeText = node.title.isNotEmpty ? node.title : emptyName;
     }
-    return Container(
+    return Padding(
       padding: EdgeInsets.fromLTRB(
           25.0 * leveledNode.level + 4.0, spacing, 4.0, spacing),
       child: GestureDetector(
@@ -80,14 +80,25 @@ class TreeView extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: <Widget>[
             node.hasChildren
-                ? Container(
-                    child: node.isOpen ? _openIcon : _closedIcon,
-                  )
-                : Container(
+                ? node.isOpen
+                    ? _openIcon
+                    : _closedIcon
+                : Padding(
                     child: _leafIcon,
                     padding: EdgeInsets.only(left: 8.0, right: 8.0),
                   ),
-            Expanded(child: Text(nodeText, softWrap: true)),
+            Expanded(
+              child: Text(
+                nodeText,
+                softWrap: true,
+                style: model.hasWideDisplay &&
+                        node == model.currentDetailViewNode()
+                    ? TextStyle(
+                        backgroundColor: Theme.of(context).highlightColor,
+                      )
+                    : TextStyle(),
+              ),
+            ),
           ],
         ),
       ),
