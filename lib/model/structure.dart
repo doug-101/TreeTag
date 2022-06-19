@@ -3,7 +3,7 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'dart:convert' show json;
+import 'dart:convert' show JsonDecoder, JsonEncoder;
 import 'dart:io' show File;
 // foundation.dart includes [ChangeNotifier].
 import 'package:flutter/foundation.dart';
@@ -44,7 +44,7 @@ class Structure extends ChangeNotifier {
   /// Open an existng file using the JSON data in [fileObj].
   void openFile(File fileObj) {
     fileObject = fileObj;
-    openFromData(json.decode(fileObj.readAsStringSync()));
+    openFromData(JsonDecoder().convert(fileObj.readAsStringSync()));
   }
 
   /// Open an existng file using the given JSON data.
@@ -138,7 +138,8 @@ class Structure extends ChangeNotifier {
         await [for (var line in outputLines) line.getUnparsedLine()];
     jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
     jsonData['undos'] = await undoList.toJson();
-    await fileObject.writeAsString(json.encode(jsonData));
+    await fileObject
+        .writeAsString(JsonEncoder.withIndent(' ').convert(jsonData));
   }
 
   /// Opens or closes a node based on a tap in the [TreeView].
