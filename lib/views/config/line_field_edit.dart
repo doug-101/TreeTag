@@ -14,7 +14,7 @@ import 'field_format_edit.dart';
 class LineFieldEdit extends StatefulWidget {
   final Field field;
 
-  // Original values stored to determine whetehr there are changes.
+  // Original values stored to determine whether there are changes.
   late final String origFormat;
   late final String origPrefix;
   late final String origSuffix;
@@ -80,7 +80,10 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           padding: const EdgeInsets.all(10.0),
           child: ListView(
             children: <Widget>[
-              if (widget.field.format.isNotEmpty)
+              // Check for a field format; exclude Choice since the data
+              // cannot change.
+              if (widget.field.format.isNotEmpty &&
+                  widget.field is! ChoiceField)
                 // Defined in field_format_edit.dart.
                 FieldFormatDisplay(
                   key: _fieldFormatKey,

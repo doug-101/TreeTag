@@ -65,6 +65,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                         context: context,
                         title: 'Choice Field Format',
                         label: 'Segment Text',
+                        allowEmpty: true,
                       );
                       if (text != null && !segments.contains(text)) {
                         var pos = segments.length;
@@ -89,6 +90,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                               initText: selectedSegment,
                               title: 'Choice Field Format',
                               label: 'Segment Text',
+                              allowEmpty: true,
                             );
                             if (text != null && !segments.contains(text)) {
                               setState(() {

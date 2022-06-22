@@ -249,7 +249,14 @@ class _FieldEditState extends State<FieldEdit> {
                   key: _fieldInitStrKey,
                   decoration: InputDecoration(labelText: 'Initial Value'),
                   initialValue: _editedField.initValue,
-                  validator: _editedField.validateMessage,
+                  validator: (String? value) {
+                    // Update field format before validating the init value.
+                    if (_editedField.format.isNotEmpty) {
+                      var value = _fieldFormatKey.currentState!.value!;
+                      if (value != null) _editedField.format = value;
+                    }
+                    return _editedField.validateMessage(value);
+                  },
                   onSaved: (String? value) {
                     if (value != null) {
                       _editedField.initValue = value;
