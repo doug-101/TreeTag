@@ -3,6 +3,7 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
 import 'choice_format_edit.dart';
@@ -156,7 +157,6 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                           pos = segments.indexOf(selectedSegment!);
                         setState(() {
                           segments.insert(pos, newSegment!);
-                          selectedSegment = newSegment;
                           isChanged = true;
                         });
                       }
@@ -245,41 +245,51 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
               ),
               Flexible(
                 flex: 1,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (var segment in segments)
-                      Padding(
-                        padding: EdgeInsets.all(2.0),
-                        child: InputChip(
-                          backgroundColor: Colors.transparent,
-                          shape: StadiumBorder(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 1.0,
+                // This is required to work around a desktop horizontal scroll
+                // issue.
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.touch,
+                    },
+                  ),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (var segment in segments)
+                        Padding(
+                          padding: EdgeInsets.all(2.0),
+                          child: InputChip(
+                            backgroundColor: Colors.transparent,
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 1.0,
+                              ),
                             ),
+                            showCheckmark: false,
+                            label: segment.formatCode != null
+                                ? Text(formatMap[segment.formatCode]!,
+                                    style: contrastStyle)
+                                : Text(segment.extraText ?? ''),
+                            // Tap target setting prevents uneven spacing.
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            selected: segment == selectedSegment,
+                            onSelected: (bool isSelected) {
+                              setState(() {
+                                if (isSelected) {
+                                  selectedSegment = segment;
+                                } else {
+                                  selectedSegment = null;
+                                }
+                              });
+                            },
                           ),
-                          showCheckmark: false,
-                          label: segment.formatCode != null
-                              ? Text(formatMap[segment.formatCode]!,
-                                  style: contrastStyle)
-                              : Text(segment.extraText ?? ''),
-                          // Tap target setting prevents uneven spacing.
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          selected: segment == selectedSegment,
-                          onSelected: (bool isSelected) {
-                            setState(() {
-                              if (isSelected) {
-                                selectedSegment = segment;
-                              } else {
-                                selectedSegment = null;
-                              }
-                            });
-                          },
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               Padding(

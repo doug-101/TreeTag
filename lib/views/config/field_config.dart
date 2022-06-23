@@ -37,11 +37,15 @@ class _FieldConfigState extends State<FieldConfig> {
               icon: const Icon(Icons.add_circle_outline),
               onPressed: () async {
                 var newField = Field.createField(name: '');
+                int? newPos;
+                if (selectedField != null) {
+                  newPos = fieldList.indexOf(selectedField!);
+                }
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        FieldEdit(field: newField, isNew: true),
+                        FieldEdit(field: newField, isNew: true, newPos: newPos),
                   ),
                 );
                 setState(() {});
@@ -85,8 +89,8 @@ class _FieldConfigState extends State<FieldConfig> {
                         var ans = await commonDialogs.okCancelDialog(
                           context: context,
                           title: 'Confirm Delete',
-                          label:
-                              'This field is used ${errorText.join()}. Continue?',
+                          label: 'This field is used ${errorText.join()}. '
+                              'Continue?',
                         );
                         if (ans == null || !ans) return;
                       }

@@ -73,7 +73,6 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                           pos = segments.indexOf(selectedSegment!);
                         setState(() {
                           segments.insert(pos, text);
-                          selectedSegment = text;
                           isChanged = true;
                         });
                       }

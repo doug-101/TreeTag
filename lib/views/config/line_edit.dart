@@ -3,6 +3,7 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'line_field_edit.dart';
@@ -10,7 +11,7 @@ import '../common_dialogs.dart' as commonDialogs;
 import '../../model/parsed_line.dart';
 import '../../model/structure.dart';
 
-/// The line edit view that edits a line with fields nad text.
+/// The line edit view that edits a line with fields and text.
 ///
 /// Called from both [RuleEdit] and [OutputConfig] views.
 class LineEdit extends StatefulWidget {
@@ -90,7 +91,6 @@ class _LineEditState extends State<LineEdit> {
                         }
                         setState(() {
                           widget.line.segments.insert(pos, newSegment!);
-                          _selectedSegment = newSegment;
                           _isChanged = true;
                         });
                       }
@@ -216,38 +216,49 @@ class _LineEditState extends State<LineEdit> {
               // The chips for the segments.
               Flexible(
                 flex: 1,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (var segment in widget.line.segments)
-                      Padding(
-                        padding: const EdgeInsets.all(1.5),
-                        child: InputChip(
-                          backgroundColor: Colors.transparent,
-                          shape: StadiumBorder(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 1.0,
+                // This is required to work around a desktop horizontal scroll
+                // issue.
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.touch,
+                    },
+                  ),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (var segment in widget.line.segments)
+                        Padding(
+                          padding: const EdgeInsets.all(1.5),
+                          child: InputChip(
+                            backgroundColor: Colors.transparent,
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 1.0,
+                              ),
                             ),
+                            elevation: 2.0,
+                            showCheckmark: false,
+                            label: segment.hasField
+                                ? Text(segment.field!.name,
+                                    style: contrastStyle)
+                                : Text(segment.text ?? ''),
+                            selected: segment == _selectedSegment,
+                            onSelected: (bool isSelected) {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedSegment = segment;
+                                } else {
+                                  _selectedSegment = null;
+                                }
+                              });
+                            },
                           ),
-                          elevation: 2.0,
-                          showCheckmark: false,
-                          label: segment.hasField
-                              ? Text(segment.field!.name, style: contrastStyle)
-                              : Text(segment.text ?? ''),
-                          selected: segment == _selectedSegment,
-                          onSelected: (bool isSelected) {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedSegment = segment;
-                              } else {
-                                _selectedSegment = null;
-                              }
-                            });
-                          },
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               Spacer(flex: 8),

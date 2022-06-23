@@ -16,8 +16,9 @@ import '../../model/structure.dart';
 class FieldEdit extends StatefulWidget {
   Field field;
   final bool isNew;
+  final int? newPos;
 
-  FieldEdit({Key? key, required this.field, this.isNew = false})
+  FieldEdit({Key? key, required this.field, this.isNew = false, this.newPos})
       : super(key: key);
 
   @override
@@ -52,7 +53,7 @@ class _FieldEditState extends State<FieldEdit> {
       _formKey.currentState!.save();
       var model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
-        model.addNewField(_editedField);
+        model.addNewField(_editedField, newPos: widget.newPos);
         return true;
       }
       if (_isFieldTypeChanged) {
@@ -84,8 +85,8 @@ class _FieldEditState extends State<FieldEdit> {
             var doKeep = await commonDialogs.okCancelDialog(
               context: context,
               title: 'Choice Data Mismatch',
-              label:
-                  'Choice field changes will cause $numErrors nodes to lose data.',
+              label: 'Choice field changes will cause $numErrors '
+                  'nodes to lose data.',
               trueButtonText: 'KEEP CHANGES',
               falseButtonText: 'DISCARD CHANGES',
             );

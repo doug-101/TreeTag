@@ -235,9 +235,18 @@ class Structure extends ChangeNotifier {
   }
 
   /// Called from the [FieldEdit] view to add a new [field].
-  void addNewField(Field field) {
+  void addNewField(Field field, {int? newPos}) {
     undoList.add(UndoAddNewField('Add new field: ${field.name}', field.name));
-    fieldMap[field.name] = field;
+    if (newPos != null) {
+      var fieldList = List.of(fieldMap.values);
+      fieldList.insert(newPos, field);
+      fieldMap.clear();
+      for (var fld in fieldList) {
+        fieldMap[fld.name] = fld;
+      }
+    } else {
+      fieldMap[field.name] = field;
+    }
     updateRuleChildSortFields();
     updateAll();
   }
