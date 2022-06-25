@@ -377,7 +377,7 @@ class ChoiceField extends Field {
   }) : super(
           name: name,
           fieldType: 'Choice',
-          format: format.isNotEmpty ? format : '/1/2/3/4',
+          format: format.isNotEmpty ? format : '/1/2/3',
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,

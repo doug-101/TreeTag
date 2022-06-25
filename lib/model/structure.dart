@@ -196,8 +196,10 @@ class Structure extends ChangeNotifier {
     }
     var newNode = LeafNode(data: data, modelRef: this);
     for (var field in fieldMap.values) {
-      var initValue = field.initialValue();
-      if (initValue != null) newNode.data[field.name] = initValue;
+      if (data[field.name] == null) {
+        var initValue = field.initialValue();
+        if (initValue != null) newNode.data[field.name] = initValue;
+      }
     }
     leafNodes.add(newNode);
     return newNode;
