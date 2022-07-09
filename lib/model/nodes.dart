@@ -57,7 +57,7 @@ class TitleNode implements Node {
   late Structure modelRef;
   Node? parent;
   late String title;
-  var _children = <Node>[];
+  final _children = <Node>[];
   RuleNode? childRuleNode;
   var isOpen = false;
   var isStale = false;
@@ -73,7 +73,7 @@ class TitleNode implements Node {
     }
     if (_children.length == 1 && _children[0] is RuleNode) {
       childRuleNode = _children[0] as RuleNode;
-      _children = [];
+      _children.clear();
     }
   }
 
@@ -86,7 +86,8 @@ class TitleNode implements Node {
   /// Update child groups if [forceUpdate] is true or if the list is empty.
   List<Node> childNodes({bool forceUpdate = false}) {
     if (childRuleNode != null && (forceUpdate || _children.length == 0)) {
-      _children = childRuleNode!.createGroups(modelRef.leafNodes, this);
+      _children.clear();
+      _children.addAll(childRuleNode!.createGroups(modelRef.leafNodes, this));
     }
     return _children;
   }
@@ -98,6 +99,9 @@ class TitleNode implements Node {
 
   void replaceChildRule(RuleNode? newChildRuleNode) {
     childRuleNode = newChildRuleNode;
+    if (newChildRuleNode != null) {
+      newChildRuleNode.parent = this;
+    }
     _children.clear();
   }
 
@@ -109,11 +113,28 @@ class TitleNode implements Node {
     } else if (pos == null) {
       pos = _children.length;
     }
-    _children.insert(pos, newNode as Node);
+    _children.insert(pos, newNode);
+    newNode.parent = this;
   }
 
-  void removeTitleChild(TitleNode node) {
+  /// Replace a given child title node with a list of new nodes.
+  void replaceChildTitleNode(TitleNode oldNode, List<Node> newNodes) {
+    var pos = _children.indexOf(oldNode);
+    assert(pos >= 0);
+    newNodes.forEach((newNode) {
+      newNode.parent = this;
+    });
+    _children.replaceRange(pos, pos + 1, newNodes);
+  }
+
+  void removeChildTitleNode(TitleNode node) {
     _children.remove(node);
+  }
+
+  void updateChildParentRefs() {
+    _children.forEach((child) {
+      child .parent = this;
+    });
   }
 
   Map<String, dynamic> toJson() {
@@ -194,6 +215,13 @@ class RuleNode implements Node {
   List<Node> storedChildren() {
     if (childRuleNode != null) return [childRuleNode!];
     return [];
+  }
+
+  void replaceChildRule(RuleNode? newChildRuleNode) {
+    childRuleNode = newChildRuleNode;
+    if (newChildRuleNode != null) {
+      newChildRuleNode.parent = this;
+    }
   }
 
   /// Updates only non-custom sort fields unless [checkCustom] is true.

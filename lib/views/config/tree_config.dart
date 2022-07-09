@@ -10,7 +10,9 @@ import '../common_dialogs.dart' as commonDialogs;
 import '../../model/nodes.dart';
 import '../../model/structure.dart';
 
-enum MenuItems { titleSibling, titleChild, ruleChild }
+enum AddMenuItems { titleSibling, titleChild, ruleChild }
+
+enum DeleteMenuItems { nodeOnly, branch }
 
 // The tree config widget.
 ///
@@ -37,7 +39,7 @@ class _TreeConfigState extends State<TreeConfig> {
               icon: const Icon(Icons.add_circle_outline),
               onSelected: (result) async {
                 switch (result) {
-                  case MenuItems.titleSibling:
+                  case AddMenuItems.titleSibling:
                     var name = await commonDialogs.textDialog(
                       context: context,
                       title: 'Title Name',
@@ -49,7 +51,7 @@ class _TreeConfigState extends State<TreeConfig> {
                       });
                     }
                     break;
-                  case MenuItems.titleChild:
+                  case AddMenuItems.titleChild:
                     var name = await commonDialogs.textDialog(
                       context: context,
                       title: 'Title Name',
@@ -61,7 +63,7 @@ class _TreeConfigState extends State<TreeConfig> {
                       });
                     }
                     break;
-                  case MenuItems.ruleChild:
+                  case AddMenuItems.ruleChild:
                     var newRule = RuleNode(
                       rule: '',
                       modelRef: model,
@@ -82,19 +84,20 @@ class _TreeConfigState extends State<TreeConfig> {
                 PopupMenuItem(
                   child: Text('Add Title Sibling'),
                   enabled: selectedNode != null && selectedNode! is TitleNode,
-                  value: MenuItems.titleSibling,
+                  value: AddMenuItems.titleSibling,
                 ),
                 PopupMenuItem(
                   child: Text('Add Title Child'),
-                  enabled: selectedNode != null &&
-                      selectedNode! is TitleNode &&
-                      (selectedNode! as TitleNode).childRuleNode == null,
-                  value: MenuItems.titleChild,
+                  enabled: selectedNode != null && selectedNode! is TitleNode,
+                  value: AddMenuItems.titleChild,
                 ),
                 PopupMenuItem(
                   child: Text('Add Group Rule Child'),
-                  enabled: selectedNode != null && !selectedNode!.hasChildren,
-                  value: MenuItems.ruleChild,
+                  enabled: selectedNode != null &&
+                      (!selectedNode!.hasChildren ||
+                          selectedNode is RuleNode ||
+                          (selectedNode as TitleNode).childRuleNode != null),
+                  value: AddMenuItems.ruleChild,
                 ),
               ],
             ),
@@ -129,19 +132,51 @@ class _TreeConfigState extends State<TreeConfig> {
                       }
                     },
             ),
-            // Button to delete a node.
-            IconButton(
+            // Menu for deleting a nodes.
+            PopupMenuButton(
               icon: const Icon(Icons.delete_outline),
-              onPressed: (selectedNode == null ||
-                      (selectedNode?.parent == null &&
-                          model.rootNodes.length < 2))
-                  ? null
-                  : () async {
-                      setState(() {
-                        model.deleteTreeNode(selectedNode!);
-                        selectedNode = null;
-                      });
-                    },
+              onSelected: (result) async {
+                switch (result) {
+                  case DeleteMenuItems.nodeOnly:
+                    setState(() {
+                      model.deleteTreeNode(
+                        selectedNode!,
+                        keepChildren: selectedNode!.hasChildren,
+                      );
+                      selectedNode = null;
+                    });
+                    break;
+                  case DeleteMenuItems.branch:
+                    setState(() {
+                      model.deleteTreeNode(selectedNode!);
+                      selectedNode = null;
+                    });
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: Text('Delete Node Only'),
+                  enabled: selectedNode != null &&
+                      (!selectedNode!.hasChildren ||
+                          selectedNode is RuleNode ||
+                          (selectedNode as TitleNode).childRuleNode == null ||
+                          (selectedNode?.parent != null &&
+                              selectedNode!.parent!.storedChildren().length ==
+                                  1)) &&
+                      (selectedNode?.parent != null ||
+                          model.rootNodes.length > 1),
+                  value: DeleteMenuItems.nodeOnly,
+                ),
+                PopupMenuItem(
+                  child: Text('Delete Node with Children'),
+                  enabled: selectedNode != null &&
+                      selectedNode!.hasChildren &&
+                      (selectedNode?.parent != null ||
+                          model.rootNodes.length > 1),
+                  value: DeleteMenuItems.branch,
+                ),
+              ],
             ),
             // Button to move a title node up.
             IconButton(

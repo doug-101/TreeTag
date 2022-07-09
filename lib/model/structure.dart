@@ -561,7 +561,7 @@ class Structure extends ChangeNotifier {
     return rootNodes.indexOf(node);
   }
 
-  /// Called from [TreeConfig] to add a title node as a sibling.
+  /// Called from [TreeConfig] to add a new title node as a sibling.
   void addTitleSibling(TitleNode siblingNode, String newTitle) {
     var parent = siblingNode.parent;
     var pos = storedNodePos(siblingNode) + 1;
@@ -576,12 +576,25 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
-  /// Called from [TreeConfig] to add a title node as a child.
+  /// Called from [TreeConfig] to add a new title node as a child.
   void addTitleChild(TitleNode parentNode, String newTitle) {
-    undoList.add(UndoAddTreeNode('Add title node: $newTitle',
-        storedNodeId(parentNode), parentNode.storedChildren().length));
+    var undos = <Undo>[];
+    undoList.add(
+      UndoAddTreeNode(
+        'Add title node: $newTitle',
+        storedNodeId(parentNode),
+        parentNode.childRuleNode == null
+            ? parentNode.storedChildren().length
+            : 0,
+      ),
+    );
     var newNode =
         TitleNode(title: newTitle, modelRef: this, parent: parentNode);
+    if (parentNode.childRuleNode != null) {
+      // TODO:  Cover redo for this.
+      newNode.replaceChildRule(parentNode.childRuleNode);
+      parentNode.replaceChildRule(null);
+    }
     parentNode.addChildTitleNode(newNode);
     updateAll();
   }
@@ -594,15 +607,27 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Called from [TreeConfig] to add a new rule node as a child.
   void addRuleChild(RuleNode newNode) {
+    // TODO:  Cover redo for this.
     undoList.add(UndoAddTreeNode(
         'Add rule node: ${newNode.ruleLine.getUnparsedLine()}',
         storedNodeId(newNode.parent),
         0));
     if (newNode.parent is TitleNode) {
-      (newNode.parent! as TitleNode).childRuleNode = newNode;
+      var parent = newNode.parent as TitleNode;
+      if (parent.childRuleNode != null) {
+        // Move any existing rule nodes lower in the structure.
+        newNode.replaceChildRule(parent.childRuleNode);
+      }
+      parent.replaceChildRule(newNode);
     } else {
-      (newNode.parent! as RuleNode).childRuleNode = newNode;
+      var parent = newNode.parent as RuleNode;
+      if (parent.childRuleNode != null) {
+        // Move any existing rule nodes lower in the structure.
+        newNode.replaceChildRule(parent.childRuleNode);
+      }
+      parent.replaceChildRule(newNode);
     }
     newNode.setDefaultRuleSortFields();
     updateAltFormatFields();
@@ -629,26 +654,55 @@ class Structure extends ChangeNotifier {
   }
 
   /// Called from [TreeConfig] to delete a title or rule node.
-  void deleteTreeNode(Node node) {
+  void deleteTreeNode(Node node, {bool keepChildren = false}) {
     if (node is TitleNode) {
-      undoList.add(UndoDeleteTreeNode('Delete title node: ${node.title}',
-          storedNodeId(node.parent), storedNodePos(node), node));
-      if (node.parent != null) {
-        (node.parent as TitleNode).removeTitleChild(node);
+      // TODO:  Cover redo for this.
+      undoList.add(UndoDeleteTreeNode(
+        'Delete title node: ${node.title}',
+        storedNodeId(node.parent),
+        storedNodePos(node),
+        node,
+        replaceCount: keepChildren ? node.storedChildren().length : 0,
+      ));
+      if (keepChildren && node.hasChildren && node.parent != null) {
+        var parentTitleNode = node.parent as TitleNode;
+        if (node.childRuleNode == null) {
+          parentTitleNode.replaceChildTitleNode(node, node.storedChildren());
+        } else {
+          parentTitleNode.removeChildTitleNode(node);
+          parentTitleNode.replaceChildRule(node.childRuleNode);
+        }
+      } else if (node.parent != null) {
+        (node.parent as TitleNode).removeChildTitleNode(node);
+      } else if (keepChildren && node.hasChildren) {
+        var pos = rootNodes.indexOf(node);
+        node.storedChildren().forEach((newNode) {
+          newNode.parent = null;
+        });
+        rootNodes.replaceRange(pos, pos + 1, node.storedChildren());
       } else {
         rootNodes.remove(node);
       }
     } else {
+      // TODO:  Cover redo for this.
       undoList.add(UndoDeleteTreeNode(
-          'Delete rule node: ${(node as RuleNode).ruleLine.getUnparsedLine()}',
-          storedNodeId(node.parent),
-          storedNodePos(node),
-          node));
+        'Delete rule node: ${(node as RuleNode).ruleLine.getUnparsedLine()}',
+        storedNodeId(node.parent),
+        storedNodePos(node),
+        node,
+        replaceCount: keepChildren ? 1 : 0,
+      ));
       if (node.parent is TitleNode) {
         // Deleting a RuleNode from a TitleNode.
-        (node.parent as TitleNode).replaceChildRule(null);
+        (node.parent as TitleNode)
+            .replaceChildRule(keepChildren ? node.childRuleNode : null);
       } else {
-        (node.parent as RuleNode).childRuleNode = null;
+        var parentRule = node.parent as RuleNode;
+        if (keepChildren && node.childRuleNode != null) {
+          parentRule.replaceChildRule(node.childRuleNode);
+        } else {
+          parentRule.childRuleNode = null;
+        }
       }
       updateAltFormatFields();
     }

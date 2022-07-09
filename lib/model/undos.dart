@@ -62,7 +62,6 @@ class UndoList extends ListBase<Undo> {
 
 /// Base class for many types of undo operations.
 abstract class Undo {
-
   /// Displayed in the undo list view for users.
   final String title;
 
@@ -159,6 +158,7 @@ abstract class Undo {
           jsonData['title'],
           jsonData['parentid'],
           jsonData['nodepos'],
+          replaceCount: jsonData['replacecount'] ?? 0,
           isRedo: jsonData['isredo'],
         );
         break;
@@ -168,6 +168,7 @@ abstract class Undo {
           jsonData['parentid'],
           jsonData['nodepos'],
           Node(jsonData['nodeobject'], UndoList._modelRef),
+          replaceCount: jsonData['replacecount'] ?? 0,
           isRedo: jsonData['isredo'],
         );
         break;
@@ -547,8 +548,11 @@ class UndoAddTreeNode extends Undo {
   String parentId;
   int nodePos;
 
+  /// This is used only for re-doing a delete node only, without children.
+  int replaceCount;
+
   UndoAddTreeNode(String title, this.parentId, this.nodePos,
-      {bool isRedo = false})
+      {this.replaceCount = 0, bool isRedo = false})
       : super(title, 'addtreenode', isRedo);
 
   @override
@@ -558,16 +562,52 @@ class UndoAddTreeNode extends Undo {
         ? UndoList._modelRef.rootNodes[nodePos]
         : parentNode.storedChildren()[nodePos];
     var redo = UndoDeleteTreeNode(
-        _toggleTitleRedo(title), parentId, nodePos, node,
-        isRedo: !isRedo);
+      _toggleTitleRedo(title),
+      parentId,
+      nodePos,
+      node,
+      replaceCount: replaceCount,
+      isRedo: !isRedo,
+    );
     if (parentNode == null) {
-      UndoList._modelRef.rootNodes.removeAt(nodePos);
+      if (replaceCount == 0) {
+        UndoList._modelRef.rootNodes.removeAt(nodePos);
+      } else {
+        node.storedChildren().forEach((newNode) {
+          newNode.parent = null;
+        });
+        UndoList._modelRef.rootNodes.replaceRange(
+            nodePos, nodePos + replaceCount, node.storedChildren());
+      }
     } else if (node is TitleNode) {
-      (parentNode as TitleNode).removeTitleChild(node as TitleNode);
+      var titleNode = node as TitleNode;
+      var parentTitle = parentNode as TitleNode;
+      if (titleNode.childRuleNode != null) {
+        parentTitle.replaceChildRule(titleNode.childRuleNode);
+        titleNode.replaceChildRule(null);
+      }
+      if (replaceCount == 0) {
+        parentTitle.removeChildTitleNode(titleNode);
+      } else {
+        parentTitle.replaceChildTitleNode(
+            titleNode, titleNode.storedChildren());
+      }
     } else if (parentNode is TitleNode) {
-      (parentNode as TitleNode).replaceChildRule(null);
+      var ruleNode = node as RuleNode;
+      var parentTitle = parentNode as TitleNode;
+      if (ruleNode.childRuleNode != null) {
+        parentTitle.replaceChildRule(ruleNode.childRuleNode);
+      } else {
+        parentTitle.replaceChildRule(null);
+      }
     } else {
-      (parentNode as RuleNode).childRuleNode = null;
+      var ruleNode = node as RuleNode;
+      var parentRule = parentNode as RuleNode;
+      if (ruleNode.childRuleNode != null) {
+        parentRule.replaceChildRule(ruleNode.childRuleNode);
+      } else {
+        parentRule.replaceChildRule(null);
+      }
     }
     UndoList._modelRef.updateAltFormatFields();
     return redo;
@@ -578,6 +618,7 @@ class UndoAddTreeNode extends Undo {
     var result = super.toJson();
     result['parentid'] = parentId;
     result['nodepos'] = nodePos;
+    result['replacecount'] = replaceCount;
     return result;
   }
 }
@@ -587,27 +628,45 @@ class UndoDeleteTreeNode extends Undo {
   String parentId;
   int nodePos;
   Node node;
+  int replaceCount;
 
   UndoDeleteTreeNode(String title, this.parentId, this.nodePos, this.node,
-      {bool isRedo = false})
+      {this.replaceCount = 0, bool isRedo = false})
       : super(title, 'deletetreenode', isRedo);
 
   @override
   Undo undo() {
     var redo = UndoAddTreeNode(_toggleTitleRedo(title), parentId, nodePos,
-        isRedo: !isRedo);
+        replaceCount: replaceCount, isRedo: !isRedo);
     var parentNode = UndoList._modelRef.storedNodeFromId(parentId);
     if (parentNode == null) {
-      UndoList._modelRef.rootNodes.insert(nodePos, node);
+      UndoList._modelRef.rootNodes
+          .replaceRange(nodePos, nodePos + replaceCount, [node]);
+      node.parent = null;
+      (node as TitleNode).updateChildParentRefs();
+    } else if (node is TitleNode) {
+      var titleNode = node as TitleNode;
+      var parentTitle = parentNode as TitleNode;
+      if (replaceCount > 0) {
+        List.of(parentTitle.storedChildren())
+            .getRange(nodePos, nodePos + replaceCount)
+            .forEach((child) {
+          parentTitle.removeChildTitleNode(child as TitleNode);
+        });
+      }
+      parentTitle.addChildTitleNode(node as TitleNode, pos: nodePos);
+      titleNode.updateChildParentRefs();
+    } else if (parentNode is TitleNode) {
+      var ruleNode = node as RuleNode;
+      (parentNode as TitleNode).replaceChildRule(ruleNode);
+      if (ruleNode.childRuleNode != null) {
+        ruleNode.childRuleNode!.parent = ruleNode;
+      }
     } else {
-      node.parent = parentNode;
-      if (node is TitleNode) {
-        (parentNode as TitleNode)
-            .addChildTitleNode(node as TitleNode, pos: nodePos);
-      } else if (parentNode is TitleNode) {
-        (parentNode as TitleNode).childRuleNode = node as RuleNode;
-      } else {
-        (parentNode as RuleNode).childRuleNode = node as RuleNode;
+      var ruleNode = node as RuleNode;
+      (parentNode as RuleNode).replaceChildRule(ruleNode);
+      if (ruleNode.childRuleNode != null) {
+        ruleNode.childRuleNode!.parent = ruleNode;
       }
     }
     UndoList._modelRef.updateAltFormatFields();
@@ -620,6 +679,7 @@ class UndoDeleteTreeNode extends Undo {
     result['parentid'] = parentId;
     result['nodepos'] = nodePos;
     result['nodeobject'] = node.toJson();
+    result['replacecount'] = replaceCount;
     return result;
   }
 }
