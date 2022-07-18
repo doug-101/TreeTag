@@ -86,8 +86,9 @@ class TitleNode implements Node {
   /// Update child groups if [forceUpdate] is true or if the list is empty.
   List<Node> childNodes({bool forceUpdate = false}) {
     if (childRuleNode != null && (forceUpdate || _children.length == 0)) {
+      var newChildren = childRuleNode!.createGroups(modelRef.leafNodes, this);
       _children.clear();
-      _children.addAll(childRuleNode!.createGroups(modelRef.leafNodes, this));
+      _children.addAll(newChildren);
     }
     return _children;
   }
@@ -133,7 +134,7 @@ class TitleNode implements Node {
 
   void updateChildParentRefs() {
     _children.forEach((child) {
-      child .parent = this;
+      child.parent = this;
     });
   }
 
@@ -312,7 +313,7 @@ class RuleNode implements Node {
     }
     var oldGroups = <String, GroupNode>{};
     if (parentRef is GroupNode) {
-      for (var grp in parentRef.childGroups) {
+      for (var grp in parentRef._childGroups) {
         oldGroups[grp.title] = grp;
       }
     } else if (parentRef is TitleNode) {
@@ -350,7 +351,7 @@ class GroupNode implements Node {
   late String title;
   late RuleNode _ruleRef;
   var matchingNodes = <LeafNode>[];
-  var childGroups = <GroupNode>[];
+  final _childGroups = <GroupNode>[];
   var hasChildren = true;
   var isOpen = false;
   var isStale = false;
@@ -368,13 +369,16 @@ class GroupNode implements Node {
   /// Update child groups if [forceUpdate] is true or if the list is empty.
   List<Node> childNodes({bool forceUpdate = false}) {
     if (_ruleRef.childRuleNode != null) {
-      if (forceUpdate || childGroups.isEmpty) {
-        childGroups = _ruleRef.childRuleNode!.createGroups(matchingNodes, this);
-        nodeFullSort(childGroups, _ruleRef.sortFields);
+      if (forceUpdate || _childGroups.isEmpty) {
+        var newChildren =
+            _ruleRef.childRuleNode!.createGroups(matchingNodes, this);
+        _childGroups.clear();
+        _childGroups.addAll(newChildren);
+        nodeFullSort(_childGroups, _ruleRef.sortFields);
       }
-      return childGroups;
+      return _childGroups;
     }
-    childGroups.clear();
+    _childGroups.clear();
     if (forceUpdate || !nodesSorted) {
       nodeFullSort(matchingNodes, _ruleRef.childSortFields);
       nodesSorted = true;

@@ -591,7 +591,6 @@ class Structure extends ChangeNotifier {
     var newNode =
         TitleNode(title: newTitle, modelRef: this, parent: parentNode);
     if (parentNode.childRuleNode != null) {
-      // TODO:  Cover redo for this.
       newNode.replaceChildRule(parentNode.childRuleNode);
       parentNode.replaceChildRule(null);
     }
@@ -609,7 +608,6 @@ class Structure extends ChangeNotifier {
 
   /// Called from [TreeConfig] to add a new rule node as a child.
   void addRuleChild(RuleNode newNode) {
-    // TODO:  Cover redo for this.
     undoList.add(UndoAddTreeNode(
         'Add rule node: ${newNode.ruleLine.getUnparsedLine()}',
         storedNodeId(newNode.parent),
@@ -656,7 +654,6 @@ class Structure extends ChangeNotifier {
   /// Called from [TreeConfig] to delete a title or rule node.
   void deleteTreeNode(Node node, {bool keepChildren = false}) {
     if (node is TitleNode) {
-      // TODO:  Cover redo for this.
       undoList.add(UndoDeleteTreeNode(
         'Delete title node: ${node.title}',
         storedNodeId(node.parent),
@@ -684,7 +681,6 @@ class Structure extends ChangeNotifier {
         rootNodes.remove(node);
       }
     } else {
-      // TODO:  Cover redo for this.
       undoList.add(UndoDeleteTreeNode(
         'Delete rule node: ${(node as RuleNode).ruleLine.getUnparsedLine()}',
         storedNodeId(node.parent),
@@ -826,21 +822,33 @@ class Structure extends ChangeNotifier {
   /// Update all of the tree children.
   void updateAllChildren({bool forceUpdate = true}) {
     obsoleteNodes.clear();
+    var viewAncestors = <Node>{};
+    // Find ancestors from detail views for update even if closed.
+    for (var node in detailViewNodes) {
+      viewAncestors.add(node);
+      while (node.parent != null) {
+        node = node.parent!;
+        viewAncestors.add(node);
+      }
+    }
     for (var root in rootNodes) {
-      updateChildren(root, forceUpdate: forceUpdate);
+      updateChildren(root,
+          forceUpdate: forceUpdate, extraUpdates: viewAncestors);
     }
   }
 }
 
 /// Update the cildren of a given [node].
-void updateChildren(Node node, {bool forceUpdate = true}) {
-  if (node.isOpen) {
+void updateChildren(Node node,
+    {bool forceUpdate = true, Set<Node> extraUpdates = const {}}) {
+  if (node.isOpen || extraUpdates.contains(node)) {
     if (node.isStale) {
       forceUpdate = true;
       node.isStale = false;
     }
     for (var child in node.childNodes(forceUpdate: forceUpdate)) {
-      updateChildren(child, forceUpdate: forceUpdate);
+      updateChildren(child,
+          forceUpdate: forceUpdate, extraUpdates: extraUpdates);
     }
   } else if (forceUpdate && node.hasChildren) {
     node.isStale = true;
@@ -865,7 +873,7 @@ class LeveledNode {
   final Node node;
   final int level;
 
-  /// parent, used in [leveledNodeGenerator], stores group parents of leaf instances.
+  /// [parent] stores group parents of leaf instances.
   final Node? parent;
 
   LeveledNode(this.node, this.level, {this.parent});
