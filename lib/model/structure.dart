@@ -413,8 +413,11 @@ class Structure extends ChangeNotifier {
             badRules.add(rule);
           if (rule.isFieldInChildSort(field)) {
             undos.add(UndoEditSortKeys(
-                '', storedNodeId(rule), rule.childSortFields,
-                isChildSort: true));
+              '',
+              storedNodeId(rule),
+              rule.childSortFields,
+              isChildSort: true,
+            ));
             rule.removeChildSortField(field);
           }
         }
@@ -641,8 +644,12 @@ class Structure extends ChangeNotifier {
     var prevSortKeys = List.of(node.sortFields);
     if (node.setDefaultRuleSortFields(checkCustom: true)) {
       // Save custom sort keys if they've changed.
-      var sortUndo = UndoEditSortKeys('', storedNodeId(node), prevSortKeys,
-          isCustom: node.hasCustomSortFields);
+      var sortUndo = UndoEditSortKeys(
+        '',
+        storedNodeId(node),
+        prevSortKeys,
+        isCustom: node.hasCustomSortFields,
+      );
       undoList.add(UndoBatch(editUndo.title, [editUndo, sortUndo]));
     } else {
       undoList.add(editUndo);
@@ -730,8 +737,11 @@ class Structure extends ChangeNotifier {
   /// Called from [RuleEdit] to set default rule sort keys.
   void ruleSortKeysToDefault(RuleNode node) {
     undoList.add(UndoEditSortKeys(
-        'Rule sort keys to default', storedNodeId(node), node.sortFields,
-        isCustom: node.hasCustomSortFields));
+      'Rule sort keys to default',
+      storedNodeId(node),
+      node.sortFields,
+      isCustom: node.hasCustomSortFields,
+    ));
     node.hasCustomSortFields = false;
     node.setDefaultRuleSortFields();
     updateAll();
@@ -740,8 +750,12 @@ class Structure extends ChangeNotifier {
   /// Called from [RuleEdit] to set default child sort keys.
   void childSortKeysToDefault(RuleNode node) {
     undoList.add(UndoEditSortKeys(
-        'Child sort keys to default', storedNodeId(node), node.childSortFields,
-        isCustom: node.hasCustomChildSortFields, isChildSort: true));
+      'Child sort keys to default',
+      storedNodeId(node),
+      node.childSortFields,
+      isCustom: node.hasCustomChildSortFields,
+      isChildSort: true,
+    ));
     node.hasCustomChildSortFields = false;
     node.setDefaultChildSortFields();
     updateAll();
@@ -750,8 +764,11 @@ class Structure extends ChangeNotifier {
   /// Called from [RuleEdit] to set custom rule sort keys.
   void updateRuleSortKeys(RuleNode node, List<SortKey> newKeys) {
     undoList.add(UndoEditSortKeys(
-        'Edit rule sort keys', storedNodeId(node), node.sortFields,
-        isCustom: node.hasCustomSortFields));
+      'Edit rule sort keys',
+      storedNodeId(node),
+      node.sortFields,
+      isCustom: node.hasCustomSortFields,
+    ));
     node.hasCustomSortFields = true;
     node.sortFields = newKeys;
     updateAll();
@@ -760,8 +777,12 @@ class Structure extends ChangeNotifier {
   /// Called from [RuleEdit] to set custom child sort keys.
   void updateChildSortKeys(RuleNode node, List<SortKey> newKeys) {
     undoList.add(UndoEditSortKeys(
-        'Edit child sort keys', storedNodeId(node), node.childSortFields,
-        isCustom: node.hasCustomChildSortFields, isChildSort: true));
+      'Edit child sort keys',
+      storedNodeId(node),
+      node.childSortFields,
+      isCustom: node.hasCustomChildSortFields,
+      isChildSort: true,
+    ));
     node.hasCustomChildSortFields = true;
     node.childSortFields = newKeys;
     updateAll();

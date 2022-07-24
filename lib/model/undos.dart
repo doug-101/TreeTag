@@ -20,7 +20,7 @@ class UndoList extends ListBase<Undo> {
 
   UndoList.fromJson(List<dynamic> jsonData, Structure modelRef) {
     _modelRef = modelRef;
-    addAll([for (var data in jsonData) Undo.fromJson(data)]);
+    addAll([for (var data in jsonData) Undo._fromJson(data)]);
   }
 
   int get length => _innerList.length;
@@ -73,157 +73,62 @@ abstract class Undo {
 
   Undo(this.title, this.undoType, this.isRedo);
 
-  factory Undo.fromJson(Map<String, dynamic> jsonData) {
+  factory Undo._fromJson(Map<String, dynamic> jsonData) {
     Undo undo;
     switch (jsonData['type']) {
       case 'batch':
-        undo = UndoBatch(
-          jsonData['title'],
-          [for (var item in jsonData['children']) Undo.fromJson(item)],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoBatch._fromJson(jsonData);
         break;
       case 'editleafnode':
-        undo = UndoEditLeafNode(
-          jsonData['title'],
-          jsonData['nodepos'],
-          jsonData['nodedata'].cast<String, String>(),
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoEditLeafNode._fromJson(jsonData);
         break;
       case 'addleafnode':
-        undo = UndoAddLeafNode(
-          jsonData['title'],
-          jsonData['nodepos'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoAddLeafNode._fromJson(jsonData);
         break;
       case 'deleteleafnode':
-        undo = UndoDeleteLeafNode(
-          jsonData['title'],
-          jsonData['nodepos'],
-          LeafNode.fromJson(jsonData['nodeobject'], UndoList._modelRef),
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoDeleteLeafNode._fromJson(jsonData);
         break;
       case 'addnewfield':
-        undo = UndoAddNewField(
-          jsonData['title'],
-          jsonData['fieldname'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoAddNewField._fromJson(jsonData);
         break;
       case 'editfield':
-        undo = UndoEditField(
-          jsonData['title'],
-          jsonData['fieldpos'],
-          Field.fromJson(jsonData['field']),
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoEditField._fromJson(jsonData);
         break;
       case 'deletefield':
-        undo = UndoDeleteField(
-          jsonData['title'],
-          jsonData['fieldpos'],
-          Field.fromJson(jsonData['field']),
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoDeleteField._fromJson(jsonData);
         break;
       case 'movefield':
-        undo = UndoMoveField(
-          jsonData['title'],
-          jsonData['fieldpos'],
-          jsonData['isup'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoMoveField._fromJson(jsonData);
         break;
       case 'edittitlenode':
-        undo = UndoEditTitleNode(
-          jsonData['title'],
-          jsonData['nodeid'],
-          jsonData['titletext'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoEditTitleNode._fromJson(jsonData);
         break;
       case 'editruleline':
-        undo = UndoEditRuleLine(
-          jsonData['title'],
-          jsonData['nodeid'],
-          ParsedLine(jsonData['ruleline'], UndoList._modelRef.fieldMap),
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoEditRuleLine._fromJson(jsonData);
         break;
       case 'addtreenode':
-        undo = UndoAddTreeNode(
-          jsonData['title'],
-          jsonData['parentid'],
-          jsonData['nodepos'],
-          replaceCount: jsonData['replacecount'] ?? 0,
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoAddTreeNode._fromJson(jsonData);
         break;
       case 'deletetreenode':
-        undo = UndoDeleteTreeNode(
-          jsonData['title'],
-          jsonData['parentid'],
-          jsonData['nodepos'],
-          Node(jsonData['nodeobject'], UndoList._modelRef),
-          replaceCount: jsonData['replacecount'] ?? 0,
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoDeleteTreeNode._fromJson(jsonData);
         break;
       case 'movetitlenode':
-        undo = UndoMoveTitleNode(
-          jsonData['title'],
-          jsonData['parentid'],
-          jsonData['nodepos'],
-          jsonData['isup'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoMoveTitleNode._fromJson(jsonData);
         break;
       case 'editsortkeys':
-        undo = UndoEditSortKeys(
-          jsonData['title'],
-          jsonData['nodeid'],
-          [
-            for (var fieldName in jsonData['sortfields'])
-              SortKey.fromString(fieldName, UndoList._modelRef.fieldMap)
-          ],
-          isCustom: jsonData['iscustom'],
-          isChildSort: jsonData['ischildsort'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoEditSortKeys._fromJson(jsonData);
         break;
       case 'addoutputline':
-        undo = UndoAddOutputLine(
-          jsonData['title'],
-          jsonData['linepos'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoAddOutputLine._fromJson(jsonData);
         break;
       case 'removeoutputline':
-        undo = UndoRemoveOutputLine(
-          jsonData['title'],
-          jsonData['linepos'],
-          ParsedLine(jsonData['outputline'], UndoList._modelRef.fieldMap),
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoRemoveOutputLine._fromJson(jsonData);
         break;
       case 'editoutputline':
-        undo = UndoEditOutputLine(
-          jsonData['title'],
-          jsonData['linepos'],
-          ParsedLine(jsonData['outputline'], UndoList._modelRef.fieldMap),
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoEditOutputLine._fromJson(jsonData);
         break;
       case 'moveoutputline':
-        undo = UndoMoveOutputLine(
-          jsonData['title'],
-          jsonData['linepos'],
-          jsonData['isup'],
-          isRedo: jsonData['isredo'],
-        );
+        undo = UndoMoveOutputLine._fromJson(jsonData);
         break;
       default:
         throw FormatException('Stored undo data is corrupt');
@@ -256,15 +161,22 @@ abstract class Undo {
 
 /// An undo type that groups several child undos under one parent list entry.
 class UndoBatch extends Undo {
-  late List<Undo> storedUndos;
+  List<Undo> storedUndos;
 
   UndoBatch(String title, this.storedUndos, {bool isRedo = false})
       : super(title, 'batch', isRedo);
 
+  UndoBatch._fromJson(Map<String, dynamic> jsonData)
+      : storedUndos = [
+          for (var item in jsonData['children']) Undo._fromJson(item)
+        ],
+        super(jsonData['title'], 'batch', jsonData['isredo']);
+
   @override
   Undo undo() {
-    var redos = [for (var undoInst in storedUndos.reversed) undoInst.undo()];
-    return UndoBatch(_toggleTitleRedo(title), redos, isRedo: !isRedo);
+    var redos = [for (var undoInst in storedUndos) undoInst.undo()];
+    return UndoBatch(_toggleTitleRedo(title), List.of(redos.reversed),
+        isRedo: !isRedo);
   }
 
   @override
@@ -279,13 +191,17 @@ class UndoBatch extends Undo {
 
 class UndoEditLeafNode extends Undo {
   int nodePos;
-  late Map<String, String> storedNodeData;
+  Map<String, String> storedNodeData;
 
   UndoEditLeafNode(String title, this.nodePos, Map<String, String> nodeData,
       {bool isRedo = false})
-      : super(title, 'editleafnode', isRedo) {
-    storedNodeData = Map.of(nodeData);
-  }
+      : storedNodeData = Map.of(nodeData),
+        super(title, 'editleafnode', isRedo);
+
+  UndoEditLeafNode._fromJson(Map<String, dynamic> jsonData)
+      : nodePos = jsonData['nodepos'],
+        storedNodeData = jsonData['nodedata'].cast<String, String>(),
+        super(jsonData['title'], 'editleafnode', jsonData['isredo']);
 
   @override
   Undo undo() {
@@ -310,6 +226,10 @@ class UndoAddLeafNode extends Undo {
   UndoAddLeafNode(String title, this.nodePos, {bool isRedo = false})
       : super(title, 'addleafnode', isRedo);
 
+  UndoAddLeafNode._fromJson(Map<String, dynamic> jsonData)
+      : nodePos = jsonData['nodepos'],
+        super(jsonData['title'], 'addleafnode', jsonData['isredo']);
+
   @override
   Undo undo() {
     var redo = UndoDeleteLeafNode(
@@ -329,17 +249,23 @@ class UndoAddLeafNode extends Undo {
 
 class UndoDeleteLeafNode extends Undo {
   int nodePos;
-  LeafNode node;
+  Map<String, dynamic> nodeData;
 
-  UndoDeleteLeafNode(String title, this.nodePos, this.node,
+  UndoDeleteLeafNode(String title, this.nodePos, LeafNode node,
       {bool isRedo = false})
-      : super(title, 'deleteleafnode', isRedo);
+      : nodeData = node.data,
+        super(title, 'deleteleafnode', isRedo);
+
+  UndoDeleteLeafNode._fromJson(Map<String, dynamic> jsonData)
+      : nodePos = jsonData['nodepos'],
+        nodeData = jsonData['nodeobject'],
+        super(jsonData['title'], 'deleteleafnode', jsonData['isredo']);
 
   @override
   Undo undo() {
-    var redo = UndoAddLeafNode(
-        _toggleTitleRedo(title), UndoList._modelRef.leafNodes.indexOf(node),
-        isRedo: !isRedo);
+    var node = LeafNode.fromJson(nodeData, UndoList._modelRef);
+    var redo =
+        UndoAddLeafNode(_toggleTitleRedo(title), nodePos, isRedo: !isRedo);
     UndoList._modelRef.leafNodes.insert(nodePos, node);
     return redo;
   }
@@ -348,7 +274,7 @@ class UndoDeleteLeafNode extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['nodepos'] = nodePos;
-    result['nodeobject'] = node.toJson();
+    result['nodeobject'] = nodeData;
     return result;
   }
 }
@@ -358,6 +284,10 @@ class UndoAddNewField extends Undo {
 
   UndoAddNewField(String title, this.fieldName, {bool isRedo = false})
       : super(title, 'addnewfield', isRedo);
+
+  UndoAddNewField._fromJson(Map<String, dynamic> jsonData)
+      : fieldName = jsonData['fieldname'],
+        super(jsonData['title'], 'addnewfield', jsonData['isredo']);
 
   @override
   Undo undo() {
@@ -381,14 +311,21 @@ class UndoAddNewField extends Undo {
 
 class UndoEditField extends Undo {
   int fieldPos;
-  Field field;
+  Map<String, dynamic> fieldData;
 
-  UndoEditField(String title, this.fieldPos, this.field, {bool isRedo = false})
-      : super(title, 'editfield', isRedo);
+  UndoEditField(String title, this.fieldPos, Field field, {bool isRedo = false})
+      : fieldData = field.toJson(),
+        super(title, 'editfield', isRedo);
+
+  UndoEditField._fromJson(Map<String, dynamic> jsonData)
+      : fieldPos = jsonData['fieldpos'],
+        fieldData = jsonData['field'],
+        super(jsonData['title'], 'editfield', jsonData['isredo']);
 
   @override
   Undo undo() {
     var fieldList = List.of(UndoList._modelRef.fieldMap.values);
+    var field = Field.fromJson(fieldData);
     var redoField = fieldList[fieldPos].fieldType == field.fieldType
         ? Field.copy(fieldList[fieldPos])
         : field;
@@ -422,21 +359,28 @@ class UndoEditField extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['fieldpos'] = fieldPos;
-    result['field'] = field.toJson();
+    result['field'] = fieldData;
     return result;
   }
 }
 
 class UndoDeleteField extends Undo {
   int fieldPos;
-  Field field;
+  Map<String, dynamic> fieldData;
 
-  UndoDeleteField(String title, this.fieldPos, this.field,
+  UndoDeleteField(String title, this.fieldPos, Field field,
       {bool isRedo = false})
-      : super(title, 'deletefield', isRedo);
+      : fieldData = field.toJson(),
+        super(title, 'deletefield', isRedo);
+
+  UndoDeleteField._fromJson(Map<String, dynamic> jsonData)
+      : fieldPos = jsonData['fieldpos'],
+        fieldData = jsonData['field'],
+        super(jsonData['title'], 'deletefield', jsonData['isredo']);
 
   @override
   Undo undo() {
+    var field = Field.fromJson(fieldData);
     var redo =
         UndoAddNewField(_toggleTitleRedo(title), field.name, isRedo: !isRedo);
     var fieldList = List.of(UndoList._modelRef.fieldMap.values);
@@ -453,7 +397,7 @@ class UndoDeleteField extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['fieldpos'] = fieldPos;
-    result['field'] = field.toJson();
+    result['field'] = fieldData;
     return result;
   }
 }
@@ -464,6 +408,11 @@ class UndoMoveField extends Undo {
 
   UndoMoveField(String title, this.fieldPos, this.isUp, {bool isRedo = false})
       : super(title, 'movefield', isRedo);
+
+  UndoMoveField._fromJson(Map<String, dynamic> jsonData)
+      : fieldPos = jsonData['fieldpos'],
+        isUp = jsonData['isup'],
+        super(jsonData['title'], 'movefield', jsonData['isredo']);
 
   @override
   Undo undo() {
@@ -497,6 +446,11 @@ class UndoEditTitleNode extends Undo {
       {bool isRedo = false})
       : super(title, 'edittitlenode', isRedo);
 
+  UndoEditTitleNode._fromJson(Map<String, dynamic> jsonData)
+      : nodeId = jsonData['nodeid'],
+        titleText = jsonData['titletext'],
+        super(jsonData['title'], 'edittitlenode', jsonData['isredo']);
+
   @override
   Undo undo() {
     var node = UndoList._modelRef.storedNodeFromId(nodeId) as TitleNode;
@@ -517,18 +471,24 @@ class UndoEditTitleNode extends Undo {
 
 class UndoEditRuleLine extends Undo {
   String nodeId;
-  ParsedLine ruleLine;
+  String rawRuleLine;
 
-  UndoEditRuleLine(String title, this.nodeId, this.ruleLine,
+  UndoEditRuleLine(String title, this.nodeId, ParsedLine ruleLine,
       {bool isRedo = false})
-      : super(title, 'editruleline', isRedo);
+      : rawRuleLine = ruleLine.getUnparsedLine(),
+        super(title, 'editruleline', isRedo);
+
+  UndoEditRuleLine._fromJson(Map<String, dynamic> jsonData)
+      : nodeId = jsonData['nodeid'],
+        rawRuleLine = jsonData['ruleline'],
+        super(jsonData['title'], 'editruleline', jsonData['isredo']);
 
   @override
   Undo undo() {
     var node = UndoList._modelRef.storedNodeFromId(nodeId) as RuleNode;
     var redo = UndoEditRuleLine(_toggleTitleRedo(title), nodeId, node.ruleLine,
         isRedo: !isRedo);
-    node.ruleLine = ruleLine;
+    node.ruleLine = ParsedLine(rawRuleLine, UndoList._modelRef.fieldMap);
     node.setDefaultRuleSortFields();
     UndoList._modelRef.updateAltFormatFields();
     return redo;
@@ -538,7 +498,7 @@ class UndoEditRuleLine extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['nodeid'] = nodeId;
-    result['ruleline'] = ruleLine.getUnparsedLine();
+    result['ruleline'] = rawRuleLine;
     return result;
   }
 }
@@ -549,11 +509,17 @@ class UndoAddTreeNode extends Undo {
   int nodePos;
 
   /// This is used only for re-doing a delete node only, without children.
-  int replaceCount;
+  late int replaceCount;
 
   UndoAddTreeNode(String title, this.parentId, this.nodePos,
       {this.replaceCount = 0, bool isRedo = false})
       : super(title, 'addtreenode', isRedo);
+
+  UndoAddTreeNode._fromJson(Map<String, dynamic> jsonData)
+      : parentId = jsonData['parentid'],
+        nodePos = jsonData['nodepos'],
+        replaceCount = jsonData['replacecount'] ?? 0,
+        super(jsonData['title'], 'addtreenode', jsonData['isredo']);
 
   @override
   Undo undo() {
@@ -627,17 +593,26 @@ class UndoAddTreeNode extends Undo {
 class UndoDeleteTreeNode extends Undo {
   String parentId;
   int nodePos;
-  Node node;
+  Map<String, dynamic> nodeData;
   int replaceCount;
 
-  UndoDeleteTreeNode(String title, this.parentId, this.nodePos, this.node,
+  UndoDeleteTreeNode(String title, this.parentId, this.nodePos, Node node,
       {this.replaceCount = 0, bool isRedo = false})
-      : super(title, 'deletetreenode', isRedo);
+      : nodeData = node.toJson(),
+        super(title, 'deletetreenode', isRedo);
+
+  UndoDeleteTreeNode._fromJson(Map<String, dynamic> jsonData)
+      : parentId = jsonData['parentid'],
+        nodePos = jsonData['nodepos'],
+        nodeData = jsonData['nodeobject'],
+        replaceCount = jsonData['replacecount'] ?? 0,
+        super(jsonData['title'], 'deletetreenode', jsonData['isredo']);
 
   @override
   Undo undo() {
     var redo = UndoAddTreeNode(_toggleTitleRedo(title), parentId, nodePos,
         replaceCount: replaceCount, isRedo: !isRedo);
+    var node = Node(nodeData, UndoList._modelRef);
     var parentNode = UndoList._modelRef.storedNodeFromId(parentId);
     if (parentNode == null) {
       UndoList._modelRef.rootNodes
@@ -678,12 +653,13 @@ class UndoDeleteTreeNode extends Undo {
     var result = super.toJson();
     result['parentid'] = parentId;
     result['nodepos'] = nodePos;
-    result['nodeobject'] = node.toJson();
+    result['nodeobject'] = nodeData;
     result['replacecount'] = replaceCount;
     return result;
   }
 }
 
+/// Undo for moving [TitleNode] in the tree.
 class UndoMoveTitleNode extends Undo {
   String parentId;
   int origNodePos;
@@ -692,6 +668,12 @@ class UndoMoveTitleNode extends Undo {
   UndoMoveTitleNode(String title, this.parentId, this.origNodePos, this.isUp,
       {bool isRedo = false})
       : super(title, 'movetitlenode', isRedo);
+
+  UndoMoveTitleNode._fromJson(Map<String, dynamic> jsonData)
+      : parentId = jsonData['parentid'],
+        origNodePos = jsonData['nodepos'],
+        isUp = jsonData['isup'],
+        super(jsonData['title'], 'movetitlenode', jsonData['isredo']);
 
   @override
   Undo undo() {
@@ -720,13 +702,21 @@ class UndoMoveTitleNode extends Undo {
 /// Undo for custom group sort keys and for custom child sort keys.
 class UndoEditSortKeys extends Undo {
   String nodeId;
-  List<SortKey> sortFields;
+  List<String> sortKeyStrings;
   bool isCustom;
   bool isChildSort;
 
-  UndoEditSortKeys(String title, this.nodeId, this.sortFields,
+  UndoEditSortKeys(String title, this.nodeId, sortKeys,
       {this.isCustom = true, this.isChildSort = false, bool isRedo = false})
-      : super(title, 'editsortkeys', isRedo);
+      : sortKeyStrings = [for (var sortField in sortKeys) sortField.toString()],
+        super(title, 'editsortkeys', isRedo);
+
+  UndoEditSortKeys._fromJson(Map<String, dynamic> jsonData)
+      : nodeId = jsonData['nodeid'],
+        sortKeyStrings = jsonData['sortfields'].cast<String>(),
+        isCustom = jsonData['iscustom'],
+        isChildSort = jsonData['ischildsort'],
+        super(jsonData['title'], 'editsortkeys', jsonData['isredo']);
 
   @override
   Undo undo() {
@@ -734,18 +724,31 @@ class UndoEditSortKeys extends Undo {
     UndoEditSortKeys redo;
     if (isChildSort) {
       redo = UndoEditSortKeys(
-          _toggleTitleRedo(title), nodeId, node.childSortFields,
-          isCustom: node.hasCustomChildSortFields,
-          isChildSort: true,
-          isRedo: !isRedo);
-      node.childSortFields = sortFields;
+        _toggleTitleRedo(title),
+        nodeId,
+        node.childSortFields,
+        isCustom: node.hasCustomChildSortFields,
+        isChildSort: true,
+        isRedo: !isRedo,
+      );
+      node.childSortFields = [
+        for (var fieldName in sortKeyStrings)
+          SortKey.fromString(fieldName, UndoList._modelRef.fieldMap)
+      ];
       node.hasCustomChildSortFields = isCustom;
     } else {
-      redo = UndoEditSortKeys(_toggleTitleRedo(title), nodeId, node.sortFields,
-          isCustom: node.hasCustomSortFields,
-          isChildSort: false,
-          isRedo: !isRedo);
-      node.sortFields = sortFields;
+      redo = UndoEditSortKeys(
+        _toggleTitleRedo(title),
+        nodeId,
+        node.sortFields,
+        isCustom: node.hasCustomSortFields,
+        isChildSort: false,
+        isRedo: !isRedo,
+      );
+      node.sortFields = [
+        for (var fieldName in sortKeyStrings)
+          SortKey.fromString(fieldName, UndoList._modelRef.fieldMap)
+      ];
       node.hasCustomSortFields = isCustom;
     }
     return redo;
@@ -755,18 +758,23 @@ class UndoEditSortKeys extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['nodeid'] = nodeId;
-    result['sortfields'] = [for (var sortKey in sortFields) sortKey.toString()];
+    result['sortfields'] = sortKeyStrings;
     result['iscustom'] = isCustom;
     result['ischildsort'] = isChildSort;
     return result;
   }
 }
 
+/// Undo for adding an output line.
 class UndoAddOutputLine extends Undo {
   int linePos;
 
   UndoAddOutputLine(String title, this.linePos, {bool isRedo = false})
       : super(title, 'addoutputline', isRedo);
+
+  UndoAddOutputLine._fromJson(Map<String, dynamic> jsonData)
+      : linePos = jsonData['linepos'],
+        super(jsonData['title'], 'addoutputline', jsonData['isredo']);
 
   @override
   Undo undo() {
@@ -786,18 +794,26 @@ class UndoAddOutputLine extends Undo {
   }
 }
 
+/// Undo for removing an output line.
 class UndoRemoveOutputLine extends Undo {
   int linePos;
-  ParsedLine outputLine;
+  String rawOutputLine;
 
-  UndoRemoveOutputLine(String title, this.linePos, this.outputLine,
+  UndoRemoveOutputLine(String title, this.linePos, ParsedLine outputLine,
       {bool isRedo = false})
-      : super(title, 'removeoutputline', isRedo);
+      : rawOutputLine = outputLine.getUnparsedLine(),
+        super(title, 'removeoutputline', isRedo);
+
+  UndoRemoveOutputLine._fromJson(Map<String, dynamic> jsonData)
+      : linePos = jsonData['linepos'],
+        rawOutputLine = jsonData['outputline'],
+        super(jsonData['title'], 'removeoutputline', jsonData['isredo']);
 
   @override
   Undo undo() {
     var redo =
         UndoAddOutputLine(_toggleTitleRedo(title), linePos, isRedo: !isRedo);
+    var outputLine = ParsedLine(rawOutputLine, UndoList._modelRef.fieldMap);
     UndoList._modelRef.outputLines.insert(linePos, outputLine);
     UndoList._modelRef.updateAltFormatFields();
     return redo;
@@ -807,22 +823,30 @@ class UndoRemoveOutputLine extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['linepos'] = linePos;
-    result['outputline'] = outputLine.getUnparsedLine();
+    result['outputline'] = rawOutputLine;
     return result;
   }
 }
 
+/// Undo for editng an output line.
 class UndoEditOutputLine extends Undo {
   // linePos is -1 for the title line.
   int linePos;
-  ParsedLine outputLine;
+  String rawOutputLine;
 
-  UndoEditOutputLine(String title, this.linePos, this.outputLine,
+  UndoEditOutputLine(String title, this.linePos, ParsedLine outputLine,
       {bool isRedo = false})
-      : super(title, 'editoutputline', isRedo);
+      : rawOutputLine = outputLine.getUnparsedLine(),
+        super(title, 'editoutputline', isRedo);
+
+  UndoEditOutputLine._fromJson(Map<String, dynamic> jsonData)
+      : linePos = jsonData['linepos'],
+        rawOutputLine = jsonData['outputline'],
+        super(jsonData['title'], 'editoutputline', jsonData['isredo']);
 
   @override
   Undo undo() {
+    var outputLine = ParsedLine(rawOutputLine, UndoList._modelRef.fieldMap);
     UndoEditOutputLine redo;
     if (linePos < 0) {
       redo = UndoEditOutputLine(
@@ -843,7 +867,7 @@ class UndoEditOutputLine extends Undo {
   Map<String, dynamic> toJson() {
     var result = super.toJson();
     result['linepos'] = linePos;
-    result['outputline'] = outputLine.getUnparsedLine();
+    result['outputline'] = rawOutputLine;
     return result;
   }
 }
@@ -855,6 +879,11 @@ class UndoMoveOutputLine extends Undo {
   UndoMoveOutputLine(String title, this.origLinePos, this.isUp,
       {bool isRedo = false})
       : super(title, 'moveoutputline', isRedo);
+
+  UndoMoveOutputLine._fromJson(Map<String, dynamic> jsonData)
+      : origLinePos = jsonData['linepos'],
+        isUp = jsonData['isup'],
+        super(jsonData['title'], 'moveoutputline', jsonData['isredo']);
 
   @override
   Undo undo() {

@@ -53,6 +53,7 @@ class _UndoViewState extends State<UndoView> {
         }
         if (deleteToPos != null) {
           model.undoList.removeRange(0, deleteToPos! + 1);
+          model.saveFile();
         }
         return true;
       },
