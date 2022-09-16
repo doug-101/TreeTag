@@ -52,9 +52,11 @@ class DetailView extends StatelessWidget {
           } else if (rootNode is LeafNode) {
             cards.add(
               Card(
-                child: Container(
-                  margin: innerMargin,
-                  child: Text(rootNode.outputs().join('\n')),
+                child: SelectionArea(
+                  child: Container(
+                    margin: innerMargin,
+                    child: Text(rootNode.outputs().join('\n')),
+                  ),
                 ),
               ),
             );
