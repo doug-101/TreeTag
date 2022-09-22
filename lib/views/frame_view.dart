@@ -23,6 +23,8 @@ import '../model/treeline_export.dart';
 const emptyViewName = '[No Current Nodes]';
 const emptyTitleName = '[Empty Title]';
 
+enum MenuItems { editChildren, deleteChildren }
+
 /// A Scafold and Appbar for the main tree and detail views.
 ///
 /// It includes the drawer and icon controls, and splits the tree and detail
@@ -232,6 +234,48 @@ class FrameView extends StatelessWidget {
                   );
                 },
               ),
+              if (!isDetailLeafNode &&
+                  (hasDetailViewOnly ||
+                      (model.hasWideDisplay && detailRootNode != null)))
+                PopupMenuButton(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (result) async {
+                    switch (result) {
+                      case MenuItems.editChildren:
+                        break;
+                      case MenuItems.deleteChildren:
+                        if (detailRootNode is TitleNode) {
+                          var ans = await commonDialogs.okCancelDialog(
+                            context: context,
+                            title: 'Confirm Delete',
+                            label: 'Deleting from a title node deletes all '
+                                'leaf nodes.\n\nContinue?',
+                          );
+                          if (ans == null || !ans) break;
+                        }
+                        model.deleteChildren();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      child: Text('Edit All Children'),
+                      value: MenuItems.editChildren,
+                    ),
+                    PopupMenuItem(
+                      child: Text('Delete All Children'),
+                      value: MenuItems.deleteChildren,
+                    ),
+                  ],
+                ),
+              // Reserve space for hidden menu icon if not present.
+              if (isDetailLeafNode ||
+                  (!hasDetailViewOnly &&
+                      (!model.hasWideDisplay || detailRootNode == null)))
+                SizedBox(
+                  width: iconSize,
+                  height: 1.0,
+                ),
             ],
           ),
           body: model.hasWideDisplay

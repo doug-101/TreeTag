@@ -236,6 +236,27 @@ class Structure extends ChangeNotifier {
     saveFile();
   }
 
+  /// Called from [FrameView] to delete all children of current detail view.
+  void deleteChildren() {
+    var rootNode = currentDetailViewNode();
+    if (rootNode != null &&
+        rootNode is! LeafNode &&
+        rootNode.availableNodes.isNotEmpty &&
+        !obsoleteNodes.contains(rootNode)) {
+      var childNodes = List.of(rootNode.availableNodes);
+      var undos = [
+        for (var leafNode in childNodes)
+          UndoDeleteLeafNode('', leafNodes.indexOf(leafNode), leafNode)
+      ];
+      undoList.add(UndoBatch('Delete children of ${rootNode.title}', undos));
+      leafNodes.removeWhere((node) => childNodes.contains(node));
+      updateAllChildren();
+      obsoleteNodes.addAll(childNodes);
+      notifyListeners();
+      saveFile();
+    }
+  }
+
   /// Called from the [FieldEdit] view to add a new [field].
   void addNewField(Field field, {int? newPos}) {
     undoList.add(UndoAddNewField('Add new field: ${field.name}', field.name));
