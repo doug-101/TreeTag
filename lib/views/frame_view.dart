@@ -229,7 +229,7 @@ class FrameView extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          EditView(node: newNode, isNew: true),
+                          EditView(node: newNode, editMode: EditMode.newNode),
                     ),
                   );
                 },
@@ -242,6 +242,18 @@ class FrameView extends StatelessWidget {
                   onSelected: (result) async {
                     switch (result) {
                       case MenuItems.editChildren:
+                        var commonNode = model.commonChildDataNode();
+                        if (commonNode != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditView(
+                                node: commonNode,
+                                editMode: EditMode.nodeChildren,
+                              ),
+                            ),
+                          );
+                        }
                         break;
                       case MenuItems.deleteChildren:
                         if (detailRootNode is TitleNode) {

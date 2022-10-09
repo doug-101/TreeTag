@@ -183,7 +183,7 @@ class Structure extends ChangeNotifier {
 
   /// Creates a new node using some data copied from [copyFromNode] if given.
   ///
-  /// Called from the [DetailView] and the [TreeView].
+  /// Called from the [FrameView].
   /// Does not create undo objects or update views - that is done in
   /// [editNodeData()] after the user edits the new node.
   LeafNode newNode({Node? copyFromNode}) {
@@ -205,7 +205,39 @@ class Structure extends ChangeNotifier {
     return newNode;
   }
 
-  /// Called from the [DetailView] to update new or edited node data.
+  /// Called from [FrameView] to create a node with common child data.
+  ///
+  /// All children from the current detail view are considered.
+  /// Common data is included in the node's map, including null values for
+  /// mising/empty values.  The map contains a null char when values vary.
+  LeafNode? commonChildDataNode() {
+    var rootNode = currentDetailViewNode();
+    if (rootNode == null ||
+        rootNode is LeafNode ||
+        rootNode.availableNodes.isEmpty ||
+        obsoleteNodes.contains(rootNode)) {
+      return null;
+    }
+    Map<String, String> data = {};
+    for (var field in fieldMap.values) {
+      var value = _commonData(field, rootNode.availableNodes);
+      if (value != null) data[field.name] = value;
+    }
+    return LeafNode(data: data, modelRef: this);
+  }
+
+  // Called from above to provide common data values.
+  // Returns a null char if values vary, but returns a null value for
+  // consistently missing/empty values.
+  String? _commonData(Field field, List<LeafNode> nodes) {
+    var value = nodes[0].data[field.name];
+    for (var node in nodes) {
+      if ((node.data[field.name]) != value) return '\u0000';
+    }
+    return value;
+  }
+
+  /// Called from the [EditView] to update new or edited node data.
   void editNodeData(LeafNode node, Map<String, String> nodeData,
       {bool newNode = false}) {
     if (newNode) {
@@ -218,6 +250,27 @@ class Structure extends ChangeNotifier {
       node.data = nodeData;
     }
     updateAll();
+  }
+
+  /// Called from the [EditView] to edit data in all child nodes.
+  void editChildData(Map<String, String> nodeData) {
+    var rootNode = currentDetailViewNode();
+    if (rootNode != null) {
+      var undos = <Undo>[];
+      for (var node in rootNode.availableNodes) {
+        undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
+        for (var field in fieldMap.values) {
+          var newValue = nodeData[field.name];
+          if (newValue != null && newValue != '\u0000') {
+            node.data[field.name] = newValue;
+          } else if (newValue == null) {
+            node.data.remove(field.name);
+          }
+        }
+      }
+      undoList.add(UndoBatch('Edit child nodes of ${rootNode.title}', undos));
+      updateAll();
+    }
   }
 
   /// Called from the [DetailView] to delete a node.

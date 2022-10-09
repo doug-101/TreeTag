@@ -11,15 +11,17 @@ import '../model/fields.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
 
+enum EditMode { normal, newNode, nodeChildren }
+
 /// An edit view for node data.
 ///
-/// Called from new or edit operations in a [DetailView].
-/// [isNew] is true for newly created nodes, to handle updates properly.
+/// Called from new or edit operations in a [FrameView].
+/// Set [editMode] to handle updates properly (new nodes or multiple children).
 class EditView extends StatefulWidget {
   final LeafNode node;
-  final bool isNew;
+  final EditMode editMode;
 
-  EditView({Key? key, required this.node, this.isNew = false})
+  EditView({Key? key, required this.node, this.editMode = EditMode.normal})
       : super(key: key);
 
   @override
@@ -40,7 +42,7 @@ class _EditViewState extends State<EditView> {
   Future<bool> updateOnPop() async {
     if (_formKey.currentState!.validate()) {
       // Allow user to discard an unchanged new node.
-      if (!_isChanged && widget.isNew) {
+      if (!_isChanged && widget.editMode == EditMode.newNode) {
         var toBeSaved = await commonDialogs.okCancelDialog(
           context: context,
           title: 'Save Unchanged',
@@ -54,10 +56,15 @@ class _EditViewState extends State<EditView> {
         }
       }
       // Handle all updates.
-      if (_isChanged || widget.isNew) {
-        _formKey.currentState!.save();
-        widget.node.modelRef
-            .editNodeData(widget.node, nodeData, newNode: widget.isNew);
+      _formKey.currentState!.save();
+      if (_isChanged && widget.editMode == EditMode.nodeChildren) {
+        widget.node.modelRef.editChildData(nodeData);
+      } else if (_isChanged || widget.editMode == EditMode.newNode) {
+        widget.node.modelRef.editNodeData(
+          widget.node,
+          nodeData,
+          newNode: widget.editMode == EditMode.newNode,
+        );
       }
       return true;
     }
@@ -66,9 +73,11 @@ class _EditViewState extends State<EditView> {
 
   @override
   Widget build(BuildContext context) {
+    var windowTitle = widget.node.title;
+    if (windowTitle.contains('\u0000')) windowTitle = '[title varies]';
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.node.title),
+        title: Text(windowTitle),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.restore),
@@ -100,15 +109,28 @@ class _EditViewState extends State<EditView> {
 
   /// Return the proper field editor based on field type.
   Widget _fieldEditor(LeafNode node, Field field) {
+    var labelString = field.name;
+    String? initString = node.data[field.name];
+    if (widget.editMode == EditMode.nodeChildren && initString == '\u0000') {
+      labelString = '$labelString [varies]';
+      initString = null;
+    }
     if (field is LongTextField) {
       return TextFormField(
-        decoration: InputDecoration(labelText: field.name),
+        decoration: InputDecoration(labelText: labelString),
         minLines: 4,
         maxLines: 12,
-        initialValue: nodeData[field.name] ?? '',
+        initialValue: initString ?? '',
         validator: field.validateMessage,
         onSaved: (String? value) {
-          if (value != null) nodeData[field.name] = value;
+          if (value != null && value.isNotEmpty) {
+            nodeData[field.name] = value;
+          } else if (widget.editMode == EditMode.nodeChildren &&
+              node.data[field.name] == '\u0000') {
+            nodeData[field.name] = '\u0000';
+          } else {
+            nodeData.remove(field.name);
+          }
         },
       );
     }
@@ -121,9 +143,9 @@ class _EditViewState extends State<EditView> {
               child: Text(str.isNotEmpty ? str : '[Empty Value]'),
             )
         ],
-        decoration: InputDecoration(labelText: field.name),
+        decoration: InputDecoration(labelText: labelString),
         // Null value gives a blank.
-        value: nodeData[field.name],
+        value: initString,
         onChanged: (String? value) {
           setState(() {});
         },
@@ -131,6 +153,9 @@ class _EditViewState extends State<EditView> {
           if (value != null) {
             if (value.isNotEmpty) {
               nodeData[field.name] = value;
+            } else if (widget.editMode == EditMode.nodeChildren &&
+                node.data[field.name] == '\u0000') {
+              nodeData[field.name] = '\u0000';
             } else {
               nodeData.remove(field.name);
             }
@@ -140,13 +165,16 @@ class _EditViewState extends State<EditView> {
     }
     if (field is AutoChoiceField) {
       return AutoChoiceForm(
-        label: field.name,
-        initialValue: nodeData[field.name] ?? '',
+        label: labelString,
+        initialValue: initString ?? '',
         initialOptions: field.options,
         onSaved: (String? value) {
           if (value != null && value.isNotEmpty) {
             nodeData[field.name] = value;
             field.options.add(value);
+          } else if (widget.editMode == EditMode.nodeChildren &&
+              node.data[field.name] == '\u0000') {
+            nodeData[field.name] = '\u0000';
           } else {
             nodeData.remove(field.name);
           }
@@ -155,24 +183,28 @@ class _EditViewState extends State<EditView> {
     }
     if (field is NumberField) {
       return TextFormField(
-        decoration: InputDecoration(labelText: field.name),
-        initialValue: nodeData[field.name] ?? '',
+        decoration: InputDecoration(labelText: labelString),
+        initialValue: initString ?? '',
         validator: field.validateMessage,
         onSaved: (String? value) {
           if (value != null && value.isNotEmpty) {
             nodeData[field.name] = num.parse(value).toString();
+          } else if (widget.editMode == EditMode.nodeChildren &&
+              node.data[field.name] == '\u0000') {
+            nodeData[field.name] = '\u0000';
+          } else {
+            nodeData.remove(field.name);
           }
         },
       );
     }
     if (field is DateField) {
-      var initString = node.data[field.name];
       var storedDateFormat = DateFormat('yyyy-MM-dd');
       return DateFormField(
         fieldFormat: field.format,
         initialValue:
             initString != null ? storedDateFormat.parse(initString) : null,
-        heading: field.name,
+        heading: labelString,
         onSaved: (DateTime? value) {
           if (value != null)
             nodeData[field.name] = storedDateFormat.format(value);
@@ -180,27 +212,30 @@ class _EditViewState extends State<EditView> {
       );
     }
     if (field is TimeField) {
-      var initString = node.data[field.name];
       var storedTimeFormat = DateFormat('HH:mm:ss.S');
       return TimeFormField(
         fieldFormat: field.format,
         initialValue:
             initString != null ? storedTimeFormat.parse(initString) : null,
-        heading: field.name,
+        heading: labelString,
         onSaved: (DateTime? value) {
-          if (value != null)
+          if (value != null) {
             nodeData[field.name] = storedTimeFormat.format(value);
+          }
         },
       );
     }
     // Default return for a regular TextField
     return TextFormField(
-      decoration: InputDecoration(labelText: field.name),
-      initialValue: nodeData[field.name] ?? '',
+      decoration: InputDecoration(labelText: labelString),
+      initialValue: initString ?? '',
       validator: field.validateMessage,
       onSaved: (String? value) {
         if (value != null && value.isNotEmpty) {
           nodeData[field.name] = value;
+        } else if (widget.editMode == EditMode.nodeChildren &&
+            node.data[field.name] == '\u0000') {
+          nodeData[field.name] = '\u0000';
         } else {
           nodeData.remove(field.name);
         }
