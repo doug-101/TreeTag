@@ -205,9 +205,12 @@ class _EditViewState extends State<EditView> {
         initialValue:
             initString != null ? storedDateFormat.parse(initString) : null,
         heading: labelString,
-        onSaved: (DateTime? value) {
-          if (value != null)
+        onSaved: (DateTime? value) async {
+          if (value != null) {
             nodeData[field.name] = storedDateFormat.format(value);
+          } else {
+            nodeData.remove(field.name);
+          }
         },
       );
     }
@@ -221,6 +224,8 @@ class _EditViewState extends State<EditView> {
         onSaved: (DateTime? value) {
           if (value != null) {
             nodeData[field.name] = storedTimeFormat.format(value);
+          } else {
+            nodeData.remove(field.name);
           }
         },
       );
@@ -335,6 +340,18 @@ class DateFormField extends FormField<DateTime> {
                 );
                 if (newDate != null) {
                   state.didChange(newDate);
+                } else if (state.value != null) {
+                  // Give option of removing the value after cancelling.
+                  var keepValue = await commonDialogs.okCancelDialog(
+                    context: state.context,
+                    title: 'Cancelled Date Entry',
+                    label: 'Keep the previous date value?',
+                    trueButtonText: 'KEEP',
+                    falseButtonText: 'REMOVE',
+                  );
+                  if (keepValue != null && !keepValue) {
+                    state.didChange(null);
+                  }
                 }
               },
               child: Column(
@@ -385,6 +402,18 @@ class TimeFormField extends FormField<DateTime> {
                   state.didChange(
                     DateTime(1970, 1, 1, newTime.hour, newTime.minute),
                   );
+                } else if (state.value != null) {
+                  // Give option of removing the value after cancelling.
+                  var keepValue = await commonDialogs.okCancelDialog(
+                    context: state.context,
+                    title: 'Cancelled Time Entry',
+                    label: 'Keep the previous time value?',
+                    trueButtonText: 'KEEP',
+                    falseButtonText: 'REMOVE',
+                  );
+                  if (keepValue != null && !keepValue) {
+                    state.didChange(null);
+                  }
                 }
               },
               child: Column(
