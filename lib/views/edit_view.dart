@@ -317,6 +317,12 @@ class _AutoChoiceFormState extends FormFieldState<String> {
       didChange(_textController.text);
     });
   }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
 }
 
 /// Editor for a [DateField].

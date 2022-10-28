@@ -148,6 +148,33 @@ class Structure extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Open the first immediate parent of a given [LeafNode].
+  ///
+  /// Called from [SearchView], starts from the [currentDetailViewNode]
+  /// if defined.
+  void openLeafParent(LeafNode targetNode) {
+    var startNodes = rootNodes;
+    var detailViewNode = currentDetailViewNode();
+    if (detailViewNode != null) startNodes = [detailViewNode];
+    var parentMatch = _parentOfMatch(startNodes, targetNode);
+    while (parentMatch != null) {
+      parentMatch.isOpen = true;
+      parentMatch = parentMatch.parent;
+    }
+  }
+
+  // Return the first immediate parent matching the given [LeafNode].
+  Node? _parentOfMatch(List<Node> startNodes, LeafNode targetNode) {
+    GroupNode? previousParent = null;
+    for (var rootNode in startNodes) {
+      for (var node in allNodeGenerator(rootNode)) {
+        if (node == targetNode) return previousParent;
+        if (node is GroupNode) previousParent = node;
+      }
+    }
+    return null;
+  }
+
   /// Expands or contracts a [LeafNode] at [parentNode] instance.
   ///
   /// This either shows or hides the full output.
@@ -179,6 +206,35 @@ class Structure extends ChangeNotifier {
     if (doClearFirst) detailViewNodes.clear();
     detailViewNodes.add(node);
     if (doUpdate) notifyListeners();
+  }
+
+  /// Return nodes from [availableNodes] that match the [searchPhrase].
+  ///
+  /// A field of the node must match all search words, but not consecutively.
+  List<LeafNode> searchResults(
+      String searchPhrase, List<LeafNode> availableNodes) {
+    var searchTerms = searchPhrase.toLowerCase().split(' ');
+    searchTerms.removeWhere((s) => s.isEmpty);
+    var results = <LeafNode>[];
+    for (var node in availableNodes) {
+      if (_isSearchMatch(
+          node.outputs().join('\n').toLowerCase(), searchTerms)) {
+        results.add(node);
+      }
+    }
+    if (results.length > 1) {
+      var sortFields = [for (var field in fieldMap.values) SortKey(field)];
+      nodeFullSort(results, sortFields);
+    }
+    return results;
+  }
+
+  // Return true if all searchTerms are in the text string.
+  bool _isSearchMatch(String text, List<String> searchTerms) {
+    for (var term in searchTerms) {
+      if (!text.contains(term)) return false;
+    }
+    return true;
   }
 
   /// Creates a new node using some data copied from [copyFromNode] if given.

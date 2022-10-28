@@ -13,6 +13,7 @@ import 'common_dialogs.dart' as commonDialogs;
 import 'detail_view.dart';
 import 'edit_view.dart';
 import 'help_view.dart';
+import 'search_view.dart';
 import 'setting_edit.dart';
 import 'tree_view.dart';
 import 'undo_view.dart';
@@ -196,8 +197,21 @@ class FrameView extends StatelessWidget {
               // Reserve space for hidden icons on wide display.
               if (model.hasWideDisplay && !isDetailLeafNode)
                 SizedBox(
-                  width: iconSize * (model.detailViewNodes.length > 1 ? 2 : 3),
+                  width: iconSize * (model.detailViewNodes.length > 1 ? 1 : 2),
                   height: 1.0,
+                ),
+              if (!isDetailLeafNode)
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SearchView(parentNode: detailRootNode),
+                      ),
+                    );
+                  },
                 ),
               if (isDetailLeafNode)
                 IconButton(
@@ -215,8 +229,9 @@ class FrameView extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              EditView(node: detailRootNode as LeafNode)),
+                        builder: (context) =>
+                            EditView(node: detailRootNode as LeafNode),
+                      ),
                     );
                   },
                 ),

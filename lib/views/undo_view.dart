@@ -43,11 +43,16 @@ class _UndoViewState extends State<UndoView> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var model = Provider.of<Structure>(context, listen: false);
     return WillPopScope(
       onWillPop: () async {
-        var model = Provider.of<Structure>(context, listen: false);
         if (undoToPos != null) {
           model.undoList.undoToPos(undoToPos!);
         }
