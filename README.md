@@ -111,6 +111,16 @@ the tree.  In many cases, it's easier to start new nodes when the detail view is
 showing a group or leaf node, since at least some of the fields will initially
 be populated to match the group or leaf.
 
+The magnifying glass icon will show a search view for finding leaf nodes that
+match key words.  If the detail view is showing a grouping node, search results
+will be limited to the children of that group.  If the detail view is showing a
+title node or no node, all leaf nodes will be searched.  As key words are typed
+in the top bar, matching nodes will be shown in the main view.  The key words
+are matched individually, not as a complete phrase.  Tapping/clicking on a
+resulting node will select it and show its full output.  A node that is selected
+when leaving the search view will become current in the detail view and expanded
+in the tree.
+
 The hamburger (three lines) menu includes commands for the configuration editor,
 the settings view and the undo list, all described in subsequent sections. There
 is also a command to export the current data to a TreeLine file.
@@ -131,9 +141,20 @@ Tapping/clicking the "+" icon will create a new leaf node and show it in an edit
 view. If started from a view of a grouping node or a leaf node, at least some of
 the fields will initially be populated to match the group or leaf.
 
+A detail view showing the children of a title node or a grouping node will have
+a three-dots menu.  This menu includes commands to edit or delete all descendant
+leaf nodes.  The edit command will show an edit view filled with data that is
+common to all nodes.  The edits from adding or changing any fields will be
+applied to all of the nodes.  The delete command will remove all of the
+descendant leaf nodes.  Deleting with a title node as the current parent will
+remove all leaf nodes from the file.
+
 A detail view with an isolated leaf node will show edit (pencil icon) and delete
 (trash icon) commands.  The edit command will show an edit view for this leaf
 node. The delete command will remove all instances of this leaf node.
+
+Also, text can be selected and copied from an isolated leaf node in a detail
+view.
 
 ## Configure Fields
 
