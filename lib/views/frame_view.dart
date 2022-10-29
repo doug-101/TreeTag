@@ -6,6 +6,7 @@
 import 'dart:convert' show json;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -158,6 +159,20 @@ class FrameView extends StatelessWidget {
                           commonDialogs.aboutDialog(context: context);
                         },
                       ),
+                      if (Platform.isLinux ||
+                          Platform.isWindows ||
+                          Platform.isMacOS)
+                        Divider(),
+                      if (Platform.isLinux ||
+                          Platform.isWindows ||
+                          Platform.isMacOS)
+                        ListTile(
+                          leading: const Icon(Icons.highlight_off_outlined),
+                          title: const Text('Quit'),
+                          onTap: () {
+                            SystemNavigator.pop();
+                          },
+                        ),
                     ],
                   ),
                 ),

@@ -6,6 +6,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -212,6 +213,16 @@ class _FileControlState extends State<FileControl> {
                 commonDialogs.aboutDialog(context: context);
               },
             ),
+            if (Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+              Divider(),
+            if (Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+              ListTile(
+                leading: const Icon(Icons.highlight_off_outlined),
+                title: const Text('Quit'),
+                onTap: () {
+                  SystemNavigator.pop();
+                },
+              ),
           ],
         ),
       ),
