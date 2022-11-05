@@ -7,6 +7,7 @@ import 'dart:convert' show json;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -188,7 +189,22 @@ class FrameView extends StatelessWidget {
                   ),
                 if (model.hasWideDisplay || hasDetailViewOnly)
                   Flexible(
-                    child: Text(detailViewTitle),
+                    child: model.useMarkdownOutput
+                        ? MarkdownBody(
+                            data: detailViewTitle,
+                            styleSheet: MarkdownStyleSheet.fromTheme(
+                              ThemeData(
+                                textTheme: TextTheme(
+                                  bodyText2: TextStyle(
+                                    fontSize: 20.0,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Text(detailViewTitle),
                   ),
               ],
             ),

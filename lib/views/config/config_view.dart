@@ -5,12 +5,14 @@
 
 import 'package:flutter/material.dart';
 import 'field_config.dart';
-import 'tree_config.dart';
+import 'option_config.dart';
 import 'output_config.dart';
+import 'tree_config.dart';
 
 /// The base config view.
 ///
-/// Holds three views in tabs: [FieldConfig], [TreeConfig], [OutputConfig].
+/// Holds three views in tabs: [FieldConfig], [TreeConfig], [OutputConfig],
+/// [OptionConfig].
 /// Called from a menu in the [TreeView].
 class ConfigView extends StatefulWidget {
   @override
@@ -24,6 +26,7 @@ class _ConfigViewState extends State<ConfigView> {
     FieldConfig(),
     TreeConfig(),
     OutputConfig(),
+    OptionConfig(),
   ];
 
   void _onItemTapped(int index) {
@@ -40,6 +43,7 @@ class _ConfigViewState extends State<ConfigView> {
       ),
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
@@ -54,6 +58,10 @@ class _ConfigViewState extends State<ConfigView> {
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Output',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Options',
           ),
         ],
       ),

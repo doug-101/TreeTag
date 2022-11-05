@@ -31,6 +31,7 @@ class Structure extends ChangeNotifier {
   final fieldMap = <String, Field>{};
   late ParsedLine titleLine;
   final outputLines = <ParsedLine>[];
+  var useMarkdownOutput = false;
   var fileObject = File('.');
   late UndoList undoList;
 
@@ -70,6 +71,7 @@ class Structure extends ChangeNotifier {
     if (fieldMap.isEmpty || rootNodes.isEmpty || outputLines.isEmpty) {
       throw FormatException('Missing sections in file');
     }
+    if (jsonData['usemarkdown'] != null) useMarkdownOutput = true;
     if (autoChoiceFields.isNotEmpty) {
       for (var leaf in leafNodes) {
         for (var field in autoChoiceFields) {
@@ -122,6 +124,7 @@ class Structure extends ChangeNotifier {
     fieldMap.clear();
     titleLine = ParsedLine('', fieldMap);
     outputLines.clear();
+    useMarkdownOutput = false;
     undoList.clear();
   }
 
@@ -137,6 +140,7 @@ class Structure extends ChangeNotifier {
     jsonData['outputlines'] =
         await [for (var line in outputLines) line.getUnparsedLine()];
     jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
+    if (useMarkdownOutput) jsonData['usemarkdown'] = true;
     jsonData['undos'] = await undoList.toJson();
     await fileObject
         .writeAsString(JsonEncoder.withIndent(' ').convert(jsonData));
@@ -960,6 +964,12 @@ class Structure extends ChangeNotifier {
         'Move output line: ${line.getUnparsedLine()}', pos, up));
     outputLines.removeAt(pos);
     outputLines.insert(up ? --pos : ++pos, line);
+    updateAll();
+  }
+
+  /// Called from [OptionConfig] to change the Markdown output setting.
+  void setMarkdownOutput(bool setting) {
+    useMarkdownOutput = setting;
     updateAll();
   }
 

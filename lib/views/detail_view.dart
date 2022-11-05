@@ -5,6 +5,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show prefs;
 import '../model/nodes.dart';
@@ -34,6 +35,14 @@ class DetailView extends StatelessWidget {
         : const EdgeInsets.all(5.0);
     return Consumer<Structure>(
       builder: (context, model, child) {
+        var outWidget = model.useMarkdownOutput
+            ? ((String s) {
+                return MarkdownBody(data: s);
+              })
+            : ((String s) {
+                return Text(s);
+              });
+            var lineEnd = model.useMarkdownOutput ? '\n\n' : '\n';
         var rootNode = model.currentDetailViewNode();
         var cards = <Widget>[];
         if (rootNode != null) {
@@ -55,7 +64,7 @@ class DetailView extends StatelessWidget {
                 child: SelectionArea(
                   child: Container(
                     margin: innerMargin,
-                    child: Text(rootNode.outputs().join('\n')),
+                    child: outWidget(rootNode.outputs().join(lineEnd)),
                   ),
                 ),
               ),
@@ -73,8 +82,8 @@ class DetailView extends StatelessWidget {
                     child: Container(
                       margin: innerMargin,
                       child: childNode is LeafNode
-                          ? Text(childNode.outputs().join('\n'))
-                          : Text(childNode.title.isNotEmpty
+                          ? outWidget(childNode.outputs().join(lineEnd))
+                          : outWidget(childNode.title.isNotEmpty
                               ? childNode.title
                               : emptyTitleName),
                     ),

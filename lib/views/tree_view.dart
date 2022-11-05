@@ -5,6 +5,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show prefs;
 import '../model/nodes.dart';
@@ -14,6 +15,9 @@ const emptyName = '[Empty Title]';
 const _closedIcon = Icon(Icons.arrow_right, size: 24.0);
 const _openIcon = Icon(Icons.arrow_drop_down, size: 24.0);
 const _leafIcon = Icon(Icons.circle, size: 8.0);
+const _redClosedIcon = Icon(Icons.arrow_right, size: 24.0, color: Colors.red);
+const _redOpenIcon = Icon(Icons.arrow_drop_down, size: 24.0, color: Colors.red);
+const _redLeafIcon = Icon(Icons.circle, size: 8.0, color: Colors.red);
 
 /// The main indented tree view.
 ///
@@ -55,10 +59,12 @@ class TreeView extends StatelessWidget {
     final node = leveledNode.node;
     String nodeText;
     if (node is LeafNode && node.isExpanded(leveledNode.parent!)) {
-      nodeText = node.outputs().join('\n');
+      nodeText = node.outputs().join(model.useMarkdownOutput ? '\n\n' : '\n');
     } else {
       nodeText = node.title.isNotEmpty ? node.title : emptyName;
     }
+    var isNodeSelected =
+        model.hasWideDisplay && node == model.currentDetailViewNode();
     return Padding(
       padding: EdgeInsets.fromLTRB(
           25.0 * leveledNode.level + 4.0, spacing, 4.0, spacing),
@@ -81,23 +87,25 @@ class TreeView extends StatelessWidget {
           children: <Widget>[
             node.hasChildren
                 ? node.isOpen
-                    ? _openIcon
-                    : _closedIcon
+                    ? isNodeSelected
+                        ? _redOpenIcon
+                        : _openIcon
+                    : isNodeSelected
+                        ? _redClosedIcon
+                        : _closedIcon
                 : Padding(
-                    child: _leafIcon,
+                    child: isNodeSelected ? _redLeafIcon : _leafIcon,
                     padding: EdgeInsets.only(left: 8.0, right: 8.0),
                   ),
             Expanded(
-              child: Text(
-                nodeText,
-                softWrap: true,
-                style: model.hasWideDisplay &&
-                        node == model.currentDetailViewNode()
-                    ? TextStyle(
-                        backgroundColor: Theme.of(context).highlightColor,
-                      )
-                    : TextStyle(),
-              ),
+              child: model.useMarkdownOutput
+                  ? MarkdownBody(
+                      data: nodeText,
+                    )
+                  : Text(
+                      nodeText,
+                      softWrap: true,
+                    ),
             ),
           ],
         ),
