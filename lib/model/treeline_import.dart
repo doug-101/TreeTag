@@ -4,10 +4,10 @@
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show json;
-import 'dart:io' show File;
 import 'package:html_unescape/html_unescape_small.dart';
 import 'field_format_tools.dart';
 import 'fields.dart';
+import 'io_file.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'structure.dart';
@@ -16,8 +16,8 @@ import 'structure.dart';
 class TreeLineImport {
   late final dynamic jsonData;
 
-  TreeLineImport(File fileObj) {
-    jsonData = json.decode(fileObj.readAsStringSync());
+  TreeLineImport(IOFile fileObj) {
+    jsonData = json.decode(fileObj.readSync());
   }
 
   /// Return a list of node format types that could be converted.

@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'common_dialogs.dart' as commonDialogs;
@@ -19,6 +18,7 @@ import 'search_view.dart';
 import 'setting_edit.dart';
 import 'tree_view.dart';
 import 'undo_view.dart';
+import '../model/io_file.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
 import '../model/treeline_export.dart';
@@ -94,24 +94,22 @@ class FrameView extends StatelessWidget {
                         onTap: () async {
                           Navigator.pop(context);
                           var exportData = TreeLineExport(model).jsonData();
-                          var fileObj = File(
-                              '${p.withoutExtension(model.fileObject.path)}'
-                              '.trln');
-                          if (fileObj.existsSync()) {
+                          var fileObj = LocalFile(
+                              model.fileObject.nameNoExtension + '.trln');
+                          if (fileObj.exists) {
                             var ans = await commonDialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
-                              label: 'File ${p.basename(fileObj.path)} already '
+                              label: 'File ${fileObj.filename} already '
                                   'exists.\n\nOverwrite it?',
                             );
                             if (ans == null || !ans) return;
                           }
-                          await fileObj.writeAsString(json.encode(exportData));
+                          await fileObj.write(json.encode(exportData));
                           await commonDialogs.okDialog(
                             context: context,
                             title: 'Export',
-                            label:
-                                'File ${p.basename(fileObj.path)} was written.',
+                            label: 'File ${fileObj.filename} was written.',
                           );
                         },
                       ),

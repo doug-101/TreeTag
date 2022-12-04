@@ -8,7 +8,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +17,7 @@ import 'help_view.dart';
 import 'sample_control.dart';
 import 'setting_edit.dart';
 import '../main.dart' show prefs;
+import '../model/io_file.dart';
 import '../model/structure.dart';
 import '../model/treeline_import.dart';
 
@@ -32,49 +32,33 @@ class FileControl extends StatefulWidget {
   State<FileControl> createState() => _FileControlState();
 }
 
-enum MenuItems { addFromFolder, copy, copyToFolder, rename, delete }
+enum MenuItems {
+  addFromFolder,
+  copy,
+  copyToFolder,
+  uploadToNetwork,
+  downloadToStorage,
+  rename,
+  delete,
+}
 
 class _FileControlState extends State<FileControl> {
-  final _fileList = <File>[];
-  final _selectedFiles = <File>{};
+  var _fileList = <IOFile>[];
+  final _selectedFiles = <IOFile>{};
+  var _showingLocalFiles = true;
 
   @override
   void initState() {
     super.initState();
-    _findWorkDir();
-  }
-
-  /// Initialize global references if necessary and find the working directory.
-  void _findWorkDir() async {
-    prefs = await SharedPreferences.getInstance();
-    if (prefs.getString('workdir') == null) {
-      Directory? workDir;
-      if (Platform.isAndroid) {
-        // Use "external" user-accessible location if possible.
-        workDir = await getExternalStorageDirectory();
-      }
-      if (workDir == null) {
-        // For failed external stroage or for non-Android platforms.
-        workDir = await getApplicationDocumentsDirectory();
-      }
-      await prefs.setString('workdir', workDir.path);
-    }
     _updateFileList();
   }
 
   void _updateFileList() async {
-    _fileList.clear();
-    _selectedFiles.clear();
     try {
-      await for (var entity in Directory(prefs.getString('workdir')!).list()) {
-        if (entity != null &&
-            entity is File &&
-            (!(prefs.getBool('hidedotfiles') ?? true) ||
-                !p.basename(entity.path).startsWith('.'))) {
-          _fileList.add(entity);
-        }
-      }
-    } on FileSystemException {
+      _fileList = _showingLocalFiles
+          ? await LocalFile.fileList()
+          : await NetworkFile.fileList();
+    } on IOException {
       await commonDialogs.okDialog(
         context: context,
         title: 'Error',
@@ -83,16 +67,17 @@ class _FileControlState extends State<FileControl> {
         isDissmissable: false,
       );
     }
-    _fileList.sort((a, b) => a.path.compareTo(b.path));
+    _fileList.sort((a, b) => a.filename.compareTo(b.filename));
+    _selectedFiles.clear();
     setState(() {});
   }
 
-  void _openTappedFile(File fileObj) async {
+  void _openTappedFile(IOFile fileObj) async {
     var model = Provider.of<Structure>(context, listen: false);
     try {
       model.openFile(fileObj);
       Navigator.pushNamed(context, '/frameView',
-              arguments: p.basenameWithoutExtension(fileObj.path))
+              arguments: fileObj.nameNoExtension)
           .then((value) async {
         _updateFileList();
       });
@@ -107,37 +92,25 @@ class _FileControlState extends State<FileControl> {
         if (typeName != null) {
           model.clearModel();
           import.convertNodeType(typeName, model);
-          var baseFilename = p.basenameWithoutExtension(fileObj.path);
+          var baseFilename = fileObj.nameNoExtension;
           var fileWithExt = _addExtensionIfNone(baseFilename);
-          model.fileObject =
-              File(p.join(prefs.getString('workdir')!, fileWithExt));
-          if (model.fileObject.existsSync()) {
-            var ans = await commonDialogs.okCancelDialog(
-              context: context,
-              title: 'Confirm Overwrite',
-              label: 'File $fileWithExt already exists.\n\n'
-                  'Overwrite it?',
-            );
-            if (ans == null || !ans) {
-              FilePicker.platform.clearTemporaryFiles();
-              return;
-            }
+          model.fileObject = LocalFile(fileWithExt);
+          if (!model.fileObject.exists || await askOverwriteOk(fileWithExt)) {
+            model.saveFile();
+            Navigator.pushNamed(
+              context,
+              '/frameView',
+              arguments: baseFilename,
+            ).then((value) async {
+              _updateFileList();
+            });
           }
-          model.saveFile();
-          Navigator.pushNamed(
-            context,
-            '/frameView',
-            arguments: baseFilename,
-          ).then((value) async {
-            _updateFileList();
-          });
         }
       } on FormatException {
         await commonDialogs.okDialog(
           context: context,
           title: 'Error',
-          label: 'Could not open file: '
-              '${p.basenameWithoutExtension(fileObj.path)}',
+          label: 'Could not open file: ${fileObj.nameNoExtension}',
           isDissmissable: false,
         );
       }
@@ -162,6 +135,32 @@ class _FileControlState extends State<FileControl> {
                 ),
               ),
             ),
+            ListTile(
+              leading: const Icon(Icons.storage),
+              title: const Text('Local Storage'),
+              selected: _showingLocalFiles,
+              onTap: () {
+                if (!_showingLocalFiles) {
+                  Navigator.pop(context);
+                  _showingLocalFiles = true;
+                  _updateFileList();
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.phonelink),
+              title: const Text('Network Storage'),
+              enabled: true,
+              selected: !_showingLocalFiles,
+              onTap: () {
+                if (_showingLocalFiles) {
+                  Navigator.pop(context);
+                  _showingLocalFiles = false;
+                  _updateFileList();
+                }
+              },
+            ),
+            Divider(),
             ListTile(
               leading: const Icon(Icons.lightbulb_outline),
               title: const Text('Sample Files'),
@@ -241,28 +240,17 @@ class _FileControlState extends State<FileControl> {
                   label: 'Name for the new file:',
                 );
                 if (filename != null) {
-                  var fileWithExt = _addExtensionIfNone(filename);
-                  var fileObj =
-                      File(p.join(prefs.getString('workdir')!, fileWithExt));
-                  if (fileObj.existsSync()) {
-                    var ans = await commonDialogs.okCancelDialog(
-                      context: context,
-                      title: 'Confirm Overwrite',
-                      label:
-                          'File $fileWithExt already exists.\n\nOverwrite it?',
-                    );
-                    if (ans == null || !ans) {
-                      FilePicker.platform.clearTemporaryFiles();
-                      return;
-                    }
+                  var fileObj = LocalFile(_addExtensionIfNone(filename));
+                  if (!fileObj.exists ||
+                      await askOverwriteOk(fileObj.filename)) {
+                    var model = Provider.of<Structure>(context, listen: false);
+                    model.newFile(fileObj);
+                    Navigator.pushNamed(context, '/frameView',
+                            arguments: filename)
+                        .then((value) async {
+                      _updateFileList();
+                    });
                   }
-                  var model = Provider.of<Structure>(context, listen: false);
-                  model.newFile(fileObj);
-                  Navigator.pushNamed(context, '/frameView',
-                          arguments: filename)
-                      .then((value) async {
-                    _updateFileList();
-                  });
                 }
               },
             ),
@@ -274,11 +262,10 @@ class _FileControlState extends State<FileControl> {
                 var fileObj = _selectedFiles.first;
                 commonDialogs.okDialog(
                   context: context,
-                  title:
-                      'File Info - ${p.basenameWithoutExtension(fileObj.path)}',
-                  label: 'Full Path: ${fileObj.path}\n\n'
-                      'Last Modiified: ${fileObj.lastModifiedSync().toString()}'
-                      '\n\nSize: ${fileObj.statSync().size} bytes',
+                  title: 'File Info - ${fileObj.nameNoExtension}',
+                  label: 'Full Path: ${fileObj.fullPath}\n\n'
+                      'Last Modiified: ${fileObj.lastModified}'
+                      '\n\nSize: ${fileObj.fileSize} bytes',
                 );
               },
             ),
@@ -295,51 +282,39 @@ class _FileControlState extends State<FileControl> {
                   if (answer != null) {
                     var cachePath = answer.files.single.path;
                     if (cachePath != null) {
-                      var newName = p.basename(cachePath);
-                      var newPath =
-                          p.join(prefs.getString('workdir')!, newName);
-                      if (File(newPath).existsSync()) {
-                        var ans = await commonDialogs.okCancelDialog(
-                          context: context,
-                          title: 'Confirm Overwrite',
-                          label:
-                              'File $newName already exists.\n\nOverwrite it?',
-                        );
-                        if (ans == null || !ans) {
-                          FilePicker.platform.clearTemporaryFiles();
-                          break;
+                      try {
+                        var newFile = await LocalFile.copyFromPath(cachePath);
+                      } on FileExistsException catch (e) {
+                        if (await askOverwriteOk('$e')) {
+                          var newFile = await LocalFile.copyFromPath(cachePath,
+                              forceIfExists: true);
                         }
                       }
-                      await File(cachePath).copy(newPath);
                       setState(() {
                         _updateFileList();
                       });
-                      FilePicker.platform.clearTemporaryFiles();
                     }
+                    FilePicker.platform.clearTemporaryFiles();
                   }
                   break;
                 case MenuItems.copy:
-                  var initName = _selectedFiles.first.path
-                          .endsWith(_fileExtension)
-                      ? p.basenameWithoutExtension(_selectedFiles.first.path)
-                      : p.basename(_selectedFiles.first.path);
+                  var initName = _selectedFiles.first.nameNoExtension;
                   var answer = await commonDialogs.filenameDialog(
                     context: context,
                     initName: initName,
                     label: 'Copy "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath = p.join(prefs.getString('workdir')!,
-                        _addExtensionIfNone(answer));
-                    if (File(newPath).existsSync()) {
-                      var ans = await commonDialogs.okCancelDialog(
-                        context: context,
-                        title: 'Confirm Overwrite',
-                        label: 'File $answer already exists.\n\nOverwrite it?',
-                      );
-                      if (ans == null || !ans) break;
+                    var fileObj = _selectedFiles.first;
+                    var newFileObj = LocalFile(_addExtensionIfNone(answer));
+                    try {
+                      await fileObj.copyToFile(newFileObj);
+                    } on FileExistsException catch (e) {
+                      if (await askOverwriteOk('$e')) {
+                        await fileObj.copyToFile(newFileObj,
+                            forceIfExists: true);
+                      }
                     }
-                    await _selectedFiles.first.copy(newPath);
                     setState(() {
                       _updateFileList();
                     });
@@ -356,21 +331,18 @@ class _FileControlState extends State<FileControl> {
                         Platform.isMacOS ||
                         await Permission.storage.request().isGranted) {
                       try {
-                        for (var file in _selectedFiles) {
-                          var newPath = p.join(folder, p.basename(file.path));
-                          var fileNoExt = p.basenameWithoutExtension(file.path);
-                          if (File(newPath).existsSync()) {
-                            var ans = await commonDialogs.okCancelDialog(
-                              context: context,
-                              title: 'Confirm Overwrite',
-                              label: 'File $fileNoExt already exists.\n\n'
-                                  'Overwrite it?',
-                            );
-                            if (ans == null || !ans) break;
+                        for (var fileObj in _selectedFiles) {
+                          var newPath = p.join(folder, fileObj.filename);
+                          try {
+                            await fileObj.copyToPath(newPath);
+                          } on FileExistsException catch (e) {
+                            if (await askOverwriteOk('$e')) {
+                              await fileObj.copyToPath(newPath,
+                                  forceIfExists: true);
+                            }
                           }
-                          await file.copy(newPath);
                         }
-                      } on FileSystemException {
+                      } on IOException {
                         await commonDialogs.okDialog(
                           context: context,
                           title: 'Error',
@@ -384,29 +356,28 @@ class _FileControlState extends State<FileControl> {
                       await openAppSettings();
                     }
                   }
+                  FilePicker.platform.clearTemporaryFiles();
+                  break;
+                case MenuItems.uploadToNetwork:
+                  break;
+                case MenuItems.downloadToStorage:
                   break;
                 case MenuItems.rename:
-                  var initName = _selectedFiles.first.path
-                          .endsWith(_fileExtension)
-                      ? p.basenameWithoutExtension(_selectedFiles.first.path)
-                      : p.basename(_selectedFiles.first.path);
+                  var initName = _selectedFiles.first.nameNoExtension;
                   var answer = await commonDialogs.filenameDialog(
                     context: context,
                     initName: initName,
                     label: 'Rename "$initName" to:',
                   );
                   if (answer != null) {
-                    var newPath = p.join(prefs.getString('workdir')!,
-                        _addExtensionIfNone(answer));
-                    if (File(newPath).existsSync()) {
-                      var ans = await commonDialogs.okCancelDialog(
-                        context: context,
-                        title: 'Confirm Overwrite',
-                        label: 'File $answer already exists.\n\nOverwrite it?',
-                      );
-                      if (ans == null || !ans) break;
+                    var fileObj = _selectedFiles.first;
+                    try {
+                      await fileObj.rename(_addExtensionIfNone(answer));
+                    } on FileExistsException catch (e) {
+                      if (await askOverwriteOk('$e')) {
+                        await fileObj.rename(answer, forceIfExists: true);
+                      }
                     }
-                    await _selectedFiles.first.rename(newPath);
                     setState(() {
                       _updateFileList();
                     });
@@ -421,8 +392,8 @@ class _FileControlState extends State<FileControl> {
                         : 'Delete ${_selectedFiles.length} items?',
                   );
                   if (deleteOk ?? false) {
-                    for (var file in _selectedFiles) {
-                      file.deleteSync();
+                    for (var fileObj in _selectedFiles) {
+                      await fileObj.delete();
                     }
                     setState(() {
                       _updateFileList();
@@ -432,7 +403,7 @@ class _FileControlState extends State<FileControl> {
               }
             },
             itemBuilder: (context) => [
-              if (_selectedFiles.isEmpty)
+              if (_selectedFiles.isEmpty && _showingLocalFiles)
                 PopupMenuItem(
                   child: Text('Add from folder'),
                   value: MenuItems.addFromFolder,
@@ -442,10 +413,20 @@ class _FileControlState extends State<FileControl> {
                   child: Text('Create a copy'),
                   value: MenuItems.copy,
                 ),
-              if (_selectedFiles.isNotEmpty)
+              if (_selectedFiles.isNotEmpty && _showingLocalFiles)
                 PopupMenuItem(
                   child: Text('Copy to folder'),
                   value: MenuItems.copyToFolder,
+                ),
+              if (_selectedFiles.isNotEmpty && _showingLocalFiles)
+                PopupMenuItem(
+                  child: Text('Upload to network'),
+                  value: MenuItems.uploadToNetwork,
+                ),
+              if (_selectedFiles.isNotEmpty && !_showingLocalFiles)
+                PopupMenuItem(
+                  child: Text('Download to storage'),
+                  value: MenuItems.downloadToStorage,
                 ),
               if (_selectedFiles.length == 1)
                 PopupMenuItem(
@@ -487,10 +468,10 @@ class _FileControlState extends State<FileControl> {
                 child: ListTile(
                   title: Text.rich(
                     TextSpan(
-                      text: '${p.basenameWithoutExtension(fileObj.path)} ',
+                      text: '${fileObj.nameNoExtension} ',
                       children: <TextSpan>[
                         TextSpan(
-                          text: p.extension(fileObj.path),
+                          text: fileObj.extension,
                           style: Theme.of(context).textTheme.caption,
                         ),
                       ],
@@ -502,6 +483,19 @@ class _FileControlState extends State<FileControl> {
         ],
       ),
     );
+  }
+
+  /// Ask user to overwrite a filename and return result.
+  Future<bool> askOverwriteOk(String filename) async {
+    var ans = await commonDialogs.okCancelDialog(
+      context: context,
+      title: 'Confirm Overwrite',
+      label: 'File $filename already exists.\n\nOverwrite it?',
+    );
+    if (ans == null || !ans) {
+      return false;
+    }
+    return true;
   }
 }
 

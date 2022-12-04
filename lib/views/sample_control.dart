@@ -12,6 +12,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'common_dialogs.dart' as commonDialogs;
 import 'frame_view.dart';
 import '../main.dart' show prefs;
+import '../model/io_file.dart';
 import '../model/structure.dart';
 
 /// Provides a sample listview that can open sample files.
@@ -41,13 +42,14 @@ class _SampleControlState extends State<SampleControl> {
   /// Open a sample file after a user tap.
   void _openSample(String path) async {
     var model = Provider.of<Structure>(context, listen: false);
-    var newFile = File(p.join(prefs.getString('workdir')!, p.basename(path)));
-    if (newFile.existsSync()) {
+
+    var newFile = LocalFile(p.basename(path));
+    if (newFile.exists) {
       // Handle a sample already in the working directory.
       var ans = await commonDialogs.okCancelDialog(
         context: context,
         title: 'Working File Exists',
-        label: 'Working file ${p.basename(path)} already exists.\n\n'
+        label: 'Working file ${newFile.filename} already exists.\n\n'
             'Open it from the working directory?',
       );
       if (ans == null || !ans) return;
@@ -58,7 +60,7 @@ class _SampleControlState extends State<SampleControl> {
           context: context,
           title: 'Error',
           label: 'Could not open file: '
-              '${p.basenameWithoutExtension(newFile.path)}',
+              '${newFile.nameNoExtension}',
           isDissmissable: false,
         );
         return;
@@ -69,7 +71,7 @@ class _SampleControlState extends State<SampleControl> {
       model.fileObject = newFile;
     }
     Navigator.pushNamed(context, '/frameView',
-            arguments: p.basenameWithoutExtension(path))
+            arguments: newFile.nameNoExtension)
         .then((value) async {
       Navigator.pop(context);
     });

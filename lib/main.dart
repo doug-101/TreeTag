@@ -6,6 +6,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_size/window_size.dart';
@@ -19,11 +20,9 @@ import 'views/undo_view.dart';
 import 'views/config/config_view.dart';
 
 /// [prefs] is the global shared_preferences instance.
-///
-/// It is initialized in file_control.dart.
 late final SharedPreferences prefs;
 
-void main() {
+Future<void> main() async {
   LicenseRegistry.addLicense(
     () => Stream<LicenseEntry>.value(
       const LicenseEntryWithLineBreaks(
@@ -48,6 +47,19 @@ void main() {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     setWindowTitle('TreeTag');
     setWindowMinSize(const Size(160, 160));
+  }
+  prefs = await SharedPreferences.getInstance();
+  if (prefs.getString('workdir') == null) {
+    Directory? workDir;
+    if (Platform.isAndroid) {
+      // Use "external" user-accessible location if possible.
+      workDir = await getExternalStorageDirectory();
+    }
+    if (workDir == null) {
+      // For failed external stroage or for non-Android platforms.
+      workDir = await getApplicationDocumentsDirectory();
+    }
+    await prefs.setString('workdir', workDir.path);
   }
   runApp(
     ChangeNotifierProvider(

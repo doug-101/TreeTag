@@ -4,12 +4,11 @@
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show JsonDecoder, JsonEncoder;
-import 'dart:io' show File;
 // foundation.dart includes [ChangeNotifier].
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
 import 'fields.dart';
+import 'io_file.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'undos.dart';
@@ -32,7 +31,7 @@ class Structure extends ChangeNotifier {
   late ParsedLine titleLine;
   final outputLines = <ParsedLine>[];
   var useMarkdownOutput = false;
-  var fileObject = File('.');
+  IOFile fileObject = LocalFile('');
   late UndoList undoList;
 
   var hasWideDisplay = false;
@@ -43,9 +42,9 @@ class Structure extends ChangeNotifier {
   }
 
   /// Open an existng file using the JSON data in [fileObj].
-  void openFile(File fileObj) {
+  void openFile(IOFile fileObj) {
     fileObject = fileObj;
-    openFromData(JsonDecoder().convert(fileObj.readAsStringSync()));
+    openFromData(JsonDecoder().convert(fileObj.readSync()));
   }
 
   /// Open an existng file using the given JSON data.
@@ -87,7 +86,7 @@ class Structure extends ChangeNotifier {
   /// Start a new, skeleton file.
   ///
   /// The data and future changes will be saved to [fileObj].
-  void newFile(File fileObj) {
+  void newFile(IOFile fileObj) {
     clearModel();
     fileObject = fileObj;
     const mainFieldName = 'Name';
@@ -142,8 +141,7 @@ class Structure extends ChangeNotifier {
     jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
     if (useMarkdownOutput) jsonData['usemarkdown'] = true;
     jsonData['undos'] = await undoList.toJson();
-    await fileObject
-        .writeAsString(JsonEncoder.withIndent(' ').convert(jsonData));
+    await fileObject.write(JsonEncoder.withIndent(' ').convert(jsonData));
   }
 
   /// Opens or closes a node based on a tap in the [TreeView].
