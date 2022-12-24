@@ -3,7 +3,6 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'dart:convert' show JsonDecoder, JsonEncoder;
 // foundation.dart includes [ChangeNotifier].
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -31,7 +30,7 @@ class Structure extends ChangeNotifier {
   late ParsedLine titleLine;
   final outputLines = <ParsedLine>[];
   var useMarkdownOutput = false;
-  IOFile fileObject = LocalFile('');
+  IOFile fileObject = IOFile.currentType('');
   late UndoList undoList;
 
   var hasWideDisplay = false;
@@ -42,13 +41,13 @@ class Structure extends ChangeNotifier {
   }
 
   /// Open an existng file using the JSON data in [fileObj].
-  void openFile(IOFile fileObj) {
+  Future<void> openFile(IOFile fileObj) async {
     fileObject = fileObj;
-    openFromData(JsonDecoder().convert(fileObj.readSync()));
+    openFromData(await fileObj.readJson());
   }
 
   /// Open an existng file using the given JSON data.
-  void openFromData(dynamic jsonData) {
+  void openFromData(Map<String, dynamic> jsonData) {
     clearModel();
     var autoChoiceFields = <AutoChoiceField>[];
     for (var fieldData in jsonData['fields'] ?? []) {
@@ -141,7 +140,7 @@ class Structure extends ChangeNotifier {
     jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
     if (useMarkdownOutput) jsonData['usemarkdown'] = true;
     jsonData['undos'] = await undoList.toJson();
-    await fileObject.write(JsonEncoder.withIndent(' ').convert(jsonData));
+    await fileObject.writeJson(jsonData);
   }
 
   /// Opens or closes a node based on a tap in the [TreeView].

@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart' show prefs;
+import '../model/io_file.dart';
 import '../model/structure.dart';
 
 /// A user settings view.
@@ -65,6 +66,41 @@ class _SettingEditState extends State<SettingEdit> {
                     }
                   },
                 ),
+              TextFormField(
+                initialValue: prefs.getString('netaddress'),
+                decoration: const InputDecoration(
+                  labelText: 'Network Address',
+                ),
+                onSaved: (String? value) async {
+                  if (value != null) {
+                    await prefs.setString('netaddress', value);
+                  }
+                },
+              ),
+              TextFormField(
+                initialValue: prefs.getString('netuser'),
+                decoration: const InputDecoration(
+                  labelText: 'Network User Name',
+                ),
+                onSaved: (String? value) async {
+                  if (value != null) {
+                    await prefs.setString('netuser', value);
+                  }
+                },
+              ),
+              TextFormField(
+                initialValue: prefs.getString('netpassword'),
+                decoration: const InputDecoration(
+                  labelText: 'Network Password',
+                ),
+                obscureText: true,
+                onSaved: (String? value) async {
+                  if (value != null) {
+                    await prefs.setString('netpassword', value);
+                    NetworkFile.password = value;
+                  }
+                },
+              ),
               BoolFormField(
                 initialValue: prefs.getBool('hidedotfiles') ?? true,
                 heading: 'Hide Dot Files',
@@ -131,6 +167,7 @@ class BoolFormField extends FormField<bool> {
                 ),
                 Divider(
                   thickness: 3.0,
+                  height: 6.0,
                 ),
               ],
             );
@@ -168,15 +205,13 @@ class PathFormField extends FormField<String> {
                       child: Text(heading ?? 'Selected Path',
                           style: Theme.of(state.context).textTheme.caption),
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 5.0),
-                      child: Text(
-                        state.value!,
-                        style: Theme.of(state.context).textTheme.subtitle1,
-                      ),
+                    Text(
+                      state.value!,
+                      style: Theme.of(state.context).textTheme.subtitle1,
                     ),
                     Divider(
                       thickness: 3.0,
+                      height: 9.0,
                     ),
                   ],
                 ),

@@ -146,12 +146,14 @@ Future<String?> filenameDialog({
   );
 }
 
+/// Prompt for a one-line text entry with OK and CANCEL buttons.
 Future<String?> textDialog({
   required BuildContext context,
   String? initText,
   String title = 'Enter Text',
   String? label,
   bool allowEmpty = false,
+  bool obscureText = false,
 }) async {
   return showDialog<String>(
     context: context,
@@ -163,6 +165,7 @@ Future<String?> textDialog({
           key: _textEditKey,
           decoration: InputDecoration(labelText: label),
           autofocus: true,
+          obscureText: obscureText,
           initialValue: initText ?? '',
           validator: (String? text) {
             if (!allowEmpty && (text?.isEmpty ?? false)) {

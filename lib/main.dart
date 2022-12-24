@@ -10,8 +10,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_size/window_size.dart';
+import 'model/io_file.dart';
 import 'model/structure.dart';
 import 'model/nodes.dart';
+import 'views/common_dialogs.dart' as commonDialogs;
 import 'views/detail_view.dart';
 import 'views/file_control.dart';
 import 'views/frame_view.dart';
@@ -61,10 +63,37 @@ Future<void> main() async {
     }
     await prefs.setString('workdir', workDir.path);
   }
+  // Use a global navigator key to get a BuildContext for an error dialog.
+  final navigatorKey = GlobalKey<NavigatorState>();
+  // This catches exceptions from the async save function.
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (error is SaveException) {
+      navigatorKey.currentState!.push(
+        MaterialPageRoute(
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content:
+                  Text('Failed to save file changes:\n${error.toString()}'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () => Navigator.pop(context, true),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      return true;
+    }
+    return false;
+  };
   runApp(
     ChangeNotifierProvider(
       create: (context) => Structure(),
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'TreeTag',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSwatch(

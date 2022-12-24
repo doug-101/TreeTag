@@ -7,10 +7,10 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'common_dialogs.dart' as commonDialogs;
 import 'frame_view.dart';
 import 'help_view.dart';
@@ -45,25 +45,58 @@ enum MenuItems {
 class _FileControlState extends State<FileControl> {
   var _fileList = <IOFile>[];
   final _selectedFiles = <IOFile>{};
-  var _showingLocalFiles = true;
+  late bool _usingLocalFiles;
 
+  /// Initialize with last local/network setting and load file list.
   @override
   void initState() {
     super.initState();
+    _usingLocalFiles = prefs.getBool('uselocalfiles') ?? true;
+    if (!_usingLocalFiles && !_checkNetworkParams()) {
+      _usingLocalFiles = true;
+      prefs.setBool('uselocalfiles', true);
+    }
     _updateFileList();
   }
 
+  /// Verify that network preference ssettings are valid.
+  bool _checkNetworkParams() {
+    return (prefs.getString('netaddress') ?? '').isNotEmpty &&
+        (prefs.getString('netuser') ?? '').isNotEmpty;
+  }
+
+  /// Request a password if it's not stored in the preferences.
+  Future<bool> _findNetworkPassword() async {
+    if (NetworkFile.password.isNotEmpty) return true;
+    NetworkFile.password = prefs.getString('netpassword') ?? '';
+    if (NetworkFile.password.isNotEmpty) return true;
+    var value = await commonDialogs.textDialog(
+      context: context,
+      title: 'Password:',
+      label: 'Enter network password',
+      obscureText: true,
+    );
+    if (value != null && value.isNotEmpty) {
+      NetworkFile.password = value;
+      return true;
+    }
+    return false;
+  }
+
+  /// Refresh the list of files.
   void _updateFileList() async {
+    if (!_usingLocalFiles) {
+      await _findNetworkPassword();
+    }
     try {
-      _fileList = _showingLocalFiles
+      _fileList = _usingLocalFiles
           ? await LocalFile.fileList()
           : await NetworkFile.fileList();
-    } on IOException {
+    } on IOException catch (e) {
       await commonDialogs.okDialog(
         context: context,
         title: 'Error',
-        label: 'Could not read from working directory: '
-            '${prefs.getString('workdir')!}',
+        label: 'Could not read from directory: \n$e',
         isDissmissable: false,
       );
     }
@@ -72,18 +105,20 @@ class _FileControlState extends State<FileControl> {
     setState(() {});
   }
 
+  /// Open a long- or double-tapped file.
   void _openTappedFile(IOFile fileObj) async {
     var model = Provider.of<Structure>(context, listen: false);
     try {
-      model.openFile(fileObj);
+      await model.openFile(fileObj);
       Navigator.pushNamed(context, '/frameView',
               arguments: fileObj.nameNoExtension)
           .then((value) async {
         _updateFileList();
       });
     } on FormatException {
+      // If not TreeTag formt, try to import as a TreeLine file.
       try {
-        var import = TreeLineImport(fileObj);
+        var import = TreeLineImport(await fileObj.readJson());
         var typeName = await commonDialogs.choiceDialog(
           context: context,
           choices: import.formatNames(),
@@ -94,8 +129,9 @@ class _FileControlState extends State<FileControl> {
           import.convertNodeType(typeName, model);
           var baseFilename = fileObj.nameNoExtension;
           var fileWithExt = _addExtensionIfNone(baseFilename);
-          model.fileObject = LocalFile(fileWithExt);
-          if (!model.fileObject.exists || await askOverwriteOk(fileWithExt)) {
+          model.fileObject = IOFile.currentType(fileWithExt);
+          if (!(await model.fileObject.exists) ||
+              await askOverwriteOk(fileWithExt)) {
             model.saveFile();
             Navigator.pushNamed(
               context,
@@ -110,10 +146,17 @@ class _FileControlState extends State<FileControl> {
         await commonDialogs.okDialog(
           context: context,
           title: 'Error',
-          label: 'Could not open file: ${fileObj.nameNoExtension}',
+          label: 'Could not interpret file: ${fileObj.nameNoExtension}',
           isDissmissable: false,
         );
       }
+    } on IOException catch (e) {
+      await commonDialogs.okDialog(
+        context: context,
+        title: 'Error',
+        label: 'Could not read file: ${fileObj.nameNoExtension}\n$e',
+        isDissmissable: false,
+      );
     }
   }
 
@@ -138,11 +181,12 @@ class _FileControlState extends State<FileControl> {
             ListTile(
               leading: const Icon(Icons.storage),
               title: const Text('Local Storage'),
-              selected: _showingLocalFiles,
+              selected: _usingLocalFiles,
               onTap: () {
-                if (!_showingLocalFiles) {
+                if (!_usingLocalFiles) {
                   Navigator.pop(context);
-                  _showingLocalFiles = true;
+                  _usingLocalFiles = true;
+                  prefs.setBool('uselocalfiles', true);
                   _updateFileList();
                 }
               },
@@ -150,12 +194,13 @@ class _FileControlState extends State<FileControl> {
             ListTile(
               leading: const Icon(Icons.phonelink),
               title: const Text('Network Storage'),
-              enabled: true,
-              selected: !_showingLocalFiles,
+              enabled: _checkNetworkParams(),
+              selected: !_usingLocalFiles,
               onTap: () {
-                if (_showingLocalFiles) {
+                if (_usingLocalFiles) {
                   Navigator.pop(context);
-                  _showingLocalFiles = false;
+                  _usingLocalFiles = false;
+                  prefs.setBool('uselocalfiles', false);
                   _updateFileList();
                 }
               },
@@ -240,8 +285,9 @@ class _FileControlState extends State<FileControl> {
                   label: 'Name for the new file:',
                 );
                 if (filename != null) {
-                  var fileObj = LocalFile(_addExtensionIfNone(filename));
-                  if (!fileObj.exists ||
+                  var fileObj =
+                      IOFile.currentType(_addExtensionIfNone(filename));
+                  if (!(await fileObj.exists) ||
                       await askOverwriteOk(fileObj.filename)) {
                     var model = Provider.of<Structure>(context, listen: false);
                     model.newFile(fileObj);
@@ -258,152 +304,191 @@ class _FileControlState extends State<FileControl> {
             IconButton(
               // Command to show path, modified date & size for a selected file.
               icon: const Icon(Icons.info),
-              onPressed: () {
+              onPressed: () async {
                 var fileObj = _selectedFiles.first;
+                var modTime = await fileObj.lastModified;
+                var timeStr = DateFormat('MMM d, yyyy, h:mm a').format(modTime);
                 commonDialogs.okDialog(
                   context: context,
                   title: 'File Info - ${fileObj.nameNoExtension}',
                   label: 'Full Path: ${fileObj.fullPath}\n\n'
-                      'Last Modiified: ${fileObj.lastModified}'
-                      '\n\nSize: ${fileObj.fileSize} bytes',
+                      'Last Modiified: $timeStr\n\n'
+                      'Size: ${await fileObj.fileSize} bytes',
                 );
               },
             ),
           PopupMenuButton(
             icon: const Icon(Icons.more_vert),
             onSelected: (result) async {
-              switch (result) {
-                case MenuItems.addFromFolder:
-                  FilePickerResult? answer =
-                      await FilePicker.platform.pickFiles(
-                    initialDirectory: prefs.getString('workdir')!,
-                    dialogTitle: 'Select File to be Added',
-                  );
-                  if (answer != null) {
-                    var cachePath = answer.files.single.path;
-                    if (cachePath != null) {
-                      try {
-                        var newFile = await LocalFile.copyFromPath(cachePath);
-                      } on FileExistsException catch (e) {
-                        if (await askOverwriteOk('$e')) {
-                          var newFile = await LocalFile.copyFromPath(cachePath,
-                              forceIfExists: true);
+              // Set error messages to display if a IOException is caught later.
+              var errorLabel = '';
+              try {
+                switch (result) {
+                  case MenuItems.addFromFolder:
+                    // Copy file from external path.
+                    FilePickerResult? answer =
+                        await FilePicker.platform.pickFiles(
+                      initialDirectory: prefs.getString('workdir')!,
+                      dialogTitle: 'Select File to be Added',
+                    );
+                    if (answer != null) {
+                      var cachePath = answer.files.single.path;
+                      if (cachePath != null) {
+                        var newFileObj =
+                            IOFile.currentType(p.basename(cachePath));
+                        if (await newFileObj.exists) {
+                          if (!(await askOverwriteOk(newFileObj.filename))) {
+                            break;
+                          }
                         }
+                        errorLabel =
+                            'Could not write to ${newFileObj.fullPath}';
+                        await newFileObj.copyFromPath(cachePath);
+                      }
+                      if (Platform.isAndroid || Platform.isIOS) {
+                        FilePicker.platform.clearTemporaryFiles();
                       }
                       setState(() {
                         _updateFileList();
                       });
                     }
-                    FilePicker.platform.clearTemporaryFiles();
-                  }
-                  break;
-                case MenuItems.copy:
-                  var initName = _selectedFiles.first.nameNoExtension;
-                  var answer = await commonDialogs.filenameDialog(
-                    context: context,
-                    initName: initName,
-                    label: 'Copy "$initName" to:',
-                  );
-                  if (answer != null) {
-                    var fileObj = _selectedFiles.first;
-                    var newFileObj = LocalFile(_addExtensionIfNone(answer));
-                    try {
-                      await fileObj.copyToFile(newFileObj);
-                    } on FileExistsException catch (e) {
-                      if (await askOverwriteOk('$e')) {
-                        await fileObj.copyToFile(newFileObj,
-                            forceIfExists: true);
+                    break;
+                  case MenuItems.copy:
+                    // Copy current file to another name.
+                    var initName = _selectedFiles.first.nameNoExtension;
+                    var answer = await commonDialogs.filenameDialog(
+                      context: context,
+                      initName: initName,
+                      label: 'Copy "$initName" to:',
+                    );
+                    if (answer != null) {
+                      var fileObj = _selectedFiles.first;
+                      var newFileObj =
+                          IOFile.currentType(_addExtensionIfNone(answer));
+                      if (await newFileObj.exists) {
+                        if (!(await askOverwriteOk(newFileObj.filename))) {
+                          break;
+                        }
                       }
+                      errorLabel = 'Could not write to ${newFileObj.fullPath}';
+                      await fileObj.copyToFile(newFileObj);
+                      setState(() {
+                        _updateFileList();
+                      });
                     }
-                    setState(() {
-                      _updateFileList();
-                    });
-                  }
-                  break;
-                case MenuItems.copyToFolder:
-                  String? folder = await FilePicker.platform.getDirectoryPath(
-                    initialDirectory: prefs.getString('workdir')!,
-                    dialogTitle: 'Select Directory for Copy',
-                  );
-                  if (folder != null) {
-                    if (Platform.isLinux ||
-                        Platform.isWindows ||
-                        Platform.isMacOS ||
-                        await Permission.storage.request().isGranted) {
-                      try {
+                    break;
+                  case MenuItems.copyToFolder:
+                    // Copy current file to an external directory.
+                    String? folder = await FilePicker.platform.getDirectoryPath(
+                      initialDirectory: prefs.getString('workdir')!,
+                      dialogTitle: 'Select Directory for Copy',
+                    );
+                    if (folder != null) {
+                      if (Platform.isLinux ||
+                          Platform.isWindows ||
+                          Platform.isMacOS ||
+                          await Permission.storage.request().isGranted) {
                         for (var fileObj in _selectedFiles) {
                           var newPath = p.join(folder, fileObj.filename);
-                          try {
-                            await fileObj.copyToPath(newPath);
-                          } on FileExistsException catch (e) {
-                            if (await askOverwriteOk('$e')) {
-                              await fileObj.copyToPath(newPath,
-                                  forceIfExists: true);
+                          errorLabel = 'Could not write to $newPath';
+                          if (await File(newPath).exists()) {
+                            if (!(await askOverwriteOk(p.basename(newPath)))) {
+                              break;
                             }
                           }
+                          await fileObj.copyToPath(newPath);
                         }
-                      } on IOException {
-                        await commonDialogs.okDialog(
-                          context: context,
-                          title: 'Error',
-                          label: 'Could not write to $folder',
-                          isDissmissable: false,
-                        );
-                      }
-                    } else if (await Permission.storage
-                        .request()
-                        .isPermanentlyDenied) {
-                      await openAppSettings();
-                    }
-                  }
-                  FilePicker.platform.clearTemporaryFiles();
-                  break;
-                case MenuItems.uploadToNetwork:
-                  break;
-                case MenuItems.downloadToStorage:
-                  break;
-                case MenuItems.rename:
-                  var initName = _selectedFiles.first.nameNoExtension;
-                  var answer = await commonDialogs.filenameDialog(
-                    context: context,
-                    initName: initName,
-                    label: 'Rename "$initName" to:',
-                  );
-                  if (answer != null) {
-                    var fileObj = _selectedFiles.first;
-                    try {
-                      await fileObj.rename(_addExtensionIfNone(answer));
-                    } on FileExistsException catch (e) {
-                      if (await askOverwriteOk('$e')) {
-                        await fileObj.rename(answer, forceIfExists: true);
+                      } else if (await Permission.storage
+                          .request()
+                          .isPermanentlyDenied) {
+                        await openAppSettings();
                       }
                     }
-                    setState(() {
-                      _updateFileList();
-                    });
-                  }
-                  break;
-                case MenuItems.delete:
-                  var deleteOk = await commonDialogs.okCancelDialog(
-                    context: context,
-                    title: 'Confirm Delete',
-                    label: _selectedFiles.length == 1
-                        ? 'Delete 1 item?'
-                        : 'Delete ${_selectedFiles.length} items?',
-                  );
-                  if (deleteOk ?? false) {
+                    if (Platform.isAndroid || Platform.isIOS) {
+                      FilePicker.platform.clearTemporaryFiles();
+                    }
+                    break;
+                  case MenuItems.uploadToNetwork:
+                    // Copy current file from disk to the network.
                     for (var fileObj in _selectedFiles) {
-                      await fileObj.delete();
+                      var newObj = NetworkFile(fileObj.filename);
+                      if (await newObj.exists) {
+                        if (!(await askOverwriteOk(newObj.filename))) {
+                          break;
+                        }
+                      }
+                      errorLabel = 'Could not write to ${newObj.filename}';
+                      await fileObj.copyToFile(newObj);
                     }
-                    setState(() {
-                      _updateFileList();
-                    });
-                  }
-                  break;
+                    break;
+                  case MenuItems.downloadToStorage:
+                    // Copy the current network file to local working directory.
+                    for (var fileObj in _selectedFiles) {
+                      var newObj = LocalFile(fileObj.filename);
+                      if (await newObj.exists) {
+                        if (!(await askOverwriteOk(newObj.filename))) {
+                          break;
+                        }
+                      }
+                      errorLabel = 'Could not read/write to ${newObj.filename}';
+                      await fileObj.copyToFile(newObj);
+                    }
+                    break;
+                  case MenuItems.rename:
+                    // Give the current file a new name.
+                    var initName = _selectedFiles.first.nameNoExtension;
+                    var answer = await commonDialogs.filenameDialog(
+                      context: context,
+                      initName: initName,
+                      label: 'Rename "$initName" to:',
+                    );
+                    if (answer != null) {
+                      var newName = _addExtensionIfNone(answer);
+                      var fileObj = _selectedFiles.first;
+                      if (await IOFile.currentType(newName).exists) {
+                        if (!(await askOverwriteOk(newName))) {
+                          break;
+                        }
+                      }
+                      errorLabel = 'Could not write to $newName';
+                      await fileObj.rename(newName);
+                      setState(() {
+                        _updateFileList();
+                      });
+                    }
+                    break;
+                  case MenuItems.delete:
+                    // Delete the current file(s).
+                    var deleteOk = await commonDialogs.okCancelDialog(
+                      context: context,
+                      title: 'Confirm Delete',
+                      label: _selectedFiles.length == 1
+                          ? 'Delete 1 item?'
+                          : 'Delete ${_selectedFiles.length} items?',
+                    );
+                    if (deleteOk ?? false) {
+                      for (var fileObj in _selectedFiles) {
+                        errorLabel = 'Could not delete ${fileObj.filename}';
+                        await fileObj.delete();
+                      }
+                      setState(() {
+                        _updateFileList();
+                      });
+                    }
+                    break;
+                }
+              } on IOException catch (e) {
+                // Exception handling for all menu commands.
+                await commonDialogs.okDialog(
+                  context: context,
+                  title: 'Error',
+                  label: '$errorLabel\n$e',
+                  isDissmissable: false,
+                );
               }
             },
             itemBuilder: (context) => [
-              if (_selectedFiles.isEmpty && _showingLocalFiles)
+              if (_selectedFiles.isEmpty)
                 PopupMenuItem(
                   child: Text('Add from folder'),
                   value: MenuItems.addFromFolder,
@@ -413,17 +498,17 @@ class _FileControlState extends State<FileControl> {
                   child: Text('Create a copy'),
                   value: MenuItems.copy,
                 ),
-              if (_selectedFiles.isNotEmpty && _showingLocalFiles)
+              if (_selectedFiles.isNotEmpty)
                 PopupMenuItem(
                   child: Text('Copy to folder'),
                   value: MenuItems.copyToFolder,
                 ),
-              if (_selectedFiles.isNotEmpty && _showingLocalFiles)
+              if (_selectedFiles.isNotEmpty && _usingLocalFiles)
                 PopupMenuItem(
                   child: Text('Upload to network'),
                   value: MenuItems.uploadToNetwork,
                 ),
-              if (_selectedFiles.isNotEmpty && !_showingLocalFiles)
+              if (_selectedFiles.isNotEmpty && !_usingLocalFiles)
                 PopupMenuItem(
                   child: Text('Download to storage'),
                   value: MenuItems.downloadToStorage,
@@ -467,6 +552,7 @@ class _FileControlState extends State<FileControl> {
                 },
                 child: ListTile(
                   title: Text.rich(
+                    // Show file extension less prominently.
                     TextSpan(
                       text: '${fileObj.nameNoExtension} ',
                       children: <TextSpan>[

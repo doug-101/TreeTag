@@ -43,8 +43,8 @@ class _SampleControlState extends State<SampleControl> {
   void _openSample(String path) async {
     var model = Provider.of<Structure>(context, listen: false);
 
-    var newFile = LocalFile(p.basename(path));
-    if (newFile.exists) {
+    var newFile = IOFile.currentType(p.basename(path));
+    if (await newFile.exists) {
       // Handle a sample already in the working directory.
       var ans = await commonDialogs.okCancelDialog(
         context: context,
@@ -54,7 +54,7 @@ class _SampleControlState extends State<SampleControl> {
       );
       if (ans == null || !ans) return;
       try {
-        model.openFile(newFile);
+        await model.openFile(newFile);
       } on FormatException {
         await commonDialogs.okDialog(
           context: context,

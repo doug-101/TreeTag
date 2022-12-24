@@ -94,9 +94,9 @@ class FrameView extends StatelessWidget {
                         onTap: () async {
                           Navigator.pop(context);
                           var exportData = TreeLineExport(model).jsonData();
-                          var fileObj = LocalFile(
+                          var fileObj = IOFile.currentType(
                               model.fileObject.nameNoExtension + '.trln');
-                          if (fileObj.exists) {
+                          if (await fileObj.exists) {
                             var ans = await commonDialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
@@ -105,7 +105,7 @@ class FrameView extends StatelessWidget {
                             );
                             if (ans == null || !ans) return;
                           }
-                          await fileObj.write(json.encode(exportData));
+                          await fileObj.writeJson(exportData);
                           await commonDialogs.okDialog(
                             context: context,
                             title: 'Export',
