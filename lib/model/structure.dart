@@ -129,7 +129,10 @@ class Structure extends ChangeNotifier {
   void saveFile() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     var jsonData = <String, dynamic>{
-      'properties': {'ttversion': packageInfo.version},
+      'properties': {
+        'ttversion': packageInfo.version,
+        'modtime': DateTime.now().millisecondsSinceEpoch,
+      },
     };
     jsonData['template'] = await [for (var root in rootNodes) root.toJson()];
     jsonData['fields'] =

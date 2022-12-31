@@ -93,6 +93,7 @@ class _FileControlState extends State<FileControl> {
           ? await LocalFile.fileList()
           : await NetworkFile.fileList();
     } on IOException catch (e) {
+      _fileList = [];
       await commonDialogs.okDialog(
         context: context,
         title: 'Error',
@@ -272,7 +273,9 @@ class _FileControlState extends State<FileControl> {
       ),
       appBar: AppBar(
         title: Text((_selectedFiles.isEmpty)
-            ? 'TreeTag Files'
+            ? (_usingLocalFiles
+                ? 'TreeTag Local Files'
+                : 'TreeTag Network Files')
             : '${_selectedFiles.length} Selected'),
         actions: <Widget>[
           if (_selectedFiles.isEmpty)
