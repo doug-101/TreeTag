@@ -326,6 +326,19 @@ class NetworkFile extends IOFile {
   }
 }
 
+/// Change the user's password to [newPass].  Return true on success.
+Future<bool> changeNetworkPassword(String newPass) async {
+  var fullUri = Uri.parse(prefs.getString('netaddress') ?? '');
+  var accountPath = p.join(fullUri.origin, fullUri.pathSegments[0], 'accounts',
+      prefs.getString('netuser'));
+  try {
+    var resp = await http.put(Uri.parse(accountPath),
+        headers: _networkHeader(), body: '{"data": {"password": "$newPass"}}');
+    if (resp.statusCode == 200) return true;
+  } on IOException {}
+  return false;
+}
+
 /// Return the authorization and content-type headers for Kinto.
 Map<String, String> _networkHeader() {
   var authStr = '${prefs.getString('netuser') ?? ''}:${NetworkFile.password}';

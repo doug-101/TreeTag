@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'common_dialogs.dart';
 import '../main.dart' show prefs;
 import '../model/io_file.dart';
 import '../model/structure.dart';
@@ -24,6 +25,7 @@ class _SettingEditState extends State<SettingEdit> {
   var _cancelFlag = false;
 
   final _formKey = GlobalKey<FormState>();
+  final _passwordKey = GlobalKey<FormFieldState>();
 
   Future<bool> updateOnPop() async {
     if (_cancelFlag) return true;
@@ -89,6 +91,7 @@ class _SettingEditState extends State<SettingEdit> {
                 },
               ),
               TextFormField(
+                key: _passwordKey,
                 initialValue: prefs.getString('netpassword'),
                 decoration: const InputDecoration(
                   labelText: 'Network Password',
@@ -100,6 +103,46 @@ class _SettingEditState extends State<SettingEdit> {
                     NetworkFile.password = value;
                   }
                 },
+              ),
+              // Links to dialog to change password on server.
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  InkWell(
+                    onTap: () async {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                      } else {
+                        return;
+                      }
+                      if ((prefs.getString('netaddress') ?? '').isEmpty ||
+                          (prefs.getString('netuser') ?? '').isEmpty) {
+                        await okDialog(
+                          context: context,
+                          title: 'Missing Data',
+                          label:
+                              'Network address & user name must be filled in',
+                        );
+                        return;
+                      }
+                      var result = await serverPassDialog(context: context);
+                      if (result ?? false) {
+                        // Set the form value to avoid overwriting it on close.
+                        _passwordKey.currentState!
+                            .setValue(prefs.getString('netpassword'));
+                        setState(() {});
+                      }
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Text('Change Password on Network Server'),
+                    ),
+                  ),
+                  Divider(
+                    thickness: 3.0,
+                    height: 6.0,
+                  ),
+                ],
               ),
               BoolFormField(
                 initialValue: prefs.getBool('hidedotfiles') ?? true,
@@ -183,38 +226,140 @@ class PathFormField extends FormField<String> {
     Key? key,
     FormFieldSetter<String>? onSaved,
   }) : super(
-            onSaved: onSaved,
-            initialValue: initialValue,
-            key: key,
-            builder: (FormFieldState<String> state) {
-              return InkWell(
-                onTap: () async {
-                  String? folder = await FilePicker.platform.getDirectoryPath(
-                    initialDirectory: state.value!,
-                    dialogTitle: 'Select Working Directory',
-                  );
-                  if (folder != null) {
-                    state.didChange(folder);
-                  }
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(top: 10.0),
-                      child: Text(heading ?? 'Selected Path',
-                          style: Theme.of(state.context).textTheme.caption),
-                    ),
-                    Text(
-                      state.value!,
-                      style: Theme.of(state.context).textTheme.subtitle1,
-                    ),
-                    Divider(
-                      thickness: 3.0,
-                      height: 9.0,
-                    ),
-                  ],
+          onSaved: onSaved,
+          initialValue: initialValue,
+          key: key,
+          builder: (FormFieldState<String> state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                InkWell(
+                  onTap: () async {
+                    String? folder = await FilePicker.platform.getDirectoryPath(
+                      initialDirectory: state.value!,
+                      dialogTitle: 'Select Working Directory',
+                    );
+                    if (folder != null) {
+                      state.didChange(folder);
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(top: 10.0),
+                        child: Text(heading ?? 'Selected Path',
+                            style: Theme.of(state.context).textTheme.caption),
+                      ),
+                      Text(
+                        state.value!,
+                        style: Theme.of(state.context).textTheme.subtitle1,
+                      ),
+                    ],
+                  ),
                 ),
-              );
-            });
+                Divider(
+                  thickness: 3.0,
+                  height: 9.0,
+                ),
+              ],
+            );
+          },
+        );
+}
+
+/// Dialog to change the password on the server.
+Future<bool?> serverPassDialog({
+  required BuildContext context,
+}) async {
+  var currentTextKey = GlobalKey<FormFieldState>();
+  var newTextKey = GlobalKey<FormFieldState>();
+  var repeatedTextKey = GlobalKey<FormFieldState>();
+  var boolStoreKey = GlobalKey<FormFieldState>();
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Server Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextFormField(
+              key: currentTextKey,
+              decoration: const InputDecoration(
+                labelText: 'Current Password',
+              ),
+              obscureText: true,
+              autofocus: true,
+            ),
+            TextFormField(
+              key: newTextKey,
+              decoration: const InputDecoration(
+                labelText: 'New Password',
+              ),
+              obscureText: true,
+            ),
+            TextFormField(
+              key: repeatedTextKey,
+              decoration: const InputDecoration(
+                labelText: 'Repeat New Password',
+              ),
+              obscureText: true,
+            ),
+            BoolFormField(
+              key: boolStoreKey,
+              initialValue: false,
+              heading: 'Store new password',
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () async {
+              var currentPass = currentTextKey.currentState!.value;
+              var newPass = newTextKey.currentState!.value;
+              if (newPass != repeatedTextKey.currentState!.value) {
+                await okDialog(
+                  context: context,
+                  title: 'Passsword Error',
+                  label: 'New and repeated passwords do not match',
+                );
+              } else if (newPass.isEmpty) {
+                await okDialog(
+                  context: context,
+                  title: 'Passsword Error',
+                  label: 'New password cannot be empty',
+                );
+              } else {
+                var prevPass = NetworkFile.password;
+                NetworkFile.password = currentPass;
+                if (await changeNetworkPassword(newPass)) {
+                  NetworkFile.password = newPass;
+                  if (boolStoreKey.currentState!.value) {
+                    await prefs.setString('netpassword', newPass);
+                  } else {
+                    await prefs.setString('netpassword', '');
+                  }
+                  Navigator.pop(context, true);
+                } else {
+                  NetworkFile.password = prevPass;
+                  await okDialog(
+                    context: context,
+                    title: 'Passsword Change Error',
+                    label: 'Failed to change the password',
+                  );
+                }
+              }
+            },
+          ),
+          TextButton(
+            child: Text('CANCEL'),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+        ],
+      );
+    },
+  );
 }
