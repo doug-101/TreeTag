@@ -3,6 +3,7 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../main.dart' show prefs;
@@ -111,8 +112,12 @@ Future<String?> filenameDialog({
           initialValue: initName ?? '',
           validator: (String? text) {
             if (text?.isEmpty ?? false) return 'Cannot be empty';
-            if (text?.contains('/') ?? false)
+            if (text?.contains('/') ?? false) {
               return 'Cannot contain "/" characters';
+            }
+            if (Platform.isWindows && (text?.contains('\\') ?? false)) {
+              return 'Cannot contain "\\" characters';
+            }
             if ((text?.startsWith('.') ?? false) &&
                 (prefs.getBool('hidedotfiles') ?? true)) {
               return 'Cannot start with a "."';

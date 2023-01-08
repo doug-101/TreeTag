@@ -40,9 +40,11 @@ abstract class IOFile {
 
   /// Copies this to the given object, can be local or network.
   Future<void> copyToFile(IOFile toFile) async {
-    var data = await readJson();
     try {
+      var data = await readJson();
       await toFile.writeJson(data);
+    } on FormatException catch (e) {
+      throw HttpException(e.toString());
     } on SaveException catch (e) {
       throw HttpException(e.toString());
     }
@@ -158,12 +160,25 @@ class NetworkFile extends IOFile {
   @override
   int get hashCode => filename.hashCode;
 
-  /// Removes the file extension due to Kinto name limitations.
+  /// Return the full path to this object as needed by Kinto.
+  ///
+  /// Encode all special characters as needed for Kinto id's.
   @override
-  String get fullPath => p.join(
-      prefs.getString('netaddress') ?? '', 'collections', nameNoExtension);
+  String get fullPath {
+    // Kinto only allows letters, numbers, _ and - in id's.
+    // Convert all special characters to utf8 and percent-encoding,
+    // then use _ and - in place of % and +.
+    var name = Uri.encodeQueryComponent(filename)
+        .replaceAll('.', '%2E')
+        .replaceAll('~', '%7E')
+        .replaceAll('_', '%5F')
+        .replaceAll('-', '%2D')
+        .replaceAll('%', '_')
+        .replaceAll('+', '-');
+    return [prefs.getString('netaddress') ?? '', 'collections', name].join('/');
+  }
 
-  String get recordPath => p.join(fullPath, 'records');
+  String get recordPath => '$fullPath/records';
 
   @override
   Future<int> get fileSize async {
@@ -242,11 +257,9 @@ class NetworkFile extends IOFile {
         resp = await http.post(Uri.parse(recordPath),
             headers: _networkHeader(), body: dataString);
         if (resp.statusCode == 201) {
-          var metaData = {'filesize': size};
-          var seconds = data['properties']?['modtime'];
-          if (seconds != null) {
-            metaData['modtime'] = seconds;
-          }
+          var seconds = data['properties']?['modtime'] ??
+              DateTime.now().millisecondsSinceEpoch;
+          var metaData = {'filesize': size, 'modtime': seconds};
           var metaString = json.encode({'data': metaData});
           await http.post(Uri.parse(recordPath),
               headers: _networkHeader(), body: metaString);
@@ -270,9 +283,11 @@ class NetworkFile extends IOFile {
   /// Write this file using an external drive path given by [newPath].
   @override
   Future<void> copyFromPath(String path) async {
-    var data = json.decode(await File(path).readAsString());
     try {
+      var data = json.decode(await File(path).readAsString());
       await writeJson(data);
+    } on FormatException catch (e) {
+      throw HttpException(e.toString());
     } on SaveException catch (e) {
       throw HttpException(e.toString());
     }
@@ -306,8 +321,8 @@ class NetworkFile extends IOFile {
   /// Adds the .trtg file extension back on.
   static Future<List<IOFile>> fileList() async {
     var fileList = <NetworkFile>[];
-    var address =
-        Uri.parse(p.join(prefs.getString('netaddress') ?? '', 'collections'));
+    var address = Uri.parse(
+        [prefs.getString('netaddress') ?? '', 'collections'].join('/'));
     var resp = await http.get(address, headers: _networkHeader());
     if (resp.statusCode == 200) {
       var objList = json.decode(resp.body)['data'];
@@ -315,7 +330,10 @@ class NetworkFile extends IOFile {
         for (var obj in objList) {
           var name = obj['id'];
           if (name != null) {
-            fileList.add(NetworkFile('$name.trtg'));
+            // Removes all utf8, percent and unique encoding from [fullPath].
+            var origName = Uri.decodeQueryComponent(
+                name.replaceAll('-', '+').replaceAll('_', '%'));
+            fileList.add(NetworkFile(origName));
           }
         }
       }
@@ -329,8 +347,12 @@ class NetworkFile extends IOFile {
 /// Change the user's password to [newPass].  Return true on success.
 Future<bool> changeNetworkPassword(String newPass) async {
   var fullUri = Uri.parse(prefs.getString('netaddress') ?? '');
-  var accountPath = p.join(fullUri.origin, fullUri.pathSegments[0], 'accounts',
-      prefs.getString('netuser'));
+  var accountPath = [
+    fullUri.origin,
+    fullUri.pathSegments[0],
+    'accounts',
+    prefs.getString('netuser'),
+  ].join('/');
   try {
     var resp = await http.put(Uri.parse(accountPath),
         headers: _networkHeader(), body: '{"data": {"password": "$newPass"}}');
