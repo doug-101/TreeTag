@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../main.dart' show prefs;
 import '../model/nodes.dart';
 import '../model/structure.dart';
@@ -101,6 +102,15 @@ class TreeView extends StatelessWidget {
               child: model.useMarkdownOutput
                   ? MarkdownBody(
                       data: nodeText,
+                      onTapLink:
+                          (String text, String? href, String title) async {
+                        if (href != null) {
+                          launchUrl(
+                            Uri.parse(href),
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
                     )
                   : Text(
                       nodeText,
