@@ -32,7 +32,7 @@ installed.  There is no support for 32-bit platforms.
 
 ## Windows
 
-TreeTag should run on Windows 7 and above, 64-bit.  There is no support for
+TreeTag should run on Windows 10 and above, 64-bit.  There is no support for
 32-bit platforms.
 
 # Installation
@@ -89,6 +89,23 @@ the app's working storage folder.
 
 Once a file is opened, the "Close File" command in the menu will return to the
 file list.
+
+## Network Files
+
+TreeTag can interface with a Kinto storage server to access files from multiple
+devices or locations.  You can either install and run your own server or choose
+a low-cost cloud provider.
+
+The server information is entered under the Settings item in the hamburger menu.
+The Network Address is set to the full URL of a specific bucket object on a
+Kinto server.  The Network User Name must also be set.  Setting the Network
+Password item is optional.  If not set (the more secure option), TreeTag will
+prompt you for the password once per session.
+
+Use the Local and Network Storage items in the hamburger menu to switch between
+network and local storage.  The file list and commands work basically the same
+way under both.  The upload and download commands can be used to copy a file
+from one storage area to the other.
 
 ## Tree View
 
@@ -248,6 +265,16 @@ user to define a custom prefix and suffix, as well as a field format for
 applicable field types.  If not explicitly set, these will use the field
 defaults.  Once the line is not empty, the line editor can be exited by using
 the left arrow at the top.
+
+## Configure Options
+
+The Options tab of the Configuration view shows only one option: to enable
+Markdown text formatting.  If enabled, text entries with Markdown syntax will
+show formatted text in the Tree and Detail Views.  Many guides to markdown
+syntax are available on the web.  TreeTag specifically supports the GitHub
+Flavored Markdown version.  Clickable links to http and https addresses can be
+entered with the link text enclosed in square brackets followed by the address
+in parenthesis.
 
 ## Undo View
 
