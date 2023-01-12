@@ -32,7 +32,7 @@ dependencies:
   file_picker: ^5.2.2
   html_unescape: ^2.0.0
   http: ^0.13.5
-  intl: ^0.17.0
+  intl: ^0.18.0
   flutter_markdown: ^0.6.10
   package_info_plus: ^3.0.1
   path: ^1.8.0

@@ -184,12 +184,12 @@ class _FileControlState extends State<FileControl> {
               title: const Text('Local Storage'),
               selected: _usingLocalFiles,
               onTap: () {
+                Navigator.pop(context);
                 if (!_usingLocalFiles) {
-                  Navigator.pop(context);
                   _usingLocalFiles = true;
                   prefs.setBool('uselocalfiles', true);
-                  _updateFileList();
                 }
+                _updateFileList();
               },
             ),
             ListTile(
@@ -198,12 +198,12 @@ class _FileControlState extends State<FileControl> {
               enabled: _checkNetworkParams(),
               selected: !_usingLocalFiles,
               onTap: () {
+                Navigator.pop(context);
                 if (_usingLocalFiles) {
-                  Navigator.pop(context);
                   _usingLocalFiles = false;
                   prefs.setBool('uselocalfiles', false);
-                  _updateFileList();
                 }
+                _updateFileList();
               },
             ),
             Divider(),
