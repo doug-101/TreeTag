@@ -158,13 +158,9 @@ class FrameView extends StatelessWidget {
                           commonDialogs.aboutDialog(context: context);
                         },
                       ),
-                      if (Platform.isLinux ||
-                          Platform.isWindows ||
-                          Platform.isMacOS)
+                      if (Platform.isLinux || Platform.isMacOS)
                         Divider(),
-                      if (Platform.isLinux ||
-                          Platform.isWindows ||
-                          Platform.isMacOS)
+                      if (Platform.isLinux || Platform.isMacOS)
                         ListTile(
                           leading: const Icon(Icons.highlight_off_outlined),
                           title: const Text('Quit'),
