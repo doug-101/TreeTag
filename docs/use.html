@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="default.css" />
+<link rel="icon" href="favicon.png" />
+
+<title>TreeTag - How to Use</title>
+</head>
+
+<body>
+
+<div class="interior">
+
+<div class="title">
+<img src="logo.png" alt="TreeTag" />
+</div>
+
+<div class="toplinks">
+<p>Version 0.3.0 (beta)</p>
+
+<p><a href="http://www.bellz.org/progs.html">Other Programs</a></p>
+<p><a href="http://www.bellz.org/contact.html">Contact Info</a></p>
+</div>
+
+<div class="navigation">
+<a href="index.html">Home&nbsp;/&nbsp;News</a>
+<a href="feature.html">Features</a>
+<a href="scrnsht.html">Screenshots</a>
+<a href="require.html">Requirements</a>
+<a href="download.html">Downloads</a>
+<a href="install.html">Installation</a>
+<span class="current-nav">How&nbsp;to&nbsp;Use</span>
+</div>
+
+<div class="content">
+
+<h1>How to Use TreeTag</h1>
+
+<h2>Contents</h2>
+
+<ul>
+
+<li><a href="#files">Files</a></li>
+<li><a href="#netfiles">Network Files</a></li>
+<li><a href="#treeview">Tree View</a></li>
+<li><a href="#detailview">Detail View</a></li>
+<li><a href="#configfields">Configure Fields</a></li>
+<li><a href="#configtree">Configure the Tree</a></li>
+<li><a href="#configoutput">Configure Output</a></li>
+<li><a href="#configoptions">Configure Options</a></li>
+<li><a href="#undoview">Undo View</a></li>
+<li><a href="#settingsview">Settings View</a></li>
+
+</ul>
+
+<a id="files"></a> <h2>Files</h2>
+
+<p>When TreeTag opens, it shows a list of files in the app's private storage
+folder.  It will be empty the first time the app is run.  A tap/click on a
+file name will select the file.  A double tap/click or a long press/click will
+open the file.</p>
+
+<p>In addition to opening TreeTag files (with a .trtg file extension), it can
+also import files from TreeLine (with a .trln file extension).
+Tapping/clicking on these files will show a prompt to select a single node
+type to be imported. Imports should only be done from basic TreeLine files -
+formatting and complex field types are not currently supported.</p>
+
+<p>In the top bar, the "+" icon can be used to create a new file.  When a
+single file is selected, it will instead show an "i" icon, used to show file
+details (path, modified time and size).</p>
+
+<p>The three-dots icon shows a menu whose commands vary depending on how many
+files are currently selected.  There are commands that can copy a file to or
+from an external folder, make a local copy of a file, rename a file, or delete
+a file.</p>
+
+<p>Selecting "Sample Files" from the hamburger (three lines) menu on the left
+shows a list of available samples.  A double tap/click or a long press/click
+will open a sample.  If the sample is edited, a modified copy will show up in
+the app's working storage folder.</p>
+
+<p>Once a file is opened, the "Close File" command in the menu will return to
+the file list.</p>
+
+<a id="netfiles"></a> <h2>Network Files</h2>
+
+<p>TreeTag can interface with a Kinto storage server to access files from
+multiple devices or locations.  You can either install and run your own server
+or choose a low-cost cloud provider.</p>
+
+<p>The server information is entered under the Settings item in the hamburger
+menu. The Network Address is set to the full URL of a specific bucket object
+on a Kinto server.  The Network User Name must also be set.  Setting the
+Network Password item is optional.  If not set (the more secure option),
+TreeTag will prompt you for the password once per session.</p>
+
+<p>Use the Local and Network Storage items in the hamburger menu to switch
+between network and local storage.  The file list and commands work basically
+the same way under both.  The upload and download commands can be used to copy
+a file from one storage area to the other.</p>
+
+<a id="treeview"></a> <h2>Tree View</h2>
+
+<p>In the tree view, title and grouping nodes are proceeded by small
+triangles. These nodes can be tapped/clicked to expand or collapse the node's
+children. The leaf nodes, proceeded by circles, contain the data.  They have
+no children but they can be tapped/clicked to toggle between showing a single
+title line (the default) or multiple output lines.</p>
+
+<p>A long press/click on a tree node will show a detail view listing that
+node's children (for title and grouping nodes) or the node output (for a leaf
+node). On wide screens/windows (generally on desktops or tablets), the detail
+view is shown to the right of the tree view.  Otherwise it temporarily covers
+the tree view.  The detail view is described in the next section.  The tree
+view will highlight current parent or node in the detail view.</p>
+
+<p>The "+" icon in the top bar will create a new leaf node and show it in an
+edit view. Once the editing is complete, the new node will be properly placed
+into the tree.  In many cases, it's easier to start new nodes when the detail
+view is showing a group or leaf node, since at least some of the fields will
+initially be populated to match the group or leaf.</p>
+
+<p>The magnifying glass icon will show a search view for finding leaf nodes
+that match key words.  If the detail view is showing a grouping node, search
+results will be limited to the children of that group.  If the detail view is
+showing a title node or no node, all leaf nodes will be searched.  As key
+words are typed in the top bar, matching nodes will be shown in the main view.
+The key words are matched individually, not as a complete phrase.
+Tapping/clicking on a resulting node will select it and show its full output.
+A node that is selected when leaving the search view will become current in
+the detail view and expanded in the tree.</p>
+
+<p>The hamburger (three lines) menu includes commands for the configuration
+editor, the settings view and the undo list, all described in subsequent
+sections. There is also a command to export the current data to a TreeLine
+file.</p>
+
+<a id="detailview"></a> <h2>Detail View</h2>
+
+<p>If started from a title or grouping node, the detail view shows a list of
+that node's children.  Child title or grouping nodes show the same line of
+text as is shown in the tree view.  Child leaf nodes show the lines that are
+configured in the output configuration.</p>
+
+<p>Tapping/clicking on a child title or grouping node will show a new detail
+view with that node's children.  Tapping/clicking on a child leaf node will
+show a new detail view with that node by itself.  Tapping/clicking the left
+arrow above the view will return to the previous view.</p>
+
+<p>Tapping/clicking the "+" icon will create a new leaf node and show it in an
+edit view. If started from a view of a grouping node or a leaf node, at least
+some of the fields will initially be populated to match the group or leaf.</p>
+
+<p>A detail view showing the children of a title node or a grouping node will
+have a three-dots menu.  This menu includes commands to edit or delete all
+descendant leaf nodes.  The edit command will show an edit view filled with
+data that is common to all nodes.  The edits from adding or changing any
+fields will be applied to all of the nodes.  The delete command will remove
+all of the descendant leaf nodes.  Deleting with a title node as the current
+parent will remove all leaf nodes from the file.</p>
+
+<p>A detail view with an isolated leaf node will show edit (pencil icon) and
+delete (trash icon) commands.  The edit command will show an edit view for
+this leaf node. The delete command will remove all instances of this leaf
+node.</p>
+
+<p>Also, text can be selected and copied from an isolated leaf node in a
+detail view.</p>
+
+<a id="configfields"></a> <h2>Configure Fields</h2>
+
+<p>The Fields tab of the Configuration view lists the fields that are defined
+for leaf node data.  Tapping/clicking a field name toggles its selection.
+There are icons above the list to create a new field ("+"), edit a field
+(pencil), delete a field (trashcan), or move a field up or down (arrows).</p>
+
+<p>Editing a new or existing field shows a form with the field name, type,
+initial value, and default prefix and suffix.  When done editing, use the
+left arrow at the top to finish editing.  There is also a reset button on the
+upper right to restore previous settings.</p>
+
+<p>The available field types include Text, LongText, Choice, AutoChoice,
+Number, Date and Time.  The default type is Text.  LongText is the same except
+for showing more lines in the edit view.  The AutoChoice type allows prior
+values for the field to be selected from a pull-down menu, or a new value can
+be typed.</p>
+
+<p>The Choice, Number, Date and Time types add a field format definition
+editor to the configuration edit form.  Tapping on the format will show an
+edit view with oval chips for each segment of the format.  The chips can be
+tapped/clicked to select them, and can be edited using the icons above the
+chips.  The Number, Date and Time types show a format sample preview below the
+chips that formats an arbitrary value.</p>
+
+<a id="configtree"></a> <h2>Configure the Tree</h2>
+
+<p>The Tree tab of the Configuration view shows how the title and grouping
+nodes are arranged in the tree.  Tapping/clicking a node name toggles its
+selection. There are icons above the tree to create a new node ("+"), edit a
+node (pencil), delete a node (trashcan), or move a title node up or down
+(arrows).  The new node button shows a menu for adding a title node as a
+sibling or child of the selected node, or for adding a group node as a child.
+The delete a node button shows a menu for deleting just the node or deleting
+the node along with its children.</p>
+
+<p>Title nodes function as static headings in the tree.  They form a scaffold
+that organizes and arranges the grouping nodes.  The top level of the
+structure must consist only of title node(s).  When adding and editing title
+nodes, a dialog box prompts for the title text.  Deleting a title with the
+node only option will move any child nodes up by one level.</p>
+
+<p>Grouping nodes contain rules that categorize the leaf nodes into groups.
+The rules consist of a field, sometimes combined with other fields or extra
+text. In the main tree view, the data from each leaf node is used to fill in
+the fields, and the resulting text strings become headings.  Leaf nodes that
+match are placed under that heading.  Group nodes can be nested to further
+subdivide the leaf nodes, but they cannot have any siblings and cannot have
+title nodes as children.  Adding a new child title or group when there is an
+existing group node will move the existing group down by one level.</p>
+
+<p>Nested group nodes can also contain the same field as their parent but with
+a different field format.  For example, a group node with a date field could
+have a field format showing only the year, and a nested group could have a
+field format showing months as lower level headings.</p>
+
+<p>Adding a new group node shows a rule line editor.  Fields and text that are
+added show up as oval chips for each segment of the rule.  These chips can be
+edited, deleted and moved to define the rule.  Editing a field chip allows the
+user to define a custom prefix and suffix, as well as a field format for
+applicable field types.  If not explicitly set, these will use the field
+defaults.  Once the rule line contains at least one field, the line editor can
+be exited by using the left arrow at the top. Then a summary view for the
+group node will be shown.</p>
+
+<p>The summary view for the group node is also shown when editing an existing
+group node. Tapping the rule definition at the top will start the rule line
+editor described above.  Group sorting settings are shown below the rule
+definition. This defines how the group's headings are sorted.  The default
+sorts using the fields from the rule line in ascending order.  The custom
+button can be used to define other sequences.  Finally, if the group node has
+no nested child groups, child sorting settings are shown below the group sort
+settings.  This defines how the child leaf nodes are sorted.  The default
+sorts using all of the fields in ascending order.  The custom button can be
+used to define other sequences.</p>
+
+<a id="configoutput"></a> <h2>Configure Output</h2>
+
+<p>The Output tab of the Configuration view shows a title line followed by one
+or more output lines.  The title line defines how a leaf node is shown as a
+single line in the main tree view.  The output lines are combined to define
+how a leaf node is shown when expanded in the main tree view and in the detail
+view.</p>
+
+<p>Tapping/clicking a title or output line toggles its selection.  There are
+icons above the lines to add a new output line ("+"), edit a line (pencil),
+delete an output line (trashcan), or move an output line up or down.</p>
+
+<p>Adding or editing a line shows the line editor.  Fields and text that are
+added show up as oval chips for each segment of the line.  These chips can be
+edited, deleted and moved to fully define the line.  Editing a field chip
+allows the user to define a custom prefix and suffix, as well as a field
+format for applicable field types.  If not explicitly set, these will use the
+field defaults.  Once the line is not empty, the line editor can be exited by
+using the left arrow at the top.</p>
+
+<a id="configoptions"></a> <h2>Configure Options</h2>
+
+<p>The Options tab of the Configuration view shows only one option: to enable
+Markdown text formatting.  If enabled, text entries with Markdown syntax will
+show formatted text in the Tree and Detail Views.  Many guides to markdown
+syntax are available on the web.  TreeTag specifically supports the GitHub
+Flavored Markdown version.  Clickable links to http and https addresses can be
+entered with the link text enclosed in square brackets followed by the address
+in parenthesis.</p>
+
+<a id="undoview"></a> <h2>Undo View</h2>
+
+<p>Undo operations can be essential because TreeTag is continually writing
+changes to the file.  The undo list is also stored in the file.  It contains
+all undo operations that have not been explicitly deleted by the user.  The
+undo items are listed from oldest to newest.</p>
+
+<p>To undo some operations, select "Undo to here" from the three-dots menu on
+the earliest (highest) item to be undone.  That item and the lower, newer
+items will change color to indicate that they have been selected.  Exiting the
+view using the left arrow at the top will complete the undo operation.  The
+undo can be aborted by selecting "Cancel undo" on the earliest item set to be
+undone.</p>
+
+<p>Once operations are undone, they are automatically converted to redo
+operations. They can be redone the same as undo operations, by selecting "Undo
+to here".  An exception is if undo operations prior to the redo operations are
+also selected to be completed.  In this case the redo operations will become
+gray to indicate that they will be removed to allow the older undo operations
+to be completed.</p>
+
+<p>Undo operations can be removed to keep the list manageable and to reduce
+the size of the TreeTag data file.  To remove old undo operations, select
+"Delete to here" from the three-dots menu on the most recent (lowest) item to
+be removed. That item and the higher, older items will become gray to indicate
+that they have been marked for deletion.  The deletion can be aborted by
+selecting "Cancel delete" on the most recent item set to be removed.  Exiting
+the view using the left arrow at the top will complete the deletion.  Once
+completed, deleted items cannot be recovered.</p>
+
+<a id="settingsview"></a> <h2>Settings View</h2>
+
+<p>The settings view contains general customization options.  Options not
+previously discussed include hiding dot files and tight line spacing.  File
+names that begin with a dot will not be shown if the hidden option is enabled.
+The tight line spacing option allows more lines to fit on the screen.  It is
+recommended when using a mouse, but may not leave enough space for touch
+interfaces.</p>
+
+<p>On desktop platforms, there is also an option to set the working directory.
+This is where all files in the main file list are stored.</p>
+
+</div>
+
+</div>
+
+</body>
+
+</html>

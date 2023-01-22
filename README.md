@@ -10,14 +10,37 @@ of the name).
 The data items are generally configured to contain several fields.  Different
 types of fields are available, including text, numbers, dates, times and
 predefined choices. The output format of each field can be defined for group
-item headings, for data item titles and for data item output.
+headings, for data item titles and for data item output.
 
-The user configures the base portion of the tree, defining rules that will
-group the data items into desired categories.  The same items can appear in
-multiple locations, with different sections of the tree structure using
-different fields for grouping or sorting.  For example, data items can be
-arranged by date in one section, by a name field sorted alphabetically in
-another, and by some other category field in another.
+The user configures the base portion of the tree, defining rules that will group
+the data items into desired categories.  The same items can appear in multiple
+locations, with sections of the tree structure using different fields for
+grouping or sorting.  For example, data items can be arranged by date in one
+section, by a name field sorted alphabetically in another, and by some other
+category field in another.  This allows the differently organized portions of
+the tree to act almost like predefined searches.
+
+# Features
+
+* Stores almost any type of information, including plain text, formatted text,
+  numbers, dates, times, booleans, URLs, etc.
+* Nodes can have several fields that form a mini-database.
+* The user-defined tree structure automatically keeps things organized.
+* The same nodes can appear in multiple locations.
+* Users can drill down into various sections of the tree to find nodes using
+  different criteria.
+* Pressing on a leaf node in the tree expands it to show its full output.
+* A long or double press on a node in the tree opens a detail view showing the
+  full output of the node and any children.
+* Creating a new leaf node when the detail view shows a grouping node will
+  pre-populate fields to match the group.
+* A keyword search will list all matching nodes from an active group or from the
+  entire tree.
+* Undo operations are stored in the files, so operations from a previous session
+  can be undone.
+* Files can be imported and exported to or from TreeLine.
+* TreeTag can interface with a Kinto storage server to store and retrieve files
+  from the cloud.
 
 # System Requirements
 
@@ -35,6 +58,16 @@ installed.  There is no support for 32-bit platforms.
 TreeTag should run on Windows 10 and above, 64-bit.  There is no support for
 32-bit platforms.
 
+## macOS
+
+Due to a lack of Macs for testing, TreeTag on macOS is not supported.
+Assistance with creating a Mac port would be appreciated.
+
+## iOS
+
+Due to a lack of hardware for development and testing, TreeTag on iOS is not
+supported.  Assistance with creating an iOS port would be appreciated.
+
 # Installation
 
 ## Android
@@ -47,7 +80,7 @@ device and run. This app is not yet in any app stores.
 The simplest approach is to download the "treetag_x.x.x.tar.gz" file and extract
 all of its contents into an empty directory.  Then run the "treetag" file.
 
-To run TreeTag from source, install the TreeTag source from
+To compile TreeTag from source, install the TreeTag source from
 <https://github.com/doug-101/TreeTag>.  Also install Flutter based on the
 instructions in <https://docs.flutter.dev/get-started/install/linux>.  The
 Android Setup is not required - just the Linux setup from the bottom of the
@@ -55,8 +88,14 @@ page.
 
 ## Windows
 
-Download the "treetag_x.x.x.zip" file and extract all of its contents to an
-empty folder.  Then run the "treetag.exe" file.
+The simplest approach is to download the "treetag_x.x.x.zip" file and extract
+all of its contents to an empty folder.  Then run the "treetag.exe" file.
+
+To compile TreeTag from source, install the TreeTag source from
+<https://github.com/doug-101/TreeTag>.  Also install Flutter based on the
+instructions in <https://docs.flutter.dev/get-started/install/linux>.  The
+Android Setup is not required - just the Linux setup from the bottom of the
+page.
 
 # Usage
 
@@ -306,11 +345,12 @@ cannot be recovered.
 
 ## Settings View
 
-The settings view contains options for hiding dot files and for tight line
-spacing.  File names that begin with a dot will not be shown if the hidden
-option is enabled.  The tight line spacing option allows more lines to fit on
-the screen.  It is recommended when using a mouse, but may not leave enough
-space for touch interfaces.
+The settings view contains general customization options.  Options not
+previously discussed include hiding dot files and tight line spacing.  File
+names that begin with a dot will not be shown if the hidden option is enabled.
+The tight line spacing option allows more lines to fit on the screen.  It is
+recommended when using a mouse, but may not leave enough space for touch
+interfaces.
 
 On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.
