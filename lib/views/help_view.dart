@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_markdown/flutter_markdown.dart';
 
@@ -33,7 +34,17 @@ class _HelpViewState extends State<HelpView> {
       appBar: AppBar(
         title: const Text('TreeTag Help'),
       ),
-      body: Markdown(data: _helpContent),
+      body: Markdown(
+        data: _helpContent,
+        onTapLink: (String text, String? href, String title) async {
+          if (href != null) {
+            launchUrl(
+              Uri.parse(href),
+              mode: LaunchMode.externalApplication,
+            );
+          }
+        },
+      ),
     );
   }
 }

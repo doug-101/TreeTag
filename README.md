@@ -20,6 +20,8 @@ section, by a name field sorted alphabetically in another, and by some other
 category field in another.  This allows the differently organized portions of
 the tree to act almost like predefined searches.
 
+Also visit <http://treetag.bellz.org> for more information.
+
 # Features
 
 * Stores almost any type of information, including plain text, formatted text,
