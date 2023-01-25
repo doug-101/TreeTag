@@ -1,10 +1,11 @@
 // undos.dart, stores and executes undo operations.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:collection';
 import 'fields.dart';
+import '../main.dart' show prefs;
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'structure.dart';
@@ -56,7 +57,12 @@ class UndoList extends ListBase<Undo> {
   }
 
   List<dynamic> toJson() {
-    return [for (var undo in this) undo.toJson()];
+    var daysToStore = prefs.getInt('undodays') ?? 7;
+    var cutOffDate = DateTime.now().subtract(Duration(days: daysToStore));
+    return [
+      for (var undo in this)
+        if (undo.timeStamp.isAfter(cutOffDate)) undo.toJson()
+    ];
   }
 }
 

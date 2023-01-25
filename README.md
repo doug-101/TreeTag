@@ -345,6 +345,16 @@ delete" on the most recent item set to be removed.  Exiting the view using the
 left arrow at the top will complete the deletion.  Once completed, deleted items
 cannot be recovered.
 
+In TreeTag Settings, there is an option for the Days to Store Undo History.
+Undo operations older than this many days are not written to files.  This does
+not remove undos currently in a session - it only affects what is written.  So
+undo operations from the most recent changes will always be available, even if
+older than this setting.  They only disappear after more changes are made
+(written to a file), and then the file is closed.  Setting the number of days to
+0 will prevent all undo operations from being written to files.  Setting it to a
+very large number will effectively prevent undos from being automatically
+removed.
+
 ## Settings View
 
 The settings view contains general customization options.  Options not

@@ -1,6 +1,6 @@
 // main.dart, the main app entry point file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -58,7 +58,7 @@ Future<void> main() async {
       workDir = await getExternalStorageDirectory();
     }
     if (workDir == null) {
-      // For failed external stroage or for non-Android platforms.
+      // For failed external storage or for non-Android platforms.
       workDir = await getApplicationDocumentsDirectory();
     }
     await prefs.setString('workdir', workDir.path);

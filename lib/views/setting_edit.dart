@@ -167,6 +167,25 @@ class _SettingEditState extends State<SettingEdit> {
                   }
                 },
               ),
+              TextFormField(
+                initialValue: (prefs.getInt('undodays') ?? 7).toString(),
+                decoration: const InputDecoration(
+                  labelText: 'Days to Store Undo History',
+                ),
+                validator: (String? value) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      int.tryParse(value) == null) {
+                    return 'Must be an integer';
+                  }
+                  return null;
+                },
+                onSaved: (String? value) async {
+                  if (value != null) {
+                    await prefs.setInt('undodays', int.parse(value));
+                  }
+                },
+              ),
             ],
           ),
         ),
