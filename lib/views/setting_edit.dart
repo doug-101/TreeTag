@@ -40,7 +40,7 @@ class _SettingEditState extends State<SettingEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('TreeTag Settings'),
+        title: Text('Settings - TreeTag'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.close),

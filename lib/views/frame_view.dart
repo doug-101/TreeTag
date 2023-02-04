@@ -219,7 +219,7 @@ class FrameView extends StatelessWidget {
                 // Flexible widgets are required to prevent overflow.
                 if (model.hasWideDisplay || !hasDetailViewOnly)
                   Flexible(
-                    child: Text('TreeTag - $fileRootName'),
+                    child: Text('$fileRootName - TreeTag'),
                   ),
                 if (model.hasWideDisplay || hasDetailViewOnly)
                   Flexible(

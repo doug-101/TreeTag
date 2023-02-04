@@ -296,8 +296,8 @@ class _FileControlState extends State<FileControl> {
       appBar: AppBar(
         title: Text((_selectedFiles.isEmpty)
             ? (_usingLocalFiles
-                ? 'TreeTag Local Files'
-                : 'TreeTag Network Files')
+                ? 'Local Files - TreeTag'
+                : 'Network Files - TreeTag')
             : '${_selectedFiles.length} Selected'),
         actions: <Widget>[
           if (_selectedFiles.isEmpty)
