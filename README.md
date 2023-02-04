@@ -40,7 +40,7 @@ Also visit <http://treetag.bellz.org> for more information.
   entire tree.
 * Undo operations are stored in the files, so operations from a previous session
   can be undone.
-* Files can be imported and exported to or from TreeLine.
+* Files can be imported and exported to or from both TreeLine and CSV files.
 * TreeTag can interface with a Kinto storage server to store and retrieve files
   from the cloud.
 
@@ -109,10 +109,15 @@ name will select the file.  A double tap/click or a long press/click will open
 the file.
 
 In addition to opening TreeTag files (with a .trtg file extension), it can also
-import files from TreeLine (with a .trln file extension).  Tapping/clicking on
-these files will show a prompt to select a single node type to be imported.
-Imports should only be done from basic TreeLine files - formatting and complex
-field types are not currently supported.
+import files from TreeLine (with a .trln file extension).  Double or long
+tapping/clicking on these files will show a prompt to select a single node type
+to be imported. Imports should only be done from basic TreeLine files -
+formatting and complex field types are not currently supported.
+
+If a file to be opened is not a TreeTag or a TreeLine file, it will try to
+import it as a CSV table.  The first row becomes the field names, and every
+subsequent row becomes a leaf node.  The file will have a simple tree structure
+that can then be configured manually to add more categories.
 
 In the top bar, the "+" icon can be used to create a new file.  When a single
 file is selected, it will instead show an "i" icon, used to show file details
@@ -146,7 +151,8 @@ prompt you for the password once per session.
 Use the Local and Network Storage items in the hamburger menu to switch between
 network and local storage.  The file list and commands work basically the same
 way under both.  The upload and download commands can be used to copy a file
-from one storage area to the other.
+from one storage area to the other.  Note that only JSON files, such as TreeTag
+and TreeLine file formats, can be stored in the network.
 
 ## Tree View
 
@@ -181,7 +187,9 @@ in the tree.
 
 The hamburger (three lines) menu includes commands for the configuration editor,
 the settings view and the undo list, all described in subsequent sections. There
-is also a command to export the current data to a TreeLine file.
+are also commands to export the current data to a TreeLine file or to a CSV
+file.  The CSV export gives options for field text to be as output (same as
+displayed) or as stored (better for re-import).
 
 ## Detail View
 

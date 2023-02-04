@@ -53,7 +53,7 @@ class TreeLineImport {
     var unescape = HtmlUnescape();
     for (var nodeInfo in jsonData['nodes']) {
       if (nodeInfo['format'] == typeName && nodeInfo['data'] != null) {
-        var leafNode = LeafNode.fromJson(nodeInfo['data'], model);
+        var leafNode = LeafNode(data: nodeInfo['data'], modelRef: model);
         model.leafNodes.add(leafNode);
         for (var field in model.fieldMap.values) {
           if (leafNode.data[field.name] != null) {

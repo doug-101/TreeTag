@@ -17,6 +17,7 @@ import 'help_view.dart';
 import 'sample_control.dart';
 import 'setting_edit.dart';
 import '../main.dart' show prefs;
+import '../model/csv_import.dart';
 import '../model/io_file.dart';
 import '../model/structure.dart';
 import '../model/treeline_import.dart';
@@ -144,12 +145,34 @@ class _FileControlState extends State<FileControl> {
           }
         }
       } on FormatException {
-        await commonDialogs.okDialog(
-          context: context,
-          title: 'Error',
-          label: 'Could not interpret file: ${fileObj.nameNoExtension}',
-          isDissmissable: false,
-        );
+        // If not TreeTag or TreeLine format, try a CSV import.
+        try {
+          if (fileObj is! LocalFile) throw FormatException();
+          var import = CsvImport(await fileObj.readString());
+          model.clearModel();
+          import.convertCsv(model);
+          var baseFilename = fileObj.nameNoExtension;
+          var fileWithExt = _addExtensionIfNone(baseFilename);
+          model.fileObject = IOFile.currentType(fileWithExt);
+          if (!(await model.fileObject.exists) ||
+              await askOverwriteOk(fileWithExt)) {
+            model.saveFile();
+            Navigator.pushNamed(
+              context,
+              '/frameView',
+              arguments: baseFilename,
+            ).then((value) async {
+              _updateFileList();
+            });
+          }
+        } on FormatException {
+          await commonDialogs.okDialog(
+            context: context,
+            title: 'Error',
+            label: 'Could not interpret file: ${fileObj.nameNoExtension}',
+            isDissmissable: false,
+          );
+        }
       }
     } on IOException catch (e) {
       await commonDialogs.okDialog(
@@ -258,8 +281,7 @@ class _FileControlState extends State<FileControl> {
                 commonDialogs.aboutDialog(context: context);
               },
             ),
-            if (Platform.isLinux || Platform.isMacOS)
-              Divider(),
+            if (Platform.isLinux || Platform.isMacOS) Divider(),
             if (Platform.isLinux || Platform.isMacOS)
               ListTile(
                 leading: const Icon(Icons.highlight_off_outlined),

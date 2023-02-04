@@ -1,6 +1,6 @@
 // frame_view.dart, the main view's frame and controls.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show json;
@@ -18,6 +18,7 @@ import 'search_view.dart';
 import 'setting_edit.dart';
 import 'tree_view.dart';
 import 'undo_view.dart';
+import '../model/csv_export.dart';
 import '../model/io_file.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
@@ -113,6 +114,46 @@ class FrameView extends StatelessWidget {
                           );
                         },
                       ),
+                      ListTile(
+                        leading: const Icon(Icons.table_chart_outlined),
+                        title: const Text('Export to CSV'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          var converter = CsvExport(model);
+                          // Ask for raw vs. output string option.
+                          const options = [
+                            'Field text as output',
+                            'Field text as stored',
+                          ];
+                          var ans = await commonDialogs.choiceDialog(
+                            context: context,
+                            title: 'CSV Export Options',
+                            choices: options,
+                          );
+                          if (ans == null) return;
+                          var useOutput = ans == options[0];
+                          var exportData =
+                              converter.csvString(useOutput: useOutput);
+                          var fileObj = LocalFile(
+                              model.fileObject.nameNoExtension + '.csv');
+                          if (await fileObj.exists) {
+                            var ans = await commonDialogs.okCancelDialog(
+                              context: context,
+                              title: 'Confirm Overwrite',
+                              label: 'File ${fileObj.filename} already '
+                                  'exists.\n\nOverwrite it?',
+                            );
+                            if (ans == null || !ans) return;
+                          }
+                          await fileObj.writeString(exportData);
+                          await commonDialogs.okDialog(
+                            context: context,
+                            title: 'Export',
+                            label:
+                                'Local file ${fileObj.filename} was written.',
+                          );
+                        },
+                      ),
                       Divider(),
                       ListTile(
                         leading: const Icon(Icons.close),
@@ -158,8 +199,7 @@ class FrameView extends StatelessWidget {
                           commonDialogs.aboutDialog(context: context);
                         },
                       ),
-                      if (Platform.isLinux || Platform.isMacOS)
-                        Divider(),
+                      if (Platform.isLinux || Platform.isMacOS) Divider(),
                       if (Platform.isLinux || Platform.isMacOS)
                         ListTile(
                           leading: const Icon(Icons.highlight_off_outlined),

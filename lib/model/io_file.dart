@@ -93,7 +93,12 @@ class LocalFile extends IOFile {
     return json.decode(await File(fullPath).readAsString());
   }
 
-  /// Writes the file.
+  /// Reads a string file (for non-JSON files).
+  Future<String> readString() async {
+    return File(fullPath).readAsString();
+  }
+
+  /// Writes the JSON file.
   ///
   /// Raises a [SaveException] on error, caught in main source file.
   @override
@@ -101,6 +106,18 @@ class LocalFile extends IOFile {
     var dataString = json.encode(data);
     try {
       await File(fullPath).writeAsString(dataString);
+    } on IOException catch (e) {
+      throw SaveException(e.toString());
+    }
+  }
+
+  /// Writes the string file (for non-JSON files).
+  ///
+  /// Raises a [SaveException] on error, caught in main source file.
+  @override
+  Future<void> writeString(String data) async {
+    try {
+      await File(fullPath).writeAsString(data);
     } on IOException catch (e) {
       throw SaveException(e.toString());
     }
