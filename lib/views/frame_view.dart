@@ -13,11 +13,13 @@ import 'package:split_view/split_view.dart';
 import 'common_dialogs.dart' as commonDialogs;
 import 'detail_view.dart';
 import 'edit_view.dart';
+import 'file_control.dart' show fileExtension;
 import 'help_view.dart';
 import 'search_view.dart';
 import 'setting_edit.dart';
 import 'tree_view.dart';
 import 'undo_view.dart';
+import '../main.dart' show prefs;
 import '../model/csv_export.dart';
 import '../model/io_file.dart';
 import '../model/nodes.dart';
@@ -86,6 +88,64 @@ class FrameView extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.pushNamed(context, '/undoView');
+                        },
+                      ),
+                      Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.merge),
+                        title: const Text('Merge Files'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          var fileList = <IOFile>[];
+                          try {
+                            var usingLocalFiles =
+                                prefs.getBool('uselocalfiles') ?? true;
+                            fileList = usingLocalFiles
+                                ? await LocalFile.fileList()
+                                : await NetworkFile.fileList();
+                          } on IOException catch (e) {
+                            await commonDialogs.okDialog(
+                              context: context,
+                              title: 'Error',
+                              label: 'Could not read from directory: \n$e',
+                              isDissmissable: false,
+                            );
+                            return;
+                          }
+                          var filenames = [
+                            for (var f in fileList)
+                              if (f.nameNoExtension != fileRootName &&
+                                  f.extension == fileExtension)
+                                f.filename
+                          ];
+                          filenames.sort();
+                          var fileName = await commonDialogs.choiceDialog(
+                            context: context,
+                            choices: filenames,
+                            title: 'Choose File to Merge',
+                          );
+                          if (fileName != null) {
+                            var fileObj = IOFile.currentType(fileName);
+                            try {
+                              await model.mergeFile(fileObj);
+                            } on FormatException {
+                              await commonDialogs.okDialog(
+                                context: context,
+                                title: 'Error',
+                                label: 'Could not interpret file: '
+                                    '${fileObj.nameNoExtension}',
+                                isDissmissable: false,
+                              );
+                            } on IOException catch (e) {
+                              await commonDialogs.okDialog(
+                                context: context,
+                                title: 'Error',
+                                label: 'Could not read file: '
+                                    '${fileObj.nameNoExtension}\n$e',
+                                isDissmissable: false,
+                              );
+                            }
+                          }
                         },
                       ),
                       Divider(),

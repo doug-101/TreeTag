@@ -1,6 +1,6 @@
 // structure.dart, top level storage for the tree model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 // foundation.dart includes [ChangeNotifier].
@@ -368,6 +368,26 @@ class Structure extends ChangeNotifier {
       notifyListeners();
       saveFile();
     }
+  }
+
+  /// Called from [FrameView] to merge another TreeTag file with this one.
+  Future<void> mergeFile(IOFile fileObj) async {
+    var mergeStruct = Structure();
+    await mergeStruct.openFile(fileObj);
+    var undos = <Undo>[];
+    for (var field in mergeStruct.fieldMap.values) {
+      if (!fieldMap.containsKey(field.name)) {
+        undos.add(UndoAddNewField('', field.name));
+        fieldMap[field.name] = field;
+      }
+    }
+    for (var node in mergeStruct.leafNodes) {
+      undos.insert(0, UndoAddLeafNode('', leafNodes.length));
+      leafNodes.add(node);
+    }
+    undoList.add(UndoBatch('Merge file: ${fileObj.filename}', undos));
+    updateRuleChildSortFields();
+    updateAll();
   }
 
   /// Called from the [FieldEdit] view to add a new [field].

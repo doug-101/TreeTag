@@ -40,6 +40,7 @@ Also visit <http://treetag.bellz.org> for more information.
   entire tree.
 * Undo operations are stored in the files, so operations from a previous session
   can be undone.
+* The data from a two TreeTag files can be merged together.
 * Files can be imported and exported to or from both TreeLine and CSV files.
 * TreeTag can interface with a Kinto storage server to store and retrieve files
   from the cloud.
@@ -187,9 +188,12 @@ in the tree.
 
 The hamburger (three lines) menu includes commands for the configuration editor,
 the settings view and the undo list, all described in subsequent sections. There
-are also commands to export the current data to a TreeLine file or to a CSV
-file.  The CSV export gives options for field text to be as output (same as
-displayed) or as stored (better for re-import).
+is also a command to merge the data from a second file.  The second file should
+have similar fields, but any missing fields will be added as necessary.
+Otherwise, the configuration of the current file is kept.  Finally, there are
+commands to export the current data to a TreeLine file or to a CSV file. The CSV
+export gives options for field text to be as output (same as displayed) or as
+stored (better for re-import).
 
 ## Detail View
 

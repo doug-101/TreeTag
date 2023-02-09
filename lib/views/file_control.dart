@@ -22,7 +22,7 @@ import '../model/io_file.dart';
 import '../model/structure.dart';
 import '../model/treeline_import.dart';
 
-const _fileExtension = '.trtg';
+const fileExtension = '.trtg';
 
 /// Provides a file listview with options for new files, open files, etc.
 ///
@@ -616,7 +616,7 @@ String _addExtensionIfNone(String filename) {
     filename = filename.substring(0, filename.length - 1);
   }
   if (filename.lastIndexOf('.') < 1) {
-    filename = '$filename$_fileExtension';
+    filename = '$filename$fileExtension';
   }
   return filename;
 }
