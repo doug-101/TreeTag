@@ -41,11 +41,15 @@ abstract class IOFile {
   /// Copies this to the given object, can be local or network.
   Future<void> copyToFile(IOFile toFile) async {
     try {
-      var data = await readJson();
-      await toFile.writeJson(data);
+      if (this is LocalFile && toFile is LocalFile) {
+        await File(fullPath).copy(toFile.fullPath);
+      } else {
+        var data = await readJson();
+        await toFile.writeJson(data);
+      }
     } on FormatException catch (e) {
       throw HttpException(e.toString());
-    } on SaveException catch (e) {
+    } on IOException catch (e) {
       throw HttpException(e.toString());
     }
   }

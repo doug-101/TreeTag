@@ -381,6 +381,7 @@ class _FileControlState extends State<FileControl> {
                   case MenuItems.copy:
                     // Copy current file to another name.
                     var initName = _selectedFiles.first.nameNoExtension;
+                    var origExt = _selectedFiles.first.extension;
                     var answer = await commonDialogs.filenameDialog(
                       context: context,
                       initName: initName,
@@ -388,8 +389,9 @@ class _FileControlState extends State<FileControl> {
                     );
                     if (answer != null) {
                       var fileObj = _selectedFiles.first;
-                      var newFileObj =
-                          IOFile.currentType(_addExtensionIfNone(answer));
+                      var newFileObj = IOFile.currentType(
+                        _addExtensionIfNone(answer, ext: origExt),
+                      );
                       if (await newFileObj.exists) {
                         if (!(await askOverwriteOk(newFileObj.filename))) {
                           break;
@@ -462,13 +464,14 @@ class _FileControlState extends State<FileControl> {
                   case MenuItems.rename:
                     // Give the current file a new name.
                     var initName = _selectedFiles.first.nameNoExtension;
+                    var origExt = _selectedFiles.first.extension;
                     var answer = await commonDialogs.filenameDialog(
                       context: context,
                       initName: initName,
                       label: 'Rename "$initName" to:',
                     );
                     if (answer != null) {
-                      var newName = _addExtensionIfNone(answer);
+                      var newName = _addExtensionIfNone(answer, ext: origExt);
                       var fileObj = _selectedFiles.first;
                       if (await IOFile.currentType(newName).exists) {
                         if (!(await askOverwriteOk(newName))) {
@@ -610,13 +613,13 @@ class _FileControlState extends State<FileControl> {
   }
 }
 
-/// Add a default TreeTag extension unless an extension is already there.
-String _addExtensionIfNone(String filename) {
+/// Add an extension (.trtg by default) unless an extension is already there.
+String _addExtensionIfNone(String filename, {ext = fileExtension}) {
   if (filename.endsWith('.')) {
     filename = filename.substring(0, filename.length - 1);
   }
   if (filename.lastIndexOf('.') < 1) {
-    filename = '$filename$fileExtension';
+    filename = '$filename$ext';
   }
   return filename;
 }
