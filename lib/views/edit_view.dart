@@ -94,13 +94,17 @@ class _EditViewState extends State<EditView> {
         onChanged: () {
           _isChanged = true;
         },
-        child: Container(
-          margin: const EdgeInsets.all(10.0),
-          child: ListView(
-            children: <Widget>[
-              for (var field in widget.node.modelRef.fieldMap.values)
-                _fieldEditor(widget.node, field),
-            ],
+        // Use scroll view and column rather than a listviw to avoid items
+        // losing their data when scrolled out of view then rebuilt.
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              children: <Widget>[
+                for (var field in widget.node.modelRef.fieldMap.values)
+                  _fieldEditor(widget.node, field),
+              ],
+            ),
           ),
         ),
       ),

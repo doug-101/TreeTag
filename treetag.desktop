@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=0.3.0
+Name=TreeTag
+GenericName=Info Manager
+Exec=treetag
+Icon=tree_icon_64
+Terminal=false
+Categories=Office;TextTools;
+Comment=Organize data in a tree structure
