@@ -120,8 +120,8 @@ class _EditViewState extends State<EditView> {
       initString = null;
     }
     if (field is LongTextField) {
-      return TextFormField(
-        decoration: InputDecoration(labelText: labelString),
+      return TextForm(
+        label: labelString,
         minLines: 4,
         maxLines: 12,
         initialValue: initString ?? '',
@@ -235,8 +235,8 @@ class _EditViewState extends State<EditView> {
       );
     }
     // Default return for a regular TextField
-    return TextFormField(
-      decoration: InputDecoration(labelText: labelString),
+    return TextForm(
+      label: labelString,
       initialValue: initString ?? '',
       validator: field.validateMessage,
       onSaved: (String? value) {
@@ -250,6 +250,59 @@ class _EditViewState extends State<EditView> {
         }
       },
     );
+  }
+}
+
+/// An editor for a text field that works with forms.
+class TextForm extends FormField<String> {
+  TextForm({
+    String? label,
+    int? minLines,
+    int? maxLines,
+    String? initialValue,
+    FormFieldValidator<String>? validator,
+    FormFieldSetter<String>? onSaved,
+  }) : super(
+          initialValue: initialValue,
+          validator: validator,
+          onSaved: onSaved,
+          builder: (FormFieldState<String> origState) {
+            final state = origState as _TextFormState;
+            return TextField(
+              decoration: InputDecoration(labelText: label),
+              minLines: minLines,
+              maxLines: maxLines,
+              controller: state._textController,
+            );
+          },
+        );
+
+  @override
+  _TextFormState createState() => _TextFormState();
+}
+
+class _TextFormState extends FormFieldState<String> {
+  var _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _textController.text = value!;
+    _textController.addListener(() {
+      didChange(_textController.text);
+    });
+  }
+
+  @override
+  void reset() {
+    _textController.text = widget.initialValue ?? '';
+    super.reset();
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 }
 
@@ -314,12 +367,19 @@ class AutoChoiceForm extends FormField<String> {
 class _AutoChoiceFormState extends FormFieldState<String> {
   var _textController = TextEditingController();
 
+  @override
   void initState() {
     super.initState();
     _textController.text = value!;
     _textController.addListener(() {
       didChange(_textController.text);
     });
+  }
+
+  @override
+  void reset() {
+    _textController.text = widget.initialValue ?? '';
+    super.reset();
   }
 
   @override
