@@ -38,6 +38,8 @@ Also visit <http://treetag.bellz.org> for more information.
   pre-populate fields to match the group.
 * A keyword search will list all matching nodes from an active group or from the
   entire tree.
+* By default, the text field editor will show misspelled English words with a
+  red underline.
 * Undo operations are stored in the files, so operations from a previous session
   can be undone.
 * The data from a two TreeTag files can be merged together.
@@ -370,11 +372,13 @@ removed.
 ## Settings View
 
 The settings view contains general customization options.  Options not
-previously discussed include hiding dot files and tight line spacing.  File
-names that begin with a dot will not be shown if the hidden option is enabled.
-The tight line spacing option allows more lines to fit on the screen.  It is
-recommended when using a mouse, but may not leave enough space for touch
-interfaces.
+previously discussed include hiding dot files, tight line spacing and enabling
+spell checks.  File names that begin with a dot will not be shown if the hidden
+option is enabled. The tight line spacing option allows more lines to fit on the
+screen.  It is recommended when using a mouse, but may not leave enough space
+for touch interfaces.  The red underline under misspelled English words is
+controlled by the spell check setting.  Currently, no suggestions are shown for
+misspelled words.
 
 On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.

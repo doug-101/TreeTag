@@ -3,13 +3,17 @@
 // Copyright (c) 2022, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'common_dialogs.dart' as commonDialogs;
+import '../main.dart' show prefs;
 import '../model/field_format_tools.dart';
 import '../model/fields.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
+import '../model/word_set_en.dart';
 
 enum EditMode { normal, newNode, nodeChildren }
 
@@ -273,6 +277,11 @@ class TextForm extends FormField<String> {
               minLines: minLines,
               maxLines: maxLines,
               controller: state._textController,
+              spellCheckConfiguration:
+                  (prefs.getBool('enablespellcheck') ?? true)
+                      ? SpellCheckConfiguration(
+                          spellCheckService: state._spellChecker)
+                      : SpellCheckConfiguration.disabled(),
             );
           },
         );
@@ -283,6 +292,9 @@ class TextForm extends FormField<String> {
 
 class _TextFormState extends FormFieldState<String> {
   var _textController = TextEditingController();
+  var _spellChecker = (Platform.isAndroid || Platform.isIOS)
+      ? DefaultSpellCheckService()
+      : SpellChecker();
 
   @override
   void initState() {
@@ -303,6 +315,74 @@ class _TextFormState extends FormFieldState<String> {
   void dispose() {
     _textController.dispose();
     super.dispose();
+  }
+}
+
+/// Spell check service definition.
+class SpellChecker extends SpellCheckService {
+  static const sepChars = const {
+    ' ',
+    '\n',
+    '\r',
+    '\f',
+    '\t',
+    ',',
+    '.',
+    '/',
+    '?',
+    ';',
+    ':',
+    '"',
+    '~',
+    '!',
+    '@',
+    '#',
+    '\$',
+    '%',
+    '^',
+    '&',
+    '*',
+    '(',
+    ')',
+    '-',
+    '=',
+    '+',
+    '[',
+    ']',
+    '{',
+    '}',
+    '\\',
+    '|'
+  };
+  SpellChecker();
+
+  @override
+  Future<List<SuggestionSpan>?> fetchSpellCheckSuggestions(
+    Locale locale,
+    String text,
+  ) async {
+    var errorSpans = <SuggestionSpan>[];
+    var textPos = 0;
+    var wordStart = -1;
+    for (var rune in text.runes) {
+      var char = String.fromCharCode(rune);
+      if (SpellChecker.sepChars.contains(char)) {
+        if (wordStart >= 0) {
+          var word = text.substring(wordStart, textPos).toLowerCase();
+          if (!wordSet.contains(word)) {
+            errorSpans.add(
+              SuggestionSpan(
+                  TextRange(start: wordStart, end: textPos), <String>[]),
+            );
+          }
+          wordStart = -1;
+        }
+      } else if (wordStart < 0) {
+        wordStart = textPos;
+      }
+      textPos += char.length;
+    }
+    return errorSpans.length > 0 ? errorSpans : null;
   }
 }
 
@@ -331,6 +411,11 @@ class AutoChoiceForm extends FormField<String> {
                           border: InputBorder.none,
                         ),
                         controller: state._textController,
+                        spellCheckConfiguration:
+                            (prefs.getBool('enablespellcheck') ?? true)
+                                ? SpellCheckConfiguration(
+                                    spellCheckService: state._spellChecker)
+                                : SpellCheckConfiguration.disabled(),
                       ),
                     ),
                     PopupMenuButton<String>(
@@ -366,6 +451,9 @@ class AutoChoiceForm extends FormField<String> {
 
 class _AutoChoiceFormState extends FormFieldState<String> {
   var _textController = TextEditingController();
+  var _spellChecker = (Platform.isAndroid || Platform.isIOS)
+      ? DefaultSpellCheckService()
+      : SpellChecker();
 
   @override
   void initState() {

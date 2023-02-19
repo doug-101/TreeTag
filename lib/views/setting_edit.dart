@@ -158,12 +158,21 @@ class _SettingEditState extends State<SettingEdit> {
                     (Platform.isLinux ||
                         Platform.isWindows ||
                         Platform.isMacOS),
-                heading: 'Tight text line spacing',
+                heading: 'Tight Text Line Spacing',
                 onSaved: (bool? value) async {
                   if (value != null) {
                     await prefs.setBool('linespacing', value);
                     Provider.of<Structure>(context, listen: false)
                         .notifyListeners();
+                  }
+                },
+              ),
+              BoolFormField(
+                initialValue: prefs.getBool('enablespellcheck') ?? true,
+                heading: 'Enable Editor Spell Check',
+                onSaved: (bool? value) async {
+                  if (value != null) {
+                    await prefs.setBool('enablespellcheck', value);
                   }
                 },
               ),
