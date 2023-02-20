@@ -19,7 +19,7 @@
 </div>
 
 <div class="toplinks">
-<p>Version 0.3.0 (beta)</p>
+<p>Version 0.4.0 (beta)</p>
 
 <p><a href="http://www.bellz.org/progs.html">Other Programs</a></p>
 <p><a href="http://www.bellz.org/contact.html">Contact Info</a></p>
@@ -64,10 +64,15 @@ file name will select the file.  A double tap/click or a long press/click will
 open the file.</p>
 
 <p>In addition to opening TreeTag files (with a .trtg file extension), it can
-also import files from TreeLine (with a .trln file extension).
-Tapping/clicking on these files will show a prompt to select a single node
+also import files from TreeLine (with a .trln file extension).  Double or long
+tapping/clicking on these files will show a prompt to select a single node
 type to be imported. Imports should only be done from basic TreeLine files -
 formatting and complex field types are not currently supported.</p>
+
+<p>If a file to be opened is not a TreeTag or a TreeLine file, it will try to
+import it as a CSV table.  The first row becomes the field names, and every
+subsequent row becomes a leaf node.  The file will have a simple tree
+structure that can then be configured manually to add more categories.</p>
 
 <p>In the top bar, the "+" icon can be used to create a new file.  When a
 single file is selected, it will instead show an "i" icon, used to show file
@@ -101,7 +106,8 @@ TreeTag will prompt you for the password once per session.</p>
 <p>Use the Local and Network Storage items in the hamburger menu to switch
 between network and local storage.  The file list and commands work basically
 the same way under both.  The upload and download commands can be used to copy
-a file from one storage area to the other.</p>
+a file from one storage area to the other.  Note that only JSON files, such as
+TreeTag and TreeLine file formats, can be stored in the network.</p>
 
 <a id="treeview"></a> <h2>Tree View</h2>
 
@@ -136,8 +142,12 @@ the detail view and expanded in the tree.</p>
 
 <p>The hamburger (three lines) menu includes commands for the configuration
 editor, the settings view and the undo list, all described in subsequent
-sections. There is also a command to export the current data to a TreeLine
-file.</p>
+sections. There is also a command to merge the data from a second file.  The
+second file should have similar fields, but any missing fields will be added
+as necessary. Otherwise, the configuration of the current file is kept.
+Finally, there are commands to export the current data to a TreeLine file or
+to a CSV file. The CSV export gives options for field text to be as output
+(same as displayed) or as stored (better for re-import).</p>
 
 <a id="detailview"></a> <h2>Detail View</h2>
 
@@ -307,14 +317,26 @@ selecting "Cancel delete" on the most recent item set to be removed.  Exiting
 the view using the left arrow at the top will complete the deletion.  Once
 completed, deleted items cannot be recovered.</p>
 
+<p>In TreeTag Settings, there is an option for the Days to Store Undo History.
+Undo operations older than this many days are not written to files.  This does
+not remove undos currently in a session - it only affects what is written.  So
+undo operations from the most recent changes will always be available, even if
+older than this setting.  They only disappear after more changes are made
+(written to a file), and then the file is closed.  Setting the number of days
+to 0 will prevent all undo operations from being written to files.  Setting it
+to a very large number will effectively prevent undos from being automatically
+removed.</p>
+
 <a id="settingsview"></a> <h2>Settings View</h2>
 
 <p>The settings view contains general customization options.  Options not
-previously discussed include hiding dot files and tight line spacing.  File
-names that begin with a dot will not be shown if the hidden option is enabled.
-The tight line spacing option allows more lines to fit on the screen.  It is
-recommended when using a mouse, but may not leave enough space for touch
-interfaces.</p>
+previously discussed include hiding dot files, tight line spacing and enabling
+spell checks.  File names that begin with a dot will not be shown if the
+hidden option is enabled. The tight line spacing option allows more lines to
+fit on the screen.  It is recommended when using a mouse, but may not leave
+enough space for touch interfaces.  The red underline under misspelled English
+words is controlled by the spell check setting.  Currently, no suggestions are
+shown for misspelled words on desktop platforms.</p>
 
 <p>On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.</p>

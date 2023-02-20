@@ -83,7 +83,7 @@ device and run. This app is not yet in any app stores.
 ## Linux
 
 The simplest approach is to install from a snap.  If not already installed,
-install snapd from a distribution package.  Then, enter "sudo snap install
+install snapd from a distribution package.  Then enter "sudo snap install
 treetag" in a terminal.
 
 To compile TreeTag from source, install the TreeTag source from
@@ -376,11 +376,11 @@ removed.
 The settings view contains general customization options.  Options not
 previously discussed include hiding dot files, tight line spacing and enabling
 spell checks.  File names that begin with a dot will not be shown if the hidden
-option is enabled. The tight line spacing option allows more lines to fit on the
-screen.  It is recommended when using a mouse, but may not leave enough space
-for touch interfaces.  The red underline under misspelled English words is
-controlled by the spell check setting.  Currently, no suggestions are shown for
-misspelled words.
+option is enabled. The tight line spacing option allows more lines to fit on
+the screen.  It is recommended when using a mouse, but may not leave enough
+space for touch interfaces.  The red underline under misspelled English words
+is controlled by the spell check setting.  Currently, no suggestions are shown
+for misspelled words on desktop platforms.
 
 On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.
