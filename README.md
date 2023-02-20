@@ -55,8 +55,8 @@ TreeTag should run on Android 4.1 (Jelly Bean) and above.
 
 ## Linux
 
-TreeTag should run on any 64-bit Linux OS that has libgtk-3-0 and zenity
-installed.  There is no support for 32-bit platforms.
+TreeTag should run on any 64-bit Linux OS.  There is no support for 32-bit
+platforms.
 
 ## Windows
 
@@ -82,14 +82,16 @@ device and run. This app is not yet in any app stores.
 
 ## Linux
 
-The simplest approach is to download the "treetag_x.x.x.tar.gz" file and extract
-all of its contents into an empty directory.  Then run the "treetag" file.
+The simplest approach is to install from a snap.  If not already installed,
+install snapd from a distribution package.  Then, enter "sudo snap install
+treetag" in a terminal.
 
 To compile TreeTag from source, install the TreeTag source from
 <https://github.com/doug-101/TreeTag>.  Also install Flutter based on the
 instructions in <https://docs.flutter.dev/get-started/install/linux>.  The
 Android Setup is not required - just the Linux setup from the bottom of the
-page.
+page.  In addition to the libraries noted in the Flutter instructions, TreeTag
+also requires zenity to be installed.
 
 ## Windows
 
