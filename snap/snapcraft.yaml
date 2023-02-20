@@ -9,7 +9,7 @@ description: |
 
 confinement: strict # use 'strict' (not 'devmode') once you have the right plugs and slots
 base: core20 # the base snap is the execution environment for this snap
-grade: devel # must be 'stable' to release into candidate/stable channels
+grade: stable # must be 'stable' (not 'devel') to release into candidate/stable channels
 
 apps:
   treetag:
@@ -39,6 +39,7 @@ parts:
       - git
       - unzip
     override-build: |
+      rm -r ./flutter || true
       git clone https://github.com/flutter/flutter.git -b stable
       export PATH="$PATH:`pwd`/flutter/bin"
       flutter doctor
