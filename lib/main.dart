@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:window_size/window_size.dart';
+import 'package:window_manager/window_manager.dart';
 import 'model/io_file.dart';
 import 'model/structure.dart';
 import 'model/nodes.dart';
@@ -47,8 +47,9 @@ Future<void> main() async {
   );
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    setWindowTitle('TreeTag');
-    setWindowMinSize(const Size(160, 160));
+    await windowManager.ensureInitialized();
+    await windowManager.setTitle('TreeTag');
+    await windowManager.setMinimumSize(const Size(160, 160));
   }
   prefs = await SharedPreferences.getInstance();
   if (prefs.getString('workdir') == null) {
