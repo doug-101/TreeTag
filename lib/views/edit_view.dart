@@ -1,6 +1,6 @@
 // edit_view.dart, a view to edit data for an existing or a new node.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -352,7 +352,9 @@ class SpellChecker extends SpellCheckService {
     '{',
     '}',
     '\\',
-    '|'
+    '|',
+    '<',
+    '>',
   };
   SpellChecker();
 
