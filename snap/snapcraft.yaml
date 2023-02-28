@@ -1,5 +1,5 @@
 name: treetag # you probably want to 'snapcraft register <name>'
-version: '0.4.0'
+version: '0.4.1'
 summary: TreeTag is a personal data manager.
 description: |
   TreeTag is a personal data manager. It stores information in a hierarchy
@@ -8,14 +8,13 @@ description: |
   "Tag" part of the name).
 
 confinement: strict # use 'strict' (not 'devmode') once you have the right plugs and slots
-base: core20 # the base snap is the execution environment for this snap
+base: core22 # the base snap is the execution environment for this snap
 grade: stable # must be 'stable' (not 'devel') to release into candidate/stable channels
 
 apps:
   treetag:
     command: treetag
-    extensions: [gnome-3-38]
-    # plugs: [home, desktop, desktop-legacy, network, opengl, wayland, x11]
+    extensions: [gnome]
     plugs:
       - home
       - desktop
@@ -29,21 +28,8 @@ parts:
   treetag:
     after:
       - zenity
-    plugin: nil
+    plugin: flutter
     source: .
-    build-packages:
-      - cmake
-      - ninja-build
-      - clang
-      - curl
-      - git
-      - unzip
-    override-build: |
-      rm -r ./flutter || true
-      git clone https://github.com/flutter/flutter.git -b stable
-      export PATH="$PATH:`pwd`/flutter/bin"
-      flutter doctor
-      flutter pub get
-      flutter build linux --release -v
-      cp -rp $SNAPCRAFT_PART_BUILD/build/linux/x64/release/bundle/* $SNAPCRAFT_PART_INSTALL/
+    flutter-channel: stable
+    flutter-target: lib/main.dart
 
