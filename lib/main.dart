@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -23,6 +24,9 @@ import 'views/config/config_view.dart';
 
 /// [prefs] is the global shared_preferences instance.
 late final SharedPreferences prefs;
+
+/// This is initially false to avoid saving window geometry during setup.
+bool allowSaveWindowGeo = false;
 
 Future<void> main() async {
   LicenseRegistry.addLicense(
@@ -46,12 +50,32 @@ Future<void> main() async {
     ),
   );
   WidgetsFlutterBinding.ensureInitialized();
+  prefs = await SharedPreferences.getInstance();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
-    await windowManager.setTitle('TreeTag');
-    await windowManager.setMinimumSize(const Size(160, 160));
+    var size = Size(800.0, 600.0);
+    double? offsetX, offsetY;
+    if (prefs.getBool('savewindowgeo') ?? true) {
+      size = Size(
+        await prefs.getDouble('winsizex') ?? 800.0,
+        await prefs.getDouble('winsizey') ?? 600.0,
+      );
+      offsetX = await prefs.getDouble('winposx');
+      offsetY = await prefs.getDouble('winposy');
+    }
+    // Setting the size twice (early and later) to work around linux problems.
+    await windowManager.setSize(size);
+    windowManager.waitUntilReadyToShow(null, () async {
+      await windowManager.setTitle('TreeTag');
+      await windowManager.setMinimumSize(Size(160, 160));
+      await windowManager.setSize(size);
+      if (offsetX != null && offsetY != null) {
+        await windowManager.setPosition(Offset(offsetX, offsetY));
+      }
+      await windowManager.show();
+      allowSaveWindowGeo = prefs.getBool('savewindowgeo') ?? true;
+    });
   }
-  prefs = await SharedPreferences.getInstance();
   if (prefs.getString('workdir') == null) {
     Directory? workDir;
     if (Platform.isAndroid) {
@@ -138,4 +162,13 @@ Future<void> main() async {
       ),
     ),
   );
+}
+
+Future<void> saveWindowGeo() async {
+  if (!allowSaveWindowGeo) return;
+  var bounds = await windowManager.getBounds();
+  await prefs.setDouble('winsizex', bounds.size.width);
+  await prefs.setDouble('winsizey', bounds.size.height);
+  await prefs.setDouble('winposx', bounds.left);
+  await prefs.setDouble('winposy', bounds.top);
 }

@@ -8,7 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'common_dialogs.dart';
-import '../main.dart' show prefs;
+import '../main.dart' show prefs, allowSaveWindowGeo, saveWindowGeo;
 import '../model/io_file.dart';
 import '../model/structure.dart';
 
@@ -173,6 +173,17 @@ class _SettingEditState extends State<SettingEdit> {
                 onSaved: (bool? value) async {
                   if (value != null) {
                     await prefs.setBool('enablespellcheck', value);
+                  }
+                },
+              ),
+              BoolFormField(
+                initialValue: prefs.getBool('savewindowgeo') ?? true,
+                heading: 'Remember Window Position and Size',
+                onSaved: (bool? value) async {
+                  if (value != null) {
+                    await prefs.setBool('savewindowgeo', value);
+                    allowSaveWindowGeo = value;
+                    if (allowSaveWindowGeo) saveWindowGeo();
                   }
                 },
               ),

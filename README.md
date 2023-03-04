@@ -374,13 +374,15 @@ removed.
 ## Settings View
 
 The settings view contains general customization options.  Options not
-previously discussed include hiding dot files, tight line spacing and enabling
-spell checks.  File names that begin with a dot will not be shown if the hidden
-option is enabled. The tight line spacing option allows more lines to fit on
-the screen.  It is recommended when using a mouse, but may not leave enough
-space for touch interfaces.  The red underline under misspelled English words
-is controlled by the spell check setting.  Currently, no suggestions are shown
-for misspelled words on desktop platforms.
+previously discussed include hiding dot files, tight line spacing, remember
+window geometry and enabling spell checks.  File names that begin with a dot
+will not be shown if the hidden option is enabled. The tight line spacing option
+allows more lines to fit on the screen.  It is recommended when using a mouse,
+but may not leave enough space for touch interfaces.  The window size and
+position will be restored from the previous session use if enabled.  The red
+underline under misspelled English words is controlled by the spell check
+setting.  Currently, no suggestions are shown for misspelled words on desktop
+platforms.
 
 On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.

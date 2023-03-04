@@ -11,12 +11,13 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 import 'common_dialogs.dart' as commonDialogs;
 import 'frame_view.dart';
 import 'help_view.dart';
 import 'sample_control.dart';
 import 'setting_edit.dart';
-import '../main.dart' show prefs;
+import '../main.dart' show prefs, saveWindowGeo;
 import '../model/csv_import.dart';
 import '../model/io_file.dart';
 import '../model/structure.dart';
@@ -43,7 +44,7 @@ enum MenuItems {
   delete,
 }
 
-class _FileControlState extends State<FileControl> {
+class _FileControlState extends State<FileControl> with WindowListener {
   var _fileList = <IOFile>[];
   final _selectedFiles = <IOFile>{};
   late bool _usingLocalFiles;
@@ -52,12 +53,39 @@ class _FileControlState extends State<FileControl> {
   @override
   void initState() {
     super.initState();
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      windowManager.addListener(this);
+    }
     _usingLocalFiles = prefs.getBool('uselocalfiles') ?? true;
     if (!_usingLocalFiles && !_checkNetworkParams()) {
       _usingLocalFiles = true;
       prefs.setBool('uselocalfiles', true);
     }
     _updateFileList();
+  }
+
+  @override
+  void dispose() {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      windowManager.removeListener(this);
+    }
+    super.dispose();
+  }
+
+  /// Call main function to save window geometry after a resize.
+  @override
+  void onWindowResize() async {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      await saveWindowGeo();
+    }
+  }
+
+  /// Call main function to save window geometry after a move.
+  @override
+  void onWindowMove() async {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      await saveWindowGeo();
+    }
   }
 
   /// Verify that network preference ssettings are valid.
