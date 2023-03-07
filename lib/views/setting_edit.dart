@@ -176,17 +176,18 @@ class _SettingEditState extends State<SettingEdit> {
                   }
                 },
               ),
-              BoolFormField(
-                initialValue: prefs.getBool('savewindowgeo') ?? true,
-                heading: 'Remember Window Position and Size',
-                onSaved: (bool? value) async {
-                  if (value != null) {
-                    await prefs.setBool('savewindowgeo', value);
-                    allowSaveWindowGeo = value;
-                    if (allowSaveWindowGeo) saveWindowGeo();
-                  }
-                },
-              ),
+              if (Platform.isLinux || Platform.isMacOS)
+                BoolFormField(
+                  initialValue: prefs.getBool('savewindowgeo') ?? true,
+                  heading: 'Remember Window Position and Size',
+                  onSaved: (bool? value) async {
+                    if (value != null) {
+                      await prefs.setBool('savewindowgeo', value);
+                      allowSaveWindowGeo = value;
+                      if (allowSaveWindowGeo) saveWindowGeo();
+                    }
+                  },
+                ),
               TextFormField(
                 initialValue: (prefs.getInt('undodays') ?? 7).toString(),
                 decoration: const InputDecoration(
