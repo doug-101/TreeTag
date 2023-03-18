@@ -212,17 +212,17 @@ class Structure extends ChangeNotifier {
     if (doUpdate) notifyListeners();
   }
 
-  /// Return nodes from [availableNodes] that match the [searchPhrase].
+  /// Return nodes from [availableNodes] that match the [searchTerms].
   ///
-  /// A field of the node must match all search words, but not consecutively.
-  List<LeafNode> searchResults(
-      String searchPhrase, List<LeafNode> availableNodes) {
-    var searchTerms = searchPhrase.toLowerCase().split(' ');
-    searchTerms.removeWhere((s) => s.isEmpty);
+  /// All search words must match the node output text, but not consecutively.
+  List<LeafNode> stringSearchResults(
+    List<String> searchTerms,
+    List<LeafNode> availableNodes, {
+    Field? searchField,
+  }) {
     var results = <LeafNode>[];
     for (var node in availableNodes) {
-      if (_isSearchMatch(
-          node.outputs().join('\n').toLowerCase(), searchTerms)) {
+      if (node.isSearchMatch(searchTerms, searchField)) {
         results.add(node);
       }
     }
@@ -233,12 +233,23 @@ class Structure extends ChangeNotifier {
     return results;
   }
 
-  // Return true if all searchTerms are in the text string.
-  bool _isSearchMatch(String text, List<String> searchTerms) {
-    for (var term in searchTerms) {
-      if (!text.contains(term)) return false;
+  /// Return nodes from [availableNodes] that match the [regExp].
+  List<LeafNode> regExpSearchResults(
+    RegExp exp,
+    List<LeafNode> availableNodes, {
+    Field? searchField,
+  }) {
+    var results = <LeafNode>[];
+    for (var node in availableNodes) {
+      if (node.isRegExpMatch(exp, searchField)) {
+        results.add(node);
+      }
     }
-    return true;
+    if (results.length > 1) {
+      var sortFields = [for (var field in fieldMap.values) SortKey(field)];
+      nodeFullSort(results, sortFields);
+    }
+    return results;
   }
 
   /// Creates a new node using some data copied from [copyFromNode] if given.

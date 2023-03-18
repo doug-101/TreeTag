@@ -1,6 +1,6 @@
 // nodes.dart, defines node types for the tree model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'fields.dart';
@@ -444,6 +444,25 @@ class LeafNode implements Node {
     var result = <String, dynamic>{};
     result = data;
     return result;
+  }
+
+  /// Return true if all of the searchTrems are found in the data output.
+  bool isSearchMatch(List<String> searchTerms, Field? searchField) {
+    var text = searchField == null
+        ? outputs().join('\n').toLowerCase()
+        : searchField.outputText(this);
+    for (var term in searchTerms) {
+      if (!text.contains(term)) return false;
+    }
+    return true;
+  }
+
+  /// Return true if the regular expression is found in the data output.
+  bool isRegExpMatch(RegExp exp, Field? searchField) {
+    var text = searchField == null
+        ? outputs().join('\n').toLowerCase()
+        : searchField.outputText(this);
+    return exp.hasMatch(text);
   }
 }
 
