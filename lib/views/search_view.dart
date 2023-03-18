@@ -62,6 +62,7 @@ class _SearchViewState extends State<SearchView> {
     super.dispose();
   }
 
+  /// Perform the search, updating [resultNodes].
   void doSearch(String searchString) {
     setState(() {
       var model = Provider.of<Structure>(context, listen: false);
@@ -92,6 +93,39 @@ class _SearchViewState extends State<SearchView> {
       }
       selectedNodes.clear();
     });
+  }
+
+  /// Return a widget with the long output for a node.
+  ///
+  /// Highlights matches if not in keyword mode or searching in a field.
+  Widget longOutput(LeafNode node) {
+    var text = node.outputs().join('\n');
+    if (searchType == SearchType.keyword || searchField != null) {
+      return Text(text);
+    }
+    var matches = node.allPatternMatches(
+      searchType == SearchType.phrase
+          ? _controller.text.toLowerCase()
+          : RegExp(_controller.text),
+      null,
+    );
+    if (matches.isEmpty) return Text(text);
+    var spans = <TextSpan>[];
+    var nextStart = 0;
+    for (var match in matches) {
+      if (match.start != nextStart) {
+        spans.add(TextSpan(text: text.substring(nextStart, match.start)));
+      }
+      spans.add(TextSpan(
+        text: text.substring(match.start, match.end),
+        style: const TextStyle(color: Colors.red),
+      ));
+      nextStart = match.end;
+    }
+    if (text.length > matches.last.end) {
+      spans.add(TextSpan(text: text.substring(matches.last.end)));
+    }
+    return Text.rich(TextSpan(children: spans));
   }
 
   @override
@@ -237,11 +271,9 @@ class _SearchViewState extends State<SearchView> {
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(10.0),
-                      child: Text(
-                        selectedNodes.contains(node)
-                            ? node.outputs().join('\n')
-                            : node.title,
-                      ),
+                      child: selectedNodes.contains(node)
+                          ? longOutput(node)
+                          : Text(node.title),
                     ),
                   ),
                 ),

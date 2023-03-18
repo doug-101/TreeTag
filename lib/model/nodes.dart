@@ -446,7 +446,7 @@ class LeafNode implements Node {
     return result;
   }
 
-  /// Return true if all of the searchTrems are found in the data output.
+  /// Return true if all of the searchTerms are found in the data output.
   bool isSearchMatch(List<String> searchTerms, Field? searchField) {
     var text = searchField == null
         ? outputs().join('\n').toLowerCase()
@@ -463,6 +463,14 @@ class LeafNode implements Node {
         ? outputs().join('\n').toLowerCase()
         : searchField.outputText(this);
     return exp.hasMatch(text);
+  }
+
+  /// Return a list of matches for the pattern found in the data output.
+  List<Match> allPatternMatches(Pattern pattern, Field? searchField) {
+    var text = searchField == null
+        ? outputs().join('\n').toLowerCase()
+        : searchField.outputText(this);
+    return pattern.allMatches(text).toList();
   }
 }
 
