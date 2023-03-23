@@ -17,6 +17,7 @@ enum MenuItems {
   regExpSearch,
   fieldChange,
   allFields,
+  replace,
 }
 
 enum SearchType { phrase, keyword, regExp }
@@ -218,6 +219,28 @@ class _SearchViewState extends State<SearchView> {
                     searchField = null;
                     doSearch(_controller.text);
                     break;
+                  case MenuItems.replace:
+                    var result = await _replaceDialog(
+                      context: context,
+                      hasSelection: selectedNodes.isNotEmpty,
+                    );
+                    if (result != null) {
+                      var changeCount = model.replaceMatches(
+                        pattern: searchType == SearchType.phrase
+                            ? _controller.text.toLowerCase()
+                            : RegExp(_controller.text),
+                        replacement: result.replacementString,
+                        availableNodes:
+                            result.isSelectedOnly ? selectedNodes : resultNodes,
+                        searchField: searchField,
+                      );
+                      await okDialog(
+                        context: context,
+                        title: 'Nodes Replaced',
+                        label: '$changeCount nodes were changed',
+                      );
+                    }
+                    break;
                 }
                 setState(() {});
               },
@@ -246,6 +269,13 @@ class _SearchViewState extends State<SearchView> {
                   child: Text('Search All Fields'),
                   value: MenuItems.allFields,
                 ),
+                if (searchType != SearchType.keyword && resultNodes.isNotEmpty)
+                  PopupMenuDivider(),
+                if (searchType != SearchType.keyword && resultNodes.isNotEmpty)
+                  PopupMenuItem(
+                    child: Text('Replace Matches'),
+                    value: MenuItems.replace,
+                  )
               ],
             ),
           ],
@@ -283,4 +313,88 @@ class _SearchViewState extends State<SearchView> {
       ),
     );
   }
+}
+
+/// Class to return values from the [_replaceDialog].
+class _ReplaceResult {
+  final String replacementString;
+  final bool isSelectedOnly;
+
+  _ReplaceResult(this.replacementString, this.isSelectedOnly);
+}
+
+/// Prompt for a replacement string, with a switch for selected-only.
+Future<_ReplaceResult?> _replaceDialog({
+  required BuildContext context,
+  hasSelection = true,
+}) async {
+  var replacementString = '';
+  var isSelectedOnly = hasSelection;
+  return showDialog<_ReplaceResult>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Replace Search Results'),
+        // Use [StatefulBuilder] to provide a state.
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  decoration: InputDecoration(labelText: 'Replacement String'),
+                  autofocus: true,
+                  onChanged: (value) {
+                    replacementString = value;
+                  },
+                  onSubmitted: (value) {
+                    // Complete the dialog when the user presses enter.
+                    replacementString = value;
+                    Navigator.pop(context,
+                        _ReplaceResult(replacementString, isSelectedOnly));
+                  },
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() => isSelectedOnly = !isSelectedOnly);
+                    },
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text('Selected Nodes Only'),
+                        ),
+                        Switch(
+                          value: isSelectedOnly,
+                          onChanged: (bool value) {
+                            setState(() => isSelectedOnly = value);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.pop(
+                  context, _ReplaceResult(replacementString, isSelectedOnly));
+            },
+          ),
+          TextButton(
+            child: const Text('CANCEL'),
+            onPressed: () => Navigator.pop(context, null),
+          ),
+        ],
+      );
+    },
+  );
 }

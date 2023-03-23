@@ -252,6 +252,64 @@ class Structure extends ChangeNotifier {
     return results;
   }
 
+  /// Replace [pattern] with [replacement] in matches from [availableNodes].
+  ///
+  /// Do the replace in the [searchField] if given or in all fields.
+  /// Return the count of nodes changed.
+  int replaceMatches({
+    required Pattern pattern,
+    required String replacement,
+    required List<LeafNode> availableNodes,
+    Field? searchField,
+  }) {
+    var replaceGroupMatches = <Match>[];
+    if (pattern is RegExp) {
+      // Find backreferences ($1, $2, etc.) in replacement that get loaded
+      // with matched groups.
+      replaceGroupMatches =
+          RegExp(r'(?<!\$)\$\d').allMatches(replacement).toList();
+    }
+    var fields = searchField != null ? [searchField] : fieldMap.values.toList();
+    var undos = <Undo>[];
+    for (var node in availableNodes) {
+      undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
+      var nodeChanged = false;
+      for (var field in fields) {
+        var text = node.data[field.name];
+        // Allow regexp searches to replace blank fields.
+        if (text == null) text = '';
+        // reversed to avoid mismatches due to varying replacement lengths.
+        for (var match in pattern.allMatches(text).toList().reversed) {
+          var newReplacement = replacement;
+          // Add match groups to backreferences in replacement string.
+          for (var replaceMatch in replaceGroupMatches.reversed) {
+            var groupNum = int.tryParse(replaceMatch.group(0)![1]);
+            if (groupNum != null && groupNum <= match.groupCount) {
+              newReplacement = newReplacement.replaceRange(
+                replaceMatch.start,
+                replaceMatch.end,
+                match.group(groupNum)!,
+              );
+            }
+          }
+          text = text!.replaceRange(match.start, match.end, newReplacement);
+          nodeChanged = true;
+        }
+        if (text!.isNotEmpty && nodeChanged) {
+          node.data[field.name] = text;
+        } else {
+          node.data.remove(field.name);
+        }
+      }
+      if (!nodeChanged) undos.removeLast();
+    }
+    if (undos.length > 0) {
+      undoList.add(UndoBatch('Replace search matches', undos));
+    }
+    updateAll();
+    return undos.length;
+  }
+
   /// Creates a new node using some data copied from [copyFromNode] if given.
   ///
   /// Called from the [FrameView].

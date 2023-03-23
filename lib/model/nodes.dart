@@ -460,7 +460,7 @@ class LeafNode implements Node {
   /// Return true if the regular expression is found in the data output.
   bool isRegExpMatch(RegExp exp, Field? searchField) {
     var text = searchField == null
-        ? outputs().join('\n').toLowerCase()
+        ? outputs().join('\n')
         : searchField.outputText(this);
     return exp.hasMatch(text);
   }
@@ -468,8 +468,9 @@ class LeafNode implements Node {
   /// Return a list of matches for the pattern found in the data output.
   List<Match> allPatternMatches(Pattern pattern, Field? searchField) {
     var text = searchField == null
-        ? outputs().join('\n').toLowerCase()
+        ? outputs().join('\n')
         : searchField.outputText(this);
+    if (pattern is String) text = text.toLowerCase();
     return pattern.allMatches(text).toList();
   }
 }
