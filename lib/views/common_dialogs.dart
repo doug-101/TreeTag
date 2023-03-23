@@ -111,14 +111,16 @@ Future<String?> filenameDialog({
           autofocus: true,
           initialValue: initName ?? '',
           validator: (String? text) {
-            if (text?.isEmpty ?? false) return 'Cannot be empty';
-            if (text?.contains('/') ?? false) {
+            if (text == null) return 'Cannot be empty';
+            text = text.trim();
+            if (text.isEmpty) return 'Cannot be empty';
+            if (text.contains('/')) {
               return 'Cannot contain "/" characters';
             }
-            if (Platform.isWindows && (text?.contains('\\') ?? false)) {
+            if (Platform.isWindows && (text.contains('\\'))) {
               return 'Cannot contain "\\" characters';
             }
-            if ((text?.startsWith('.') ?? false) &&
+            if ((text.startsWith('.')) &&
                 (prefs.getBool('hidedotfiles') ?? true)) {
               return 'Cannot start with a "."';
             }
@@ -128,7 +130,8 @@ Future<String?> filenameDialog({
           onFieldSubmitted: (value) {
             // Complete the dialog when the user presses enter.
             if (_filenameEditKey.currentState!.validate()) {
-              Navigator.pop(context, _filenameEditKey.currentState!.value);
+              Navigator.pop(
+                  context, _filenameEditKey.currentState!.value.trim());
             }
           },
         ),
@@ -137,7 +140,8 @@ Future<String?> filenameDialog({
             child: const Text('OK'),
             onPressed: () {
               if (_filenameEditKey.currentState!.validate()) {
-                Navigator.pop(context, _filenameEditKey.currentState!.value);
+                Navigator.pop(
+                    context, _filenameEditKey.currentState!.value.trim());
               }
             },
           ),
