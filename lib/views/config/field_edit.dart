@@ -1,6 +1,6 @@
 // field_edit.dart, a view to edit a field's details.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -53,7 +53,15 @@ class _FieldEditState extends State<FieldEdit> {
       _formKey.currentState!.save();
       var model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
-        model.addNewField(_editedField, newPos: widget.newPos);
+        var doAddOutput = await commonDialogs.okCancelDialog(
+          context: context,
+          title: 'Output Fields',
+          label: 'Add an output line with the new field?',
+          trueButtonText: 'YES',
+          falseButtonText: 'NO',
+        );
+        model.addNewField(_editedField,
+            newPos: widget.newPos, doAddOutput: doAddOutput ?? false);
         return true;
       }
       if (_isFieldTypeChanged) {

@@ -460,8 +460,8 @@ class Structure extends ChangeNotifier {
   }
 
   /// Called from the [FieldEdit] view to add a new [field].
-  void addNewField(Field field, {int? newPos}) {
-    undoList.add(UndoAddNewField('Add new field: ${field.name}', field.name));
+  void addNewField(Field field, {int? newPos, bool doAddOutput = false}) {
+    var fieldUndo = UndoAddNewField('Add new field: ${field.name}', field.name);
     if (newPos != null) {
       var fieldList = List.of(fieldMap.values);
       fieldList.insert(newPos, field);
@@ -471,6 +471,17 @@ class Structure extends ChangeNotifier {
       }
     } else {
       fieldMap[field.name] = field;
+    }
+    if (doAddOutput) {
+      var outputUndo = UndoAddOutputLine('', outputLines.length);
+      var newLine = ParsedLine.empty();
+      newLine.segments.add(LineSegment(field: field));
+      outputLines.add(newLine);
+      undoList.add(
+        UndoBatch('Add new field: ${field.name}', [fieldUndo, outputUndo]),
+      );
+    } else {
+      undoList.add(fieldUndo);
     }
     updateRuleChildSortFields();
     updateAll();
