@@ -450,7 +450,7 @@ class LeafNode implements Node {
   bool isSearchMatch(List<String> searchTerms, Field? searchField) {
     var text = searchField == null
         ? outputs().join('\n').toLowerCase()
-        : searchField.outputText(this);
+        : searchField.outputText(this).toLowerCase();
     for (var term in searchTerms) {
       if (!text.contains(term)) return false;
     }
@@ -472,6 +472,28 @@ class LeafNode implements Node {
         : searchField.outputText(this);
     if (pattern is String) text = text.toLowerCase();
     return pattern.allMatches(text).toList();
+  }
+
+  /// Return the starting position of a field in the output.
+  ///
+  /// Return null if the field isn't in the output.
+  int? fieldOuputStart(Field field) {
+    int pos = 0;
+    for (var line in modelRef.outputLines) {
+      var fieldsBlank = true;
+      int linePos = 0;
+      for (var segment in line.segments) {
+        if (segment.field == field) return pos + linePos;
+        var text = segment.output(this);
+        if (text.isNotEmpty && segment.hasField) fieldsBlank = false;
+        linePos += text.length;
+      }
+      if (!fieldsBlank || !(line.segments.any((s) => s.hasField))) {
+        // Adding and extra one for the linefeed character.
+        pos += linePos + 1;
+      }
+    }
+    return null;
   }
 }
 

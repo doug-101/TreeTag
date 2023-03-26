@@ -96,35 +96,54 @@ class _SearchViewState extends State<SearchView> {
     });
   }
 
-  /// Return a widget with the long output for a node.
-  ///
-  /// Highlights matches if not in keyword mode or searching in a field.
+  /// Return a widget with the long node output with matches highlighted.
   Widget longOutput(LeafNode node) {
     var text = node.outputs().join('\n');
-    if (searchType == SearchType.keyword || searchField != null) {
-      return Text(text);
+    var matches = <Match>[];
+    if (searchType == SearchType.phrase) {
+      matches =
+          node.allPatternMatches(_controller.text.toLowerCase(), searchField);
+    } else if (searchType == SearchType.keyword) {
+      for (var searchTerm in _controller.text.toLowerCase().split(' ')) {
+        if (searchTerm.isNotEmpty) {
+          matches.addAll(node.allPatternMatches(searchTerm, searchField));
+        }
+      }
+      matches.sort((a, b) => a.start.compareTo(b.start));
+    } else {
+      // regExp search.Reg
+      matches = node.allPatternMatches(RegExp(_controller.text), searchField);
     }
-    var matches = node.allPatternMatches(
-      searchType == SearchType.phrase
-          ? _controller.text.toLowerCase()
-          : RegExp(_controller.text),
-      null,
-    );
     if (matches.isEmpty) return Text(text);
+    var delta = 0;
+    if (searchField != null) {
+      var nullableDelta = node.fieldOuputStart(searchField!);
+      if (nullableDelta != null) {
+        delta = nullableDelta;
+      } else {
+        return Text(text);
+      }
+    }
     var spans = <TextSpan>[];
     var nextStart = 0;
-    for (var match in matches) {
-      if (match.start != nextStart) {
-        spans.add(TextSpan(text: text.substring(nextStart, match.start)));
+    try {
+      for (var match in matches) {
+        if (match.start + delta != nextStart) {
+          spans.add(
+              TextSpan(text: text.substring(nextStart, match.start + delta)));
+        }
+        spans.add(TextSpan(
+          text: text.substring(match.start + delta, match.end + delta),
+          style: const TextStyle(color: Colors.red),
+        ));
+        nextStart = match.end + delta;
       }
-      spans.add(TextSpan(
-        text: text.substring(match.start, match.end),
-        style: const TextStyle(color: Colors.red),
-      ));
-      nextStart = match.end;
-    }
-    if (text.length > matches.last.end) {
-      spans.add(TextSpan(text: text.substring(matches.last.end)));
+      if (text.length > matches.last.end + delta) {
+        spans.add(TextSpan(text: text.substring(matches.last.end + delta)));
+      }
+    } on RangeError {
+      // Handle an error due to overlapping search results.
+      return Text(text);
     }
     return Text.rich(TextSpan(children: spans));
   }
