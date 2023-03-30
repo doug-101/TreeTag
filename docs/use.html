@@ -19,7 +19,7 @@
 </div>
 
 <div class="toplinks">
-<p>Version 0.4.0 (beta)</p>
+<p>Version 0.5.0 (stable)</p>
 
 <p><a href="http://www.bellz.org/progs.html">Other Programs</a></p>
 <p><a href="http://www.bellz.org/contact.html">Contact Info</a></p>
@@ -43,6 +43,7 @@
 
 <ul>
 
+<li><a href="#start">Quick Start</a></li>
 <li><a href="#files">Files</a></li>
 <li><a href="#netfiles">Network Files</a></li>
 <li><a href="#treeview">Tree View</a></li>
@@ -55,6 +56,32 @@
 <li><a href="#settingsview">Settings View</a></li>
 
 </ul>
+
+<a id="start"></a> <h2>Quick Start</h2>
+
+<p>TreeTag shows an empty file list when it first starts.  The "+" icon can be
+used to create a new file that can be modified and re-configured.</p>
+
+<p>But a new file, with its simple structure, is probably not the best way to
+learn about and understand TreeTag.  There are two built-in sample files that
+are better choices.  Select "Sample Files" from the hamburger (three lines)
+menu on the left.  Then either a double tap/click or a long press/click will
+open a listed file.</p>
+
+<p>In the tree view, tapping/clicking on a title or grouping node (proceeded
+by small triangles) will expand or collapse the node's children.  On a leaf
+node (proceeded by a dot), it will toggle from showing just a title line to
+showing multiple output lines.</p>
+
+<p>A long press/click on any node will show details in a detail view.  The "+"
+icon in the top bar can be used to create new leaf nodes.  If a leaf node is
+being shown, the pencil icon will allow its data to be edited.</p>
+
+<p>All leaf nodes are automatically placed into location(s) in the tree based
+on their data and the configuration of the tree.  The "Edit Configuration"
+command in the hamburger menu will show controls for setting up the leaf node
+data, how they are arranged and how they are displayed.  Please refer to the
+sections below for more information.</p>
 
 <a id="files"></a> <h2>Files</h2>
 
@@ -130,15 +157,20 @@ into the tree.  In many cases, it's easier to start new nodes when the detail
 view is showing a group or leaf node, since at least some of the fields will
 initially be populated to match the group or leaf.</p>
 
-<p>The magnifying glass icon will show a search view for finding leaf nodes
-that match key words.  If the detail view is showing a grouping node, search
-results will be limited to the children of that group.  If the detail view is
-showing a title node or no node, all leaf nodes will be searched.  As key
-words are typed in the top bar, matching nodes will be shown in the main view.
-The key words are matched individually, not as a complete phrase.
-Tapping/clicking on a resulting node will select it and show its full output.
-A node that is selected when leaving the search view will become current in
-the detail view and expanded in the tree.</p>
+<p>The magnifying glass icon will show a search view for finding matching leaf
+nodes.  If the detail view is showing a grouping node, search results will be
+limited to the children of that group.  If the detail view is showing a title
+node or no node, all leaf nodes will be searched.  Note that searching is not
+available if a leaf node is being shown.  The search view menu can be used to
+set the search method to a phrase, keywords or regular expressions.  Note that
+only regular expressions are case sensitive.  As a string is typed in the top
+bar, matching nodes will be shown in the main view. Tapping/clicking on a
+resulting node will select it and show its full output, with the matching text
+highlighted.  The last node selected when leaving the search view will become
+current in the detail view and expanded in the tree.  There is also a replace
+option in the menu when searching by phrase or regular expression.  When
+searching with regular expressions, adding "$1", "$2", etc. in the replacement
+string will substitute matching groups from the search results.</p>
 
 <p>The hamburger (three lines) menu includes commands for the configuration
 editor, the settings view and the undo list, all described in subsequent
@@ -330,13 +362,15 @@ removed.</p>
 <a id="settingsview"></a> <h2>Settings View</h2>
 
 <p>The settings view contains general customization options.  Options not
-previously discussed include hiding dot files, tight line spacing and enabling
-spell checks.  File names that begin with a dot will not be shown if the
-hidden option is enabled. The tight line spacing option allows more lines to
-fit on the screen.  It is recommended when using a mouse, but may not leave
-enough space for touch interfaces.  The red underline under misspelled English
-words is controlled by the spell check setting.  Currently, no suggestions are
-shown for misspelled words on desktop platforms.</p>
+previously discussed include hiding dot files, tight line spacing, remember
+window geometry and enabling spell checks.  File names that begin with a dot
+will not be shown if the hidden option is enabled. The tight line spacing
+option allows more lines to fit on the screen.  It is recommended when using a
+mouse, but may not leave enough space for touch interfaces.  The window size
+and position will be restored from the previous session use if enabled.  The
+red underline under misspelled English words is controlled by the spell check
+setting.  Currently, no suggestions are shown for misspelled words on desktop
+platforms.</p>
 
 <p>On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.</p>
