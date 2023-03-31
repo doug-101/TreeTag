@@ -32,4 +32,6 @@ parts:
     source: .
     flutter-channel: stable
     flutter-target: lib/main.dart
+    build-packages: 
+      - libharfbuzz-dev
 
