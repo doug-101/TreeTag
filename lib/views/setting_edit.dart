@@ -176,7 +176,7 @@ class _SettingEditState extends State<SettingEdit> {
                   }
                 },
               ),
-              if (Platform.isLinux || Platform.isMacOS)
+              if (Platform.isLinux || Platform.isWindows || Platform.isMacOS)
                 BoolFormField(
                   initialValue: prefs.getBool('savewindowgeo') ?? true,
                   heading: 'Remember Window Position and Size',
