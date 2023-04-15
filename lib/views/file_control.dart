@@ -359,7 +359,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
               icon: const Icon(Icons.info),
               onPressed: () async {
                 var fileObj = _selectedFiles.first;
-                var modTime = await fileObj.lastModified;
+                var modTime = await fileObj.dataModTime;
                 var timeStr = DateFormat('MMM d, yyyy, h:mm a').format(modTime);
                 commonDialogs.okDialog(
                   context: context,

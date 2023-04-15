@@ -3,8 +3,10 @@
 // Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
+import 'dart:io';
 // foundation.dart includes [ChangeNotifier].
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'fields.dart';
 import 'io_file.dart';
@@ -31,6 +33,7 @@ class Structure extends ChangeNotifier {
   final outputLines = <ParsedLine>[];
   var useMarkdownOutput = false;
   IOFile fileObject = IOFile.currentType('');
+  var modTime = DateTime.fromMillisecondsSinceEpoch(0);
   late UndoList undoList;
 
   var hasWideDisplay = false;
@@ -70,6 +73,10 @@ class Structure extends ChangeNotifier {
       throw FormatException('Missing sections in file');
     }
     if (jsonData['usemarkdown'] != null) useMarkdownOutput = true;
+    var seconds = jsonData['properties']?['modtime'];
+    if (seconds != null) {
+      modTime = DateTime.fromMillisecondsSinceEpoch(seconds);
+    }
     if (autoChoiceFields.isNotEmpty) {
       for (var leaf in leafNodes) {
         for (var field in autoChoiceFields) {
@@ -123,15 +130,27 @@ class Structure extends ChangeNotifier {
     titleLine = ParsedLine('', fieldMap);
     outputLines.clear();
     useMarkdownOutput = false;
+    modTime = DateTime.fromMillisecondsSinceEpoch(0);
     undoList.clear();
   }
 
-  void saveFile() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  void saveFile({doModCheck = true}) async {
+    if (doModCheck) {
+      var fileModTime = await fileObject.fileModTime;
+      if (fileModTime.difference(modTime).inSeconds >= 60) {
+        // Throw prior to saving when file was externally modified.
+        // Uses a one minute difference to account for file system or
+        // network delays during the previous save.
+        var timeStr = DateFormat('MMM d, yyyy, h:mm a').format(fileModTime);
+        throw ExternalModException('Modified on $timeStr');
+      }
+    }
+    var packageInfo = await PackageInfo.fromPlatform();
+    modTime = DateTime.now();
     var jsonData = <String, dynamic>{
       'properties': {
         'ttversion': packageInfo.version,
-        'modtime': DateTime.now().millisecondsSinceEpoch,
+        'modtime': modTime.millisecondsSinceEpoch,
       },
     };
     jsonData['template'] = await [for (var root in rootNodes) root.toJson()];
@@ -1164,4 +1183,16 @@ Iterable<LeveledNode> storedNodeGenerator(Node node, {int level = 0}) sync* {
   for (var child in node.storedChildren()) {
     yield* storedNodeGenerator(child, level: level + 1);
   }
+}
+
+/// An exception thrown prior to saving files that were externally modified.
+///
+/// This is caught at the top level.
+class ExternalModException extends IOException {
+  final String? msg;
+
+  ExternalModException([this.msg]);
+
+  @override
+  String toString() => msg ?? 'ExternalModException';
 }

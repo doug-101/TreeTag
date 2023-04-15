@@ -28,7 +28,8 @@ abstract class IOFile {
   String get extension => p.extension(filename);
   String get fullPath;
   Future<int> get fileSize;
-  Future<DateTime> get lastModified;
+  Future<DateTime> get dataModTime;
+  Future<DateTime> get fileModTime;
   Future<bool> get exists;
 
   Future<Map<String, dynamic>> readJson();
@@ -75,18 +76,24 @@ class LocalFile extends IOFile {
     return stat.size;
   }
 
+  /// Returns the modified time stored in the file's data.
   @override
-  Future<DateTime> get lastModified async {
+  Future<DateTime> get dataModTime async {
     var data = json.decode(await File(fullPath).readAsString());
     var seconds = data['properties']?['modtime'];
     DateTime time;
     if (seconds != null) {
       time = DateTime.fromMillisecondsSinceEpoch(seconds);
     } else {
+      // Fall back to file system modified time if necessary.
       time = await File(fullPath).lastModified();
     }
     return time;
   }
+
+  /// Returns the file system modified time (quicker than reading whole file).
+  @override
+  Future<DateTime> get fileModTime async => await File(fullPath).lastModified();
 
   @override
   Future<bool> get exists async => await File(fullPath).exists();
@@ -216,8 +223,9 @@ class NetworkFile extends IOFile {
     return size ?? 0;
   }
 
+  /// Returns the modified time stored in the file's data.
   @override
-  Future<DateTime> get lastModified async {
+  Future<DateTime> get dataModTime async {
     int? seconds;
     // Use filter on 'modtime' filter to avoid retrieving entire file.
     var resp = await http.get(Uri.parse(recordPath + '?has_modtime=true'),
@@ -234,6 +242,19 @@ class NetworkFile extends IOFile {
           seconds = json.decode(resp.body)['data']['last_modified'];
         }
       }
+      if (seconds != null) {
+        return DateTime.fromMillisecondsSinceEpoch(seconds);
+      }
+    }
+    throw HttpException(resp.reasonPhrase ?? '');
+  }
+
+  /// Returns the Kinto network's modified time (quicker than reading JSON?)
+  @override
+  Future<DateTime> get fileModTime async {
+    var resp = await http.get(Uri.parse(fullPath), headers: _networkHeader());
+    if (resp.statusCode == 200) {
+      var seconds = json.decode(resp.body)['data']['last_modified'];
       if (seconds != null) {
         return DateTime.fromMillisecondsSinceEpoch(seconds);
       }

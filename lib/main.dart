@@ -103,7 +103,51 @@ Future<void> main() async {
               actions: <Widget>[
                 TextButton(
                   child: const Text('OK'),
-                  onPressed: () => Navigator.pop(context, true),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      return true;
+    } else if (error is ExternalModException) {
+      navigatorKey.currentState!.push(
+        MaterialPageRoute(
+          builder: (context) {
+            var model = Provider.of<Structure>(context, listen: false);
+            return AlertDialog(
+              title: Text('Warning'),
+              content:
+                  Text('This file appears to have been externally modified.'
+                      '\n${error.toString()}'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('RELOAD'),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    try {
+                      await model.openFile(model.fileObject);
+                      model.notifyListeners();
+                    } on IOException catch (e) {
+                      await commonDialogs.okDialog(
+                        context: context,
+                        title: 'Error',
+                        label: 'Could not read file: '
+                            '${model.fileObject.nameNoExtension}\n$e',
+                        isDissmissable: false,
+                      );
+                    }
+                  },
+                ),
+                TextButton(
+                  child: const Text('OVERWRITE'),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    model.saveFile(doModCheck: false);
+                  },
                 ),
               ],
             );
