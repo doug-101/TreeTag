@@ -135,14 +135,20 @@ class Structure extends ChangeNotifier {
   }
 
   void saveFile({doModCheck = true}) async {
+    // Prior to saving, check for files that were externally modified.
     if (doModCheck) {
       var fileModTime = await fileObject.fileModTime;
+      // Quickly check based on file's system modified time.
+      // Uses a one minute difference to account for file system or
+      // network delays during the previous save.
       if (fileModTime.difference(modTime).inSeconds >= 60) {
-        // Throw prior to saving when file was externally modified.
-        // Uses a one minute difference to account for file system or
-        // network delays during the previous save.
-        var timeStr = DateFormat('MMM d, yyyy, h:mm a').format(fileModTime);
-        throw ExternalModException('Modified on $timeStr');
+        // Do a slower data time check to avoid false positives due to copies
+        // or other file system changes.
+        var dataModTime = await fileObject.dataModTime;
+        if (dataModTime.difference(modTime).inSeconds >= 60) {
+          var timeStr = DateFormat('MMM d, yyyy, h:mm a').format(fileModTime);
+          throw ExternalModException('Modified on $timeStr');
+        }
       }
     }
     var packageInfo = await PackageInfo.fromPlatform();
