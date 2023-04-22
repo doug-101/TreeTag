@@ -23,7 +23,7 @@ class Structure extends ChangeNotifier {
   final leafNodes = <LeafNode>[];
 
   /// The node series currently shown in the [DetailView].
-  final detailViewNodes = <Node>[];
+  final detailViewRecords = <DetailViewRecord>[];
 
   /// Rencently deleted nodes, used by [DetailView] to label old pages.
   final obsoleteNodes = <Node>{};
@@ -124,7 +124,7 @@ class Structure extends ChangeNotifier {
   void clearModel() {
     rootNodes.clear();
     leafNodes.clear();
-    detailViewNodes.clear();
+    detailViewRecords.clear();
     obsoleteNodes.clear();
     fieldMap.clear();
     titleLine = ParsedLine('', fieldMap);
@@ -171,19 +171,19 @@ class Structure extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Open the first immediate parent of a given [LeafNode].
+  /// Open and return the first immediate parent of a given [LeafNode].
   ///
-  /// Called from [SearchView], starts from the [currentDetailViewNode]
-  /// if defined.
-  void openLeafParent(LeafNode targetNode) {
-    var startNodes = rootNodes;
-    var detailViewNode = currentDetailViewNode();
-    if (detailViewNode != null) startNodes = [detailViewNode];
+  /// Starts from [startNode] if given, else starts from the [rootNodes].
+  /// Called from [SearchView] and from the updateAllChildren member below.
+  Node? openLeafParent(LeafNode targetNode, {Node? startNode}) {
+    var startNodes = startNode != null ? [startNode] : rootNodes;
     var parentMatch = _parentOfMatch(startNodes, targetNode);
-    while (parentMatch != null) {
-      parentMatch.isOpen = true;
-      parentMatch = parentMatch.parent;
+    var parent = parentMatch;
+    while (parent != null) {
+      parent.isOpen = true;
+      parent = parent.parent;
     }
+    return parentMatch;
   }
 
   // Return the first immediate parent matching the given [LeafNode].
@@ -206,29 +206,33 @@ class Structure extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Return the last node in [detailViewNodes] or null if none present.
+  /// Return the last node in [detailViewRecords] or null if none present.
   Node? currentDetailViewNode() {
-    if (detailViewNodes.isNotEmpty) return detailViewNodes.last;
+    if (detailViewRecords.isNotEmpty) return detailViewRecords.last.node;
     return null;
   }
 
-  /// Remove the last node in [detailViewNodes] and do an update.
+  /// Remove the last node in [detailViewRecords] and do an update.
   ///
   /// Return true if at least one node remains.
-  bool removeDetailViewNode() {
-    if (detailViewNodes.isNotEmpty) {
-      detailViewNodes.removeLast();
+  bool removeDetailViewRecord() {
+    if (detailViewRecords.isNotEmpty) {
+      detailViewRecords.removeLast();
       notifyListeners();
     }
-    return detailViewNodes.isNotEmpty;
+    return detailViewRecords.isNotEmpty;
   }
 
-  /// Add a child to [detailViewNodes] and do an update if [doUpdate].
-  void addDetailViewNode(Node node,
-      {bool doClearFirst = false, bool doUpdate = true}) {
-    if (doClearFirst) detailViewNodes.clear();
-    detailViewNodes.add(node);
-    if (doUpdate) notifyListeners();
+  /// Add a child to [detailViewRecords] and do an update.
+  void addDetailViewRecord(Node node,
+      {Node? parent, bool doClearFirst = false}) {
+    if (doClearFirst) detailViewRecords.clear();
+    // Only stores the parent for leaves (other nodes have parent member).
+    detailViewRecords.add(DetailViewRecord(
+      node,
+      node is LeafNode && parent is GroupNode ? parent as GroupNode : null,
+    ));
+    notifyListeners();
   }
 
   /// Return nodes from [availableNodes] that match the [searchTerms].
@@ -1104,7 +1108,8 @@ class Structure extends ChangeNotifier {
     obsoleteNodes.clear();
     var viewAncestors = <Node>{};
     // Find ancestors from detail views for update even if closed.
-    for (var node in detailViewNodes) {
+    for (var record in detailViewRecords) {
+      var node = record.node;
       viewAncestors.add(node);
       while (node.parent != null) {
         node = node.parent!;
@@ -1115,10 +1120,24 @@ class Structure extends ChangeNotifier {
       updateChildren(root,
           forceUpdate: forceUpdate, extraUpdates: viewAncestors);
     }
+    // Check whether the position of the current detail node has changed.
+    if (detailViewRecords.isNotEmpty) {
+      var record = detailViewRecords.last;
+      if (record.parent != null &&
+          !record.parent!.matchingNodes.contains(record.node)) {
+        // The parent at the new position should be opened.
+        Node ancestor = record.parent!;
+        // Find the nearest [TitleNode] ancestor.
+        while (ancestor.parent != null && ancestor is! TitleNode) {
+          ancestor = ancestor.parent!;
+        }
+        openLeafParent(record.node as LeafNode, startNode: ancestor);
+      }
+    }
   }
 }
 
-/// Update the cildren of a given [node].
+/// Update the children of a given [node].
 void updateChildren(Node node,
     {bool forceUpdate = true, Set<Node> extraUpdates = const {}}) {
   if (node.isOpen || extraUpdates.contains(node)) {
@@ -1183,6 +1202,13 @@ Iterable<LeveledNode> storedNodeGenerator(Node node, {int level = 0}) sync* {
   for (var child in node.storedChildren()) {
     yield* storedNodeGenerator(child, level: level + 1);
   }
+}
+
+class DetailViewRecord {
+  final Node node;
+  final GroupNode? parent;
+
+  DetailViewRecord(this.node, [this.parent]);
 }
 
 /// An exception thrown prior to saving files that were externally modified.

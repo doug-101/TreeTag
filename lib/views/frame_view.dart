@@ -308,21 +308,22 @@ class FrameView extends StatelessWidget {
             leading: hasDetailViewOnly
                 ? BackButton(
                     onPressed: () {
-                      model.removeDetailViewNode();
+                      model.removeDetailViewRecord();
                     },
                   )
                 : null,
             actions: <Widget>[
-              if (model.hasWideDisplay && model.detailViewNodes.length > 1)
+              if (model.hasWideDisplay && model.detailViewRecords.length > 1)
                 BackButton(
                   onPressed: () {
-                    model.removeDetailViewNode();
+                    model.removeDetailViewRecord();
                   },
                 ),
               // Reserve space for hidden icons on wide display.
               if (model.hasWideDisplay && !isDetailLeafNode)
                 SizedBox(
-                  width: iconSize * (model.detailViewNodes.length > 1 ? 1 : 2),
+                  width:
+                      iconSize * (model.detailViewRecords.length > 1 ? 1 : 2),
                   height: 1.0,
                 ),
               if (!isDetailLeafNode)

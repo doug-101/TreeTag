@@ -78,7 +78,11 @@ class TreeView extends StatelessWidget {
           }
         },
         onLongPress: () {
-          model.addDetailViewNode(node, doClearFirst: true);
+          model.addDetailViewRecord(
+            node,
+            parent: leveledNode.parent,
+            doClearFirst: true,
+          );
         },
         child: Row(
           crossAxisAlignment: node.hasChildren

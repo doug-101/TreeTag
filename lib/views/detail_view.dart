@@ -88,7 +88,7 @@ class DetailView extends StatelessWidget {
                   child: InkWell(
                     // Add tapped child to view history and update this view.
                     onTap: () {
-                      model.addDetailViewNode(childNode);
+                      model.addDetailViewRecord(childNode, parent: rootNode);
                     },
                     child: Container(
                       margin: innerMargin,

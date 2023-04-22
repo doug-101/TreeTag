@@ -156,8 +156,15 @@ class _SearchViewState extends State<SearchView> {
     return WillPopScope(
       onWillPop: () async {
         if (selectedNodes.isNotEmpty) {
-          model.openLeafParent(selectedNodes.last);
-          model.addDetailViewNode(selectedNodes.last, doClearFirst: true);
+          var parent = model.openLeafParent(
+            selectedNodes.last,
+            startNode: model.currentDetailViewNode(),
+          );
+          model.addDetailViewRecord(
+            selectedNodes.last,
+            parent: parent,
+            doClearFirst: true,
+          );
         }
         return true;
       },
