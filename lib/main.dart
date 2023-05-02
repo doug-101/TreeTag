@@ -12,8 +12,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'model/io_file.dart';
-import 'model/structure.dart';
 import 'model/nodes.dart';
+import 'model/structure.dart';
+import 'model/theme_model.dart';
 import 'views/common_dialogs.dart' as commonDialogs;
 import 'views/detail_view.dart';
 import 'views/file_control.dart';
@@ -159,49 +160,49 @@ Future<void> main() async {
     return false;
   };
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => Structure(),
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        title: 'TreeTag',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: Colors.teal,
-          ).copyWith(
-            secondary: Colors.green,
-          ),
-          iconTheme: IconThemeData(color: Colors.green),
-        ),
-        initialRoute: '/fileControl',
-        onGenerateRoute: (settings) {
-          switch (settings.name) {
-            case '/fileControl':
-              return MaterialPageRoute(builder: (context) {
-                return FileControl();
-              });
-            case '/frameView':
-              final fileName = settings.arguments as String;
-              return MaterialPageRoute(builder: (context) {
-                return FrameView(fileRootName: fileName);
-              });
-            case '/treeView':
-              final fileName = settings.arguments as String;
-              return MaterialPageRoute(builder: (context) {
-                return TreeView(fileRootName: fileName);
-              });
-            case '/detailView':
-              return MaterialPageRoute(builder: (context) {
-                return DetailView();
-              });
-            case '/configView':
-              return MaterialPageRoute(builder: (context) {
-                return ConfigView();
-              });
-            case '/undoView':
-              return MaterialPageRoute(builder: (context) {
-                return UndoView();
-              });
-          }
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<Structure>(create: (_) => Structure()),
+        ChangeNotifierProvider<ThemeModel>(create: (_) => ThemeModel()),
+      ],
+      child: Consumer<ThemeModel>(
+        builder: (context, themeModel, child) {
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            title: 'TreeTag',
+            theme: themeModel.getTheme(),
+            initialRoute: '/fileControl',
+            onGenerateRoute: (settings) {
+              switch (settings.name) {
+                case '/fileControl':
+                  return MaterialPageRoute(builder: (context) {
+                    return FileControl();
+                  });
+                case '/frameView':
+                  final fileName = settings.arguments as String;
+                  return MaterialPageRoute(builder: (context) {
+                    return FrameView(fileRootName: fileName);
+                  });
+                case '/treeView':
+                  final fileName = settings.arguments as String;
+                  return MaterialPageRoute(builder: (context) {
+                    return TreeView(fileRootName: fileName);
+                  });
+                case '/detailView':
+                  return MaterialPageRoute(builder: (context) {
+                    return DetailView();
+                  });
+                case '/configView':
+                  return MaterialPageRoute(builder: (context) {
+                    return ConfigView();
+                  });
+                case '/undoView':
+                  return MaterialPageRoute(builder: (context) {
+                    return UndoView();
+                  });
+              }
+            },
+          );
         },
       ),
     ),

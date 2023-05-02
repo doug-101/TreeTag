@@ -178,7 +178,7 @@ class _SearchViewState extends State<SearchView> {
               child: Container(
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.background,
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Center(

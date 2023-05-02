@@ -16,9 +16,11 @@ const emptyName = '[Empty Title]';
 const _closedIcon = Icon(Icons.arrow_right, size: 24.0);
 const _openIcon = Icon(Icons.arrow_drop_down, size: 24.0);
 const _leafIcon = Icon(Icons.circle, size: 8.0);
-const _redClosedIcon = Icon(Icons.arrow_right, size: 24.0, color: Colors.red);
-const _redOpenIcon = Icon(Icons.arrow_drop_down, size: 24.0, color: Colors.red);
-const _redLeafIcon = Icon(Icons.circle, size: 8.0, color: Colors.red);
+const _activeClosedIcon =
+    Icon(Icons.arrow_right, size: 24.0, color: Colors.orange);
+const _activeOpenIcon =
+    Icon(Icons.arrow_drop_down, size: 24.0, color: Colors.orange);
+const _activeLeafIcon = Icon(Icons.circle, size: 8.0, color: Colors.orange);
 
 /// The main indented tree view.
 ///
@@ -93,13 +95,13 @@ class TreeView extends StatelessWidget {
             node.hasChildren
                 ? node.isOpen
                     ? isNodeSelected
-                        ? _redOpenIcon
+                        ? _activeOpenIcon
                         : _openIcon
                     : isNodeSelected
-                        ? _redClosedIcon
+                        ? _activeClosedIcon
                         : _closedIcon
                 : Padding(
-                    child: isNodeSelected ? _redLeafIcon : _leafIcon,
+                    child: isNodeSelected ? _activeLeafIcon : _leafIcon,
                     padding: EdgeInsets.only(left: 8.0, right: 8.0),
                   ),
             Expanded(

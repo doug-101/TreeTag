@@ -11,6 +11,7 @@ import 'common_dialogs.dart';
 import '../main.dart' show prefs, allowSaveWindowGeo, saveWindowGeo;
 import '../model/io_file.dart';
 import '../model/structure.dart';
+import '../model/theme_model.dart';
 
 /// A user settings view.
 class SettingEdit extends StatefulWidget {
@@ -154,6 +155,15 @@ class _SettingEditState extends State<SettingEdit> {
                 },
               ),
               BoolFormField(
+                initialValue: prefs.getBool('enablespellcheck') ?? true,
+                heading: 'Enable Editor Spell Check',
+                onSaved: (bool? value) async {
+                  if (value != null) {
+                    await prefs.setBool('enablespellcheck', value);
+                  }
+                },
+              ),
+              BoolFormField(
                 initialValue: prefs.getBool('linespacing') ??
                     (Platform.isLinux ||
                         Platform.isWindows ||
@@ -168,11 +178,13 @@ class _SettingEditState extends State<SettingEdit> {
                 },
               ),
               BoolFormField(
-                initialValue: prefs.getBool('enablespellcheck') ?? true,
-                heading: 'Enable Editor Spell Check',
+                initialValue: prefs.getBool('darktheme') ?? false,
+                heading: 'Use Dark Color Theme',
                 onSaved: (bool? value) async {
                   if (value != null) {
-                    await prefs.setBool('enablespellcheck', value);
+                    await prefs.setBool('darktheme', value);
+                    Provider.of<ThemeModel>(context, listen: false)
+                        .updateTheme();
                   }
                 },
               ),
