@@ -58,11 +58,11 @@ Future<void> main() async {
     double? offsetX, offsetY;
     if (prefs.getBool('savewindowgeo') ?? true) {
       size = Size(
-        await prefs.getDouble('winsizex') ?? 800.0,
-        await prefs.getDouble('winsizey') ?? 600.0,
+        prefs.getDouble('winsizex') ?? 800.0,
+        prefs.getDouble('winsizey') ?? 600.0,
       );
-      offsetX = await prefs.getDouble('winposx');
-      offsetY = await prefs.getDouble('winposy');
+      offsetX = prefs.getDouble('winposx');
+      offsetY = prefs.getDouble('winposy');
     }
     // Setting the size twice (early and later) to work around linux problems.
     await windowManager.setSize(size);
@@ -167,41 +167,49 @@ Future<void> main() async {
       ],
       child: Consumer<ThemeModel>(
         builder: (context, themeModel, child) {
-          return MaterialApp(
-            navigatorKey: navigatorKey,
-            title: 'TreeTag',
-            theme: themeModel.getTheme(),
-            initialRoute: '/fileControl',
-            onGenerateRoute: (settings) {
-              switch (settings.name) {
-                case '/fileControl':
-                  return MaterialPageRoute(builder: (context) {
-                    return FileControl();
-                  });
-                case '/frameView':
-                  final fileName = settings.arguments as String;
-                  return MaterialPageRoute(builder: (context) {
-                    return FrameView(fileRootName: fileName);
-                  });
-                case '/treeView':
-                  final fileName = settings.arguments as String;
-                  return MaterialPageRoute(builder: (context) {
-                    return TreeView(fileRootName: fileName);
-                  });
-                case '/detailView':
-                  return MaterialPageRoute(builder: (context) {
-                    return DetailView();
-                  });
-                case '/configView':
-                  return MaterialPageRoute(builder: (context) {
-                    return ConfigView();
-                  });
-                case '/undoView':
-                  return MaterialPageRoute(builder: (context) {
-                    return UndoView();
-                  });
-              }
-            },
+          var ratio = prefs.getDouble('viewscale') ?? 1.0;
+          return FractionallySizedBox(
+            widthFactor: 1 / ratio,
+            heightFactor: 1 / ratio,
+            child: Transform.scale(
+              scale: ratio,
+              child: MaterialApp(
+                navigatorKey: navigatorKey,
+                title: 'TreeTag',
+                theme: themeModel.getTheme(),
+                initialRoute: '/fileControl',
+                onGenerateRoute: (settings) {
+                  switch (settings.name) {
+                    case '/fileControl':
+                      return MaterialPageRoute(builder: (context) {
+                        return FileControl();
+                      });
+                    case '/frameView':
+                      final fileName = settings.arguments as String;
+                      return MaterialPageRoute(builder: (context) {
+                        return FrameView(fileRootName: fileName);
+                      });
+                    case '/treeView':
+                      final fileName = settings.arguments as String;
+                      return MaterialPageRoute(builder: (context) {
+                        return TreeView(fileRootName: fileName);
+                      });
+                    case '/detailView':
+                      return MaterialPageRoute(builder: (context) {
+                        return DetailView();
+                      });
+                    case '/configView':
+                      return MaterialPageRoute(builder: (context) {
+                        return ConfigView();
+                      });
+                    case '/undoView':
+                      return MaterialPageRoute(builder: (context) {
+                        return UndoView();
+                      });
+                  }
+                },
+              ),
+            ),
           );
         },
       ),

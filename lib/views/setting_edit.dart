@@ -201,6 +201,29 @@ class _SettingEditState extends State<SettingEdit> {
                   },
                 ),
               TextFormField(
+                initialValue: (prefs.getDouble('viewscale') ?? 1.0).toString(),
+                decoration: const InputDecoration(
+                  labelText: 'App view scale ratio',
+                ),
+                validator: (String? value) {
+                  if (value != null && value.isNotEmpty) {
+                    if (double.tryParse(value) == null) {
+                      return 'Must be an number';
+                    }
+                    var scale = double.parse(value);
+                    if (scale > 5.0 || scale < 0.2) {
+                      return 'Valid range is 0.2 to 5.0';
+                    }
+                  }
+                  return null;
+                },
+                onSaved: (String? value) async {
+                  if (value != null && value.isNotEmpty) {
+                    await prefs.setDouble('viewscale', double.parse(value));
+                  }
+                },
+              ),
+              TextFormField(
                 initialValue: (prefs.getInt('undodays') ?? 7).toString(),
                 decoration: const InputDecoration(
                   labelText: 'Days to Store Undo History',
@@ -214,7 +237,7 @@ class _SettingEditState extends State<SettingEdit> {
                   return null;
                 },
                 onSaved: (String? value) async {
-                  if (value != null) {
+                  if (value != null && value.isNotEmpty) {
                     await prefs.setInt('undodays', int.parse(value));
                   }
                 },
