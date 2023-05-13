@@ -7,7 +7,7 @@ import 'dart:convert' show json;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_selectionarea/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'common_dialogs.dart' as commonDialogs;

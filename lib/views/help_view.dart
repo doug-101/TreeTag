@@ -6,7 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_selectionarea/flutter_markdown.dart';
 
 /// Provides a view with Markdown output of the README file.
 class HelpView extends StatefulWidget {
@@ -34,16 +34,18 @@ class _HelpViewState extends State<HelpView> {
       appBar: AppBar(
         title: const Text('Help - TreeTag'),
       ),
-      body: Markdown(
-        data: _helpContent,
-        onTapLink: (String text, String? href, String title) async {
-          if (href != null) {
-            launchUrl(
-              Uri.parse(href),
-              mode: LaunchMode.externalApplication,
-            );
-          }
-        },
+      body: SelectionArea(
+        child: Markdown(
+          data: _helpContent,
+          onTapLink: (String text, String? href, String title) async {
+            if (href != null) {
+              launchUrl(
+                Uri.parse(href),
+                mode: LaunchMode.externalApplication,
+              );
+            }
+          },
+        ),
       ),
     );
   }
