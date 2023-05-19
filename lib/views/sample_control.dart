@@ -32,7 +32,7 @@ class _SampleControlState extends State<SampleControl> {
 
   /// Load the sample file list from the resources.
   void _loadSampleList() async {
-    var manifestContent = await rootBundle.loadString('AssetManifest.json');
+    final manifestContent = await rootBundle.loadString('AssetManifest.json');
     final Map<String, dynamic> manifestMap = json.decode(manifestContent);
     _samplePaths = List.of(
         manifestMap.keys.where((path) => path.startsWith('assets/samples')));
@@ -41,12 +41,12 @@ class _SampleControlState extends State<SampleControl> {
 
   /// Open a sample file after a user tap.
   void _openSample(String path) async {
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
 
-    var newFile = IOFile.currentType(p.basename(path));
+    final newFile = IOFile.currentType(p.basename(path));
     if (await newFile.exists) {
       // Handle a sample already in the working directory.
-      var ans = await commonDialogs.okCancelDialog(
+      final ans = await commonDialogs.okCancelDialog(
         context: context,
         title: 'Working File Exists',
         label: 'Working file ${newFile.filename} already exists.\n\n'
@@ -66,7 +66,7 @@ class _SampleControlState extends State<SampleControl> {
         return;
       }
     } else {
-      var data = await rootBundle.loadString(path);
+      final data = await rootBundle.loadString(path);
       model.openFromData(json.decode(data));
       model.fileObject = newFile;
     }

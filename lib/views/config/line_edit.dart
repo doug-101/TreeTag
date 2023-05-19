@@ -1,6 +1,6 @@
 // line_edit.dart, a view to edit an output field line or a rule field line.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:ui' show PointerDeviceKind;
@@ -32,7 +32,7 @@ class _LineEditState extends State<LineEdit> {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
         TextStyle(color: Theme.of(context).colorScheme.secondary);
     return Scaffold(
@@ -73,14 +73,14 @@ class _LineEditState extends State<LineEdit> {
                     onSelected: (result) async {
                       LineSegment? newSegment;
                       if (result == 'add text') {
-                        var text = await commonDialogs.textDialog(
+                        final text = await commonDialogs.textDialog(
                           context: context,
                           title: 'Title Name',
                           label: 'Segment Text',
                         );
                         if (text != null) newSegment = LineSegment(text: text);
                       } else {
-                        var field = model.fieldMap[result];
+                        final field = model.fieldMap[result];
                         if (field != null)
                           newSegment = LineSegment(field: field);
                       }
@@ -121,7 +121,7 @@ class _LineEditState extends State<LineEdit> {
                                 altField = altField.createAltFormatField();
                                 altCreated = true;
                               }
-                              var fieldIsChanged = await Navigator.push(
+                              final fieldIsChanged = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
@@ -145,7 +145,7 @@ class _LineEditState extends State<LineEdit> {
                                     .removeAltFormatField(altField);
                               }
                             } else {
-                              var text = await commonDialogs.textDialog(
+                              final text = await commonDialogs.textDialog(
                                 context: context,
                                 initText: _selectedSegment!.text!,
                                 title: 'Title Name',
@@ -183,7 +183,7 @@ class _LineEditState extends State<LineEdit> {
                                 0)
                         ? null
                         : () {
-                            var pos =
+                            final pos =
                                 widget.line.segments.indexOf(_selectedSegment!);
                             setState(() {
                               widget.line.segments.removeAt(pos);
@@ -201,7 +201,7 @@ class _LineEditState extends State<LineEdit> {
                                 widget.line.segments.length - 1)
                         ? null
                         : () {
-                            var pos =
+                            final pos =
                                 widget.line.segments.indexOf(_selectedSegment!);
                             setState(() {
                               widget.line.segments.removeAt(pos);

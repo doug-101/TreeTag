@@ -1,6 +1,6 @@
 // fields.dart, defines field types and operations in the model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
@@ -61,7 +61,6 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
       case 'LongText':
         newField = LongTextField(
           name: name,
@@ -69,7 +68,6 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
       case 'Choice':
         newField = ChoiceField(
           name: name,
@@ -78,7 +76,6 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
       case 'AutoChoice':
         newField = AutoChoiceField(
           name: name,
@@ -86,7 +83,6 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
       case 'Number':
         newField = NumberField(
           name: name,
@@ -95,7 +91,6 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
       case 'Date':
         newField = DateField(
           name: name,
@@ -104,7 +99,6 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
       case 'Time':
         newField = TimeField(
           name: name,
@@ -113,7 +107,6 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
       default:
         newField = RegTextField(
           name: name,
@@ -121,13 +114,12 @@ abstract class Field {
           prefix: prefix,
           suffix: suffix,
         );
-        break;
     }
     return newField;
   }
 
   factory Field.fromJson(Map<String, dynamic> jsonData) {
-    var newField = Field.createField(
+    final newField = Field.createField(
       name: jsonData['fieldname'] ?? '',
       fieldType: jsonData['fieldtype'] ?? 'Text',
       format: jsonData['format'] ?? '',
@@ -157,7 +149,7 @@ abstract class Field {
   ///
   /// Keeps the [_altFormatField]; does not make a deep copy
   factory Field.copy(Field origField) {
-    var newField = Field.createField(
+    final newField = Field.createField(
       name: origField.name,
       fieldType: origField.fieldType,
       format: origField.format,
@@ -204,7 +196,7 @@ abstract class Field {
 
   /// Return text used in node titles and output lines.
   String outputText(LeafNode node) {
-    var storedText = node.data[name] ?? '';
+    final storedText = node.data[name] ?? '';
     if (storedText.isEmpty) return '';
     return _formatOutput(storedText);
   }
@@ -238,13 +230,13 @@ abstract class Field {
   ///
   /// Overridden by other field types with more specific sorting keys.
   int compareNodes(Node firstNode, Node secondNode) {
-    var firstValue = firstNode.data[name]?.toLowerCase() ?? '';
-    var secondValue = secondNode.data[name]?.toLowerCase() ?? '';
+    final firstValue = firstNode.data[name]?.toLowerCase() ?? '';
+    final secondValue = secondNode.data[name]?.toLowerCase() ?? '';
     return firstValue.compareTo(secondValue);
   }
 
   Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{'fieldname': name, 'fieldtype': fieldType};
+    final result = <String, dynamic>{'fieldname': name, 'fieldtype': fieldType};
     if (format.isNotEmpty) result['format'] = format;
     if (initValue.isNotEmpty) result['initvalue'] = initValue;
     if (prefix.isNotEmpty) result['prefix'] = prefix;
@@ -288,7 +280,7 @@ abstract class Field {
 
   /// Create a new [_altFormatFields] based on this parent field's settings.
   Field createAltFormatField() {
-    var altField = Field.createField(
+    final altField = Field.createField(
         name: name,
         fieldType: fieldType,
         format: format,
@@ -303,7 +295,7 @@ abstract class Field {
 
   void removeAltFormatField(Field altField) {
     _altFormatFields.remove(altField);
-    for (int i = 0; i < _altFormatFields.length; i++) {
+    for (var i = 0; i < _altFormatFields.length; i++) {
       _altFormatFields[i]._altFormatNumber = i;
     }
   }
@@ -311,7 +303,7 @@ abstract class Field {
   /// Remove any [_altFormatFields] not contained in [usedFields].
   void removeUnusedAltFormatFields(Set<Field> usedFields) {
     _altFormatFields.retainWhere((field) => usedFields.contains(field));
-    for (int i = 0; i < _altFormatFields.length; i++) {
+    for (var i = 0; i < _altFormatFields.length; i++) {
       _altFormatFields[i]._altFormatNumber = i;
     }
   }
@@ -385,7 +377,7 @@ class ChoiceField extends Field {
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    var storedText = node.data[name] ?? '';
+    final storedText = node.data[name] ?? '';
     return storedText.isEmpty || splitChoiceFormat(format).contains(storedText);
   }
 
@@ -438,13 +430,13 @@ class NumberField extends Field {
 
   @override
   String _formatOutput(String storedText) {
-    var numValue = num.parse(storedText);
+    final numValue = num.parse(storedText);
     return NumberFormat(format).format(numValue);
   }
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    var storedText = node.data[name] ?? '';
+    final storedText = node.data[name] ?? '';
     return storedText.isEmpty || num.tryParse(storedText) != null;
   }
 
@@ -457,8 +449,8 @@ class NumberField extends Field {
 
   @override
   int compareNodes(Node firstNode, Node secondNode) {
-    var firstValue = num.parse(firstNode.data[name] ?? '0');
-    var secondValue = num.parse(secondNode.data[name] ?? '0');
+    final firstValue = num.parse(firstNode.data[name] ?? '0');
+    final secondValue = num.parse(secondNode.data[name] ?? '0');
     return firstValue.compareTo(secondValue);
   }
 }
@@ -487,8 +479,8 @@ class DateField extends Field {
 
   @override
   String _formatOutput(String storedText) {
-    var date = _parseStored(storedText);
-    var dateString = DateFormat(format).format(date);
+    final date = _parseStored(storedText);
+    final dateString = DateFormat(format).format(date);
     return prefix + dateString + suffix;
   }
 
@@ -501,7 +493,7 @@ class DateField extends Field {
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    var storedText = node.data[name] ?? '';
+    final storedText = node.data[name] ?? '';
     try {
       if (storedText.isNotEmpty) DateFormat('yyyy-MM-dd').parse(storedText);
     } on FormatException {
@@ -512,8 +504,8 @@ class DateField extends Field {
 
   @override
   int compareNodes(Node firstNode, Node secondNode) {
-    var firstValue = _parseStored(firstNode.data[name] ?? '0001-01-01');
-    var secondValue = _parseStored(secondNode.data[name] ?? '0001-01-01');
+    final firstValue = _parseStored(firstNode.data[name] ?? '0001-01-01');
+    final secondValue = _parseStored(secondNode.data[name] ?? '0001-01-01');
     return firstValue.compareTo(secondValue);
   }
 }
@@ -542,8 +534,8 @@ class TimeField extends Field {
 
   @override
   String _formatOutput(String storedText) {
-    var time = _parseStored(storedText);
-    var timeString = DateFormat(format).format(time);
+    final time = _parseStored(storedText);
+    final timeString = DateFormat(format).format(time);
     return prefix + timeString + suffix;
   }
 
@@ -556,7 +548,7 @@ class TimeField extends Field {
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    var storedText = node.data[name] ?? '';
+    final storedText = node.data[name] ?? '';
     try {
       if (storedText.isNotEmpty) DateFormat('HH:mm:ss.S').parse(storedText);
     } on FormatException {
@@ -567,8 +559,8 @@ class TimeField extends Field {
 
   @override
   int compareNodes(Node firstNode, Node secondNode) {
-    var firstValue = _parseStored(firstNode.data[name] ?? '00:00:00.000');
-    var secondValue = _parseStored(secondNode.data[name] ?? '00:00:00.000');
+    final firstValue = _parseStored(firstNode.data[name] ?? '00:00:00.000');
+    final secondValue = _parseStored(secondNode.data[name] ?? '00:00:00.000');
     return firstValue.compareTo(secondValue);
   }
 }

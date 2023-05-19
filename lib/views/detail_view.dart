@@ -26,17 +26,17 @@ class DetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var innerMargin = (prefs.getBool('linespacing') ??
+    final innerMargin = (prefs.getBool('linespacing') ??
             Platform.isLinux || Platform.isWindows || Platform.isMacOS)
         ? const EdgeInsets.symmetric(vertical: 4, horizontal: 10)
         : const EdgeInsets.all(10.0);
-    var outerMargin = (prefs.getBool('linespacing') ??
+    final outerMargin = (prefs.getBool('linespacing') ??
             Platform.isLinux || Platform.isWindows || Platform.isMacOS)
         ? const EdgeInsets.symmetric(vertical: 3, horizontal: 5)
         : const EdgeInsets.all(5.0);
     return Consumer<Structure>(
       builder: (context, model, child) {
-        var outWidget = model.useMarkdownOutput
+        final outWidget = model.useMarkdownOutput
             ? ((String s) {
                 return MarkdownBody(
                   data: s,
@@ -53,9 +53,9 @@ class DetailView extends StatelessWidget {
             : ((String s) {
                 return Text(s);
               });
-        var lineEnd = model.useMarkdownOutput ? '\n\n' : '\n';
-        var rootNode = model.currentDetailViewNode();
-        var cards = <Widget>[];
+        final lineEnd = model.useMarkdownOutput ? '\n\n' : '\n';
+        final rootNode = model.currentDetailViewNode();
+        final cards = <Widget>[];
         if (rootNode != null) {
           if (model.obsoleteNodes.contains(rootNode)) {
             cards.add(

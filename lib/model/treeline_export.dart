@@ -1,6 +1,6 @@
 // treeline_export.dart, translations to export a tree to a TreeLine file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show HtmlEscape, HtmlEscapeMode;
@@ -27,10 +27,10 @@ class TreeLineExport {
       'titleline': '{*Title*}',
       'outputlines': ['{*Title*}'],
     };
-    var fieldData = <Map<String, dynamic>>[];
-    var textFields = <String>[];
+    final fieldData = <Map<String, dynamic>>[];
+    final textFields = <String>[];
     for (var field in model.fieldMap.values) {
-      var data = field.toJson();
+      final data = field.toJson();
       if (field.fieldType == 'LongText') {
         data['fieldtype'] = 'Text';
       } else if (field.fieldType == 'Date') {
@@ -45,7 +45,7 @@ class TreeLineExport {
       if (data['fieldtype'] == 'Text') textFields.add(field.name);
       fieldData.add(data);
     }
-    var leafFormat = <String, dynamic>{
+    final leafFormat = <String, dynamic>{
       'formatname': 'LEAF',
       'fields': fieldData,
       'titleline': model.titleLine.getUnparsedLine(),
@@ -53,18 +53,18 @@ class TreeLineExport {
         for (var line in model.outputLines) line.getUnparsedLine()
       ],
     };
-    var uuid = Uuid();
-    var nodeIDs = <Node, String>{};
+    final uuid = Uuid();
+    final nodeIDs = <Node, String>{};
     for (var root in model.rootNodes) {
       for (var node in allNodeGenerator(root)) {
         nodeIDs.putIfAbsent(node, () => uuid.v1().replaceAll('-', ''));
       }
     }
-    var nodeData = <Map<String, dynamic>>[];
-    var htmlEscape = HtmlEscape(HtmlEscapeMode.attribute);
+    final nodeData = <Map<String, dynamic>>[];
+    final htmlEscape = HtmlEscape(HtmlEscapeMode.attribute);
     for (var entry in nodeIDs.entries) {
-      var node = entry.key;
-      var uid = entry.value;
+      final node = entry.key;
+      final uid = entry.value;
       Map<String, String> data;
       if (node is LeafNode) {
         data = Map.of(node.data);
@@ -82,7 +82,7 @@ class TreeLineExport {
         'children': [for (var child in node.childNodes()) nodeIDs[child]],
       });
     }
-    var topNodes = [for (var node in model.rootNodes) nodeIDs[node]];
+    final topNodes = [for (var node in model.rootNodes) nodeIDs[node]];
     return <String, dynamic>{
       'formats': [headingFormat, leafFormat],
       'nodes': nodeData,
@@ -106,10 +106,10 @@ String _adjustDateFormat(String origFormat) {
     'EEE': '%a',
     'D': '%-j',
   };
-  var result = StringBuffer();
+  final result = StringBuffer();
   for (var segment in parseFieldFormat(origFormat, dateFormatMap)) {
     if (segment.formatCode != null) {
-      var replace = replacements[segment.formatCode];
+      final replace = replacements[segment.formatCode];
       if (replace != null) result.write(replace);
     } else if (segment.extraText != null) {
       result.write(segment.extraText);
@@ -132,10 +132,10 @@ String _adjustTimeFormat(String origFormat) {
     'S': '%f',
     'a': '%p',
   };
-  var result = StringBuffer();
+  final result = StringBuffer();
   for (var segment in parseFieldFormat(origFormat, timeFormatMap)) {
     if (segment.formatCode != null) {
-      var replace = replacements[segment.formatCode];
+      final replace = replacements[segment.formatCode];
       if (replace != null) result.write(replace);
     } else if (segment.extraText != null) {
       result.write(segment.extraText);

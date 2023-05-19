@@ -45,7 +45,7 @@ abstract class IOFile {
       if (this is LocalFile && toFile is LocalFile) {
         await File(fullPath).copy(toFile.fullPath);
       } else {
-        var data = await readJson();
+        final data = await readJson();
         await toFile.writeJson(data);
       }
     } on FormatException catch (e) {
@@ -79,8 +79,8 @@ class LocalFile extends IOFile {
   /// Returns the modified time stored in the file's data.
   @override
   Future<DateTime> get dataModTime async {
-    var data = json.decode(await File(fullPath).readAsString());
-    var seconds = data['properties']?['modtime'];
+    final data = json.decode(await File(fullPath).readAsString());
+    final seconds = data['properties']?['modtime'];
     DateTime time;
     if (seconds != null) {
       time = DateTime.fromMillisecondsSinceEpoch(seconds);
@@ -114,7 +114,7 @@ class LocalFile extends IOFile {
   /// Raises a [SaveException] on error, caught in main source file.
   @override
   Future<void> writeJson(Map<String, dynamic> data) async {
-    var dataString = json.encode(data);
+    final dataString = json.encode(data);
     try {
       await File(fullPath).writeAsString(dataString);
     } on IOException catch (e) {
@@ -149,7 +149,7 @@ class LocalFile extends IOFile {
   /// Rename this object on disk.
   @override
   Future<void> rename(String newName) async {
-    var newFile = LocalFile(newName);
+    final newFile = LocalFile(newName);
     await File(fullPath).rename(newFile.fullPath);
   }
 
@@ -161,7 +161,7 @@ class LocalFile extends IOFile {
 
   /// Return a directory listing of file objects.
   static Future<List<IOFile>> fileList() async {
-    var fileList = <LocalFile>[];
+    final fileList = <LocalFile>[];
     await for (var entity in Directory(prefs.getString('workdir')!).list()) {
       if (entity != null && entity is File) {
         var baseName = p.basename(entity.path);
@@ -212,10 +212,10 @@ class NetworkFile extends IOFile {
   Future<int> get fileSize async {
     int? size;
     // Use filter on 'filesize' filter to avoid retrieving entire file.
-    var resp = await http.get(Uri.parse(recordPath + '?has_filesize=true'),
+    final resp = await http.get(Uri.parse(recordPath + '?has_filesize=true'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
-      var data = json.decode(resp.body)['data'];
+      final data = json.decode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
         size = data[0]['filesize'];
       }
@@ -231,7 +231,7 @@ class NetworkFile extends IOFile {
     var resp = await http.get(Uri.parse(recordPath + '?has_modtime=true'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
-      var data = json.decode(resp.body)['data'];
+      final data = json.decode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
         seconds = data[0]['modtime'];
       }
@@ -252,9 +252,9 @@ class NetworkFile extends IOFile {
   /// Returns the Kinto network's modified time (quicker than reading JSON?)
   @override
   Future<DateTime> get fileModTime async {
-    var resp = await http.get(Uri.parse(fullPath), headers: _networkHeader());
+    final resp = await http.get(Uri.parse(fullPath), headers: _networkHeader());
     if (resp.statusCode == 200) {
-      var seconds = json.decode(resp.body)['data']['last_modified'];
+      final seconds = json.decode(resp.body)['data']['last_modified'];
       if (seconds != null) {
         return DateTime.fromMillisecondsSinceEpoch(seconds);
       }
@@ -265,7 +265,8 @@ class NetworkFile extends IOFile {
   @override
   Future<bool> get exists async {
     try {
-      var resp = await http.get(Uri.parse(fullPath), headers: _networkHeader());
+      final resp =
+          await http.get(Uri.parse(fullPath), headers: _networkHeader());
       return resp.statusCode == 200;
     } on IOException {
       return false;
@@ -275,10 +276,10 @@ class NetworkFile extends IOFile {
   /// Reads the file and returns the JSON objects.
   @override
   Future<Map<String, dynamic>> readJson() async {
-    var resp = await http.get(Uri.parse(recordPath + '?has_modtime=false'),
+    final resp = await http.get(Uri.parse(recordPath + '?has_modtime=false'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
-      var data = json.decode(resp.body)['data'];
+      final data = json.decode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
         return data[0];
       }
@@ -294,15 +295,15 @@ class NetworkFile extends IOFile {
     try {
       var resp = await http.put(Uri.parse(fullPath), headers: _networkHeader());
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        var dataString = json.encode({'data': data});
-        var size = dataString.length;
+        final dataString = json.encode({'data': data});
+        final size = dataString.length;
         resp = await http.post(Uri.parse(recordPath),
             headers: _networkHeader(), body: dataString);
         if (resp.statusCode == 201) {
-          var seconds = data['properties']?['modtime'] ??
+          final seconds = data['properties']?['modtime'] ??
               DateTime.now().millisecondsSinceEpoch;
-          var metaData = {'filesize': size, 'modtime': seconds};
-          var metaString = json.encode({'data': metaData});
+          final metaData = {'filesize': size, 'modtime': seconds};
+          final metaString = json.encode({'data': metaData});
           await http.post(Uri.parse(recordPath),
               headers: _networkHeader(), body: metaString);
         }
@@ -317,8 +318,8 @@ class NetworkFile extends IOFile {
   /// Copy this to an external drive path given by [newPath].
   @override
   Future<void> copyToPath(String newPath) async {
-    var data = await readJson();
-    var dataString = JsonEncoder.withIndent(' ').convert(data);
+    final data = await readJson();
+    final dataString = JsonEncoder.withIndent(' ').convert(data);
     await File(newPath).writeAsString(dataString);
   }
 
@@ -326,7 +327,7 @@ class NetworkFile extends IOFile {
   @override
   Future<void> copyFromPath(String path) async {
     try {
-      var data = json.decode(await File(path).readAsString());
+      final data = json.decode(await File(path).readAsString());
       await writeJson(data);
     } on FormatException catch (e) {
       throw HttpException(e.toString());
@@ -338,8 +339,8 @@ class NetworkFile extends IOFile {
   /// Copy this to a new name and delete the original.
   @override
   Future<void> rename(String newName) async {
-    var data = await readJson();
-    var newFile = NetworkFile(newName);
+    final data = await readJson();
+    final newFile = NetworkFile(newName);
     try {
       await newFile.writeJson(data);
     } on SaveException catch (e) {
@@ -351,7 +352,7 @@ class NetworkFile extends IOFile {
   /// Delete this object from the network.
   @override
   Future<void> delete() async {
-    var resp =
+    final resp =
         await http.delete(Uri.parse(fullPath), headers: _networkHeader());
     if (resp.statusCode != 200) {
       throw HttpException(resp.reasonPhrase ?? '');
@@ -362,18 +363,18 @@ class NetworkFile extends IOFile {
   ///
   /// Adds the .trtg file extension back on.
   static Future<List<IOFile>> fileList() async {
-    var fileList = <NetworkFile>[];
-    var address = Uri.parse(
+    final fileList = <NetworkFile>[];
+    final address = Uri.parse(
         [prefs.getString('netaddress') ?? '', 'collections'].join('/'));
-    var resp = await http.get(address, headers: _networkHeader());
+    final resp = await http.get(address, headers: _networkHeader());
     if (resp.statusCode == 200) {
-      var objList = json.decode(resp.body)['data'];
+      final objList = json.decode(resp.body)['data'];
       if (objList != null) {
         for (var obj in objList) {
-          var name = obj['id'];
+          final name = obj['id'];
           if (name != null) {
             // Removes all utf8, percent and unique encoding from [fullPath].
-            var origName = Uri.decodeQueryComponent(
+            final origName = Uri.decodeQueryComponent(
                 name.replaceAll('-', '+').replaceAll('_', '%'));
             fileList.add(NetworkFile(origName));
           }
@@ -388,15 +389,15 @@ class NetworkFile extends IOFile {
 
 /// Change the user's password to [newPass].  Return true on success.
 Future<bool> changeNetworkPassword(String newPass) async {
-  var fullUri = Uri.parse(prefs.getString('netaddress') ?? '');
-  var accountPath = [
+  final fullUri = Uri.parse(prefs.getString('netaddress') ?? '');
+  final accountPath = [
     fullUri.origin,
     fullUri.pathSegments[0],
     'accounts',
     prefs.getString('netuser'),
   ].join('/');
   try {
-    var resp = await http.put(Uri.parse(accountPath),
+    final resp = await http.put(Uri.parse(accountPath),
         headers: _networkHeader(), body: '{"data": {"password": "$newPass"}}');
     if (resp.statusCode == 200) return true;
   } on IOException {}
@@ -405,7 +406,7 @@ Future<bool> changeNetworkPassword(String newPass) async {
 
 /// Return the authorization and content-type headers for Kinto.
 Map<String, String> _networkHeader() {
-  var authStr = '${prefs.getString('netuser') ?? ''}:${NetworkFile.password}';
+  final authStr = '${prefs.getString('netuser') ?? ''}:${NetworkFile.password}';
   return {
     'authorization': 'Basic ' + base64.encode(utf8.encode(authStr)),
     'Content-Type': 'application/json',

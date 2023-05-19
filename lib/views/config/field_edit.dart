@@ -14,7 +14,7 @@ import '../../model/structure.dart';
 ///
 /// Called from the [FieldConfig] view (part of the [ConfigView]).
 class FieldEdit extends StatefulWidget {
-  Field field;
+  final Field field;
   final bool isNew;
   final int? newPos;
 
@@ -29,7 +29,7 @@ class _FieldEditState extends State<FieldEdit> {
   /// A copy of the original field to contain the changes.
   late Field _editedField;
 
-  bool _isFieldTypeChanged = false;
+  var _isFieldTypeChanged = false;
 
   /// A flag showing that the view was closed while editing a new field.
   var _cancelNewFlag = false;
@@ -51,9 +51,9 @@ class _FieldEditState extends State<FieldEdit> {
     var removeChoices = false;
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      var model = Provider.of<Structure>(context, listen: false);
+      final model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
-        var doAddOutput = await commonDialogs.okCancelDialog(
+        final doAddOutput = await commonDialogs.okCancelDialog(
           context: context,
           title: 'Output Fields',
           label: 'Add an output line with the new field?',
@@ -65,9 +65,9 @@ class _FieldEditState extends State<FieldEdit> {
         return true;
       }
       if (_isFieldTypeChanged) {
-        var numErrors = model.badFieldCount(_editedField);
+        final numErrors = model.badFieldCount(_editedField);
         if (numErrors > 0) {
-          var doKeep = await commonDialogs.okCancelDialog(
+          final doKeep = await commonDialogs.okCancelDialog(
             context: context,
             title: 'Change Type for Data',
             label:
@@ -88,9 +88,9 @@ class _FieldEditState extends State<FieldEdit> {
       // Used for other changes.
       if (_editedField != widget.field) {
         if (_editedField is ChoiceField) {
-          var numErrors = model.badFieldCount(_editedField);
+          final numErrors = model.badFieldCount(_editedField);
           if (numErrors > 0) {
-            var doKeep = await commonDialogs.okCancelDialog(
+            final doKeep = await commonDialogs.okCancelDialog(
               context: context,
               title: 'Choice Data Mismatch',
               label: 'Choice field changes will cause $numErrors '
@@ -117,7 +117,7 @@ class _FieldEditState extends State<FieldEdit> {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text(_editedField.name + ' Field'),
@@ -167,14 +167,14 @@ class _FieldEditState extends State<FieldEdit> {
                 validator: (String? text) {
                   if (text == null) return null;
                   if (text.isEmpty) return 'Cannot be empty';
-                  var badCharMatches = RegExp(r'\W').allMatches(text);
+                  final badCharMatches = RegExp(r'\W').allMatches(text);
                   if (badCharMatches.isNotEmpty) {
-                    var badChars = [
+                    final badChars = [
                       for (var match in badCharMatches) match.group(0)
                     ];
                     return 'Illegal characters: "${badChars.join()}"';
                   }
-                  var model = Provider.of<Structure>(context, listen: false);
+                  final model = Provider.of<Structure>(context, listen: false);
                   if (text != widget.field.name &&
                       model.fieldMap.containsKey(text))
                     return 'Duplicate field name';

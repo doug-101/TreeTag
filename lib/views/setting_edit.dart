@@ -126,7 +126,7 @@ class _SettingEditState extends State<SettingEdit> {
                         );
                         return;
                       }
-                      var result = await serverPassDialog(context: context);
+                      final result = await serverPassDialog(context: context);
                       if (result ?? false) {
                         // Set the form value to avoid overwriting it on close.
                         _passwordKey.currentState!
@@ -210,7 +210,7 @@ class _SettingEditState extends State<SettingEdit> {
                     if (double.tryParse(value) == null) {
                       return 'Must be an number';
                     }
-                    var scale = double.parse(value);
+                    final scale = double.parse(value);
                     if (scale > 5.0 || scale < 0.2) {
                       return 'Valid range is 0.2 to 5.0';
                     }
@@ -347,10 +347,10 @@ class PathFormField extends FormField<String> {
 Future<bool?> serverPassDialog({
   required BuildContext context,
 }) async {
-  var currentTextKey = GlobalKey<FormFieldState>();
-  var newTextKey = GlobalKey<FormFieldState>();
-  var repeatedTextKey = GlobalKey<FormFieldState>();
-  var boolStoreKey = GlobalKey<FormFieldState>();
+  final currentTextKey = GlobalKey<FormFieldState>();
+  final newTextKey = GlobalKey<FormFieldState>();
+  final repeatedTextKey = GlobalKey<FormFieldState>();
+  final boolStoreKey = GlobalKey<FormFieldState>();
   return showDialog<bool>(
     context: context,
     barrierDismissible: false,
@@ -393,8 +393,8 @@ Future<bool?> serverPassDialog({
           TextButton(
             child: Text('OK'),
             onPressed: () async {
-              var currentPass = currentTextKey.currentState!.value;
-              var newPass = newTextKey.currentState!.value;
+              final currentPass = currentTextKey.currentState!.value;
+              final newPass = newTextKey.currentState!.value;
               if (newPass != repeatedTextKey.currentState!.value) {
                 await okDialog(
                   context: context,
@@ -408,7 +408,7 @@ Future<bool?> serverPassDialog({
                   label: 'New password cannot be empty',
                 );
               } else {
-                var prevPass = NetworkFile.password;
+                final prevPass = NetworkFile.password;
                 NetworkFile.password = currentPass;
                 if (await changeNetworkPassword(newPass)) {
                   NetworkFile.password = newPass;

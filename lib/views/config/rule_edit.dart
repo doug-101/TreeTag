@@ -1,6 +1,6 @@
 // rule_edit.dart, a view to edit a rule node's details.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class RuleEdit extends StatefulWidget {
 class _RuleEditState extends State<RuleEdit> {
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
         TextStyle(color: Theme.of(context).colorScheme.secondary);
     if (widget.isNew && widget.node.ruleLine.isEmpty) {
@@ -206,11 +206,11 @@ class _RuleEditState extends State<RuleEdit> {
                             }
                           } else {
                             // Custom button pushed.
-                            var newSortKeys = [
+                            final newSortKeys = [
                               for (var key in widget.node.childSortFields)
                                 SortKey.copy(key)
                             ];
-                            var isChanged = await Navigator.push(
+                            final isChanged = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>

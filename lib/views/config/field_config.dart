@@ -1,6 +1,6 @@
 // field_config.dart, a view to edit the field list configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -25,8 +25,8 @@ class _FieldConfigState extends State<FieldConfig> {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
-    var fieldList = List.of(model.fieldMap.values);
+    final model = Provider.of<Structure>(context, listen: false);
+    final fieldList = List.of(model.fieldMap.values);
     return Column(
       children: <Widget>[
         Row(
@@ -36,7 +36,7 @@ class _FieldConfigState extends State<FieldConfig> {
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               onPressed: () async {
-                var newField = Field.createField(name: '');
+                final newField = Field.createField(name: '');
                 int? newPos;
                 if (selectedField != null) {
                   newPos = fieldList.indexOf(selectedField!);
@@ -72,7 +72,7 @@ class _FieldConfigState extends State<FieldConfig> {
               onPressed: (selectedField == null || fieldList.length < 2)
                   ? null
                   : () async {
-                      var errorText = <String>[];
+                      final errorText = <String>[];
                       if (model.isFieldInTitle(selectedField!))
                         errorText.add('in node titles');
                       if (model.isFieldInOutput(selectedField!))
@@ -86,7 +86,7 @@ class _FieldConfigState extends State<FieldConfig> {
                         }
                       }
                       if (errorText.isNotEmpty) {
-                        var ans = await commonDialogs.okCancelDialog(
+                        final ans = await commonDialogs.okCancelDialog(
                           context: context,
                           title: 'Confirm Delete',
                           label: 'This field is used ${errorText.join()}. '

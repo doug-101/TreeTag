@@ -99,7 +99,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
     if (NetworkFile.password.isNotEmpty) return true;
     NetworkFile.password = prefs.getString('netpassword') ?? '';
     if (NetworkFile.password.isNotEmpty) return true;
-    var value = await commonDialogs.textDialog(
+    final value = await commonDialogs.textDialog(
       context: context,
       title: 'Password:',
       label: 'Enter network password',
@@ -137,7 +137,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
 
   /// Open a long- or double-tapped file.
   void _openTappedFile(IOFile fileObj) async {
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
     try {
       await model.openFile(fileObj);
       Navigator.pushNamed(context, '/frameView',
@@ -148,8 +148,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
     } on FormatException {
       // If not TreeTag formt, try to import as a TreeLine file.
       try {
-        var import = TreeLineImport(await fileObj.readJson());
-        var typeName = await commonDialogs.choiceDialog(
+        final import = TreeLineImport(await fileObj.readJson());
+        final typeName = await commonDialogs.choiceDialog(
           context: context,
           choices: import.formatNames(),
           title: 'TreeLine File Import\n\nChoose Node Type',
@@ -157,8 +157,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
         if (typeName != null) {
           model.clearModel();
           import.convertNodeType(typeName, model);
-          var baseFilename = fileObj.nameNoExtension;
-          var fileWithExt = _addExtensionIfNone(baseFilename);
+          final baseFilename = fileObj.nameNoExtension;
+          final fileWithExt = _addExtensionIfNone(baseFilename);
           model.fileObject = IOFile.currentType(fileWithExt);
           if (!(await model.fileObject.exists) ||
               await askOverwriteOk(fileWithExt)) {
@@ -176,11 +176,11 @@ class _FileControlState extends State<FileControl> with WindowListener {
         // If not TreeTag or TreeLine format, try a CSV import.
         try {
           if (fileObj is! LocalFile) throw FormatException();
-          var import = CsvImport(await fileObj.readString());
+          final import = CsvImport(await fileObj.readString());
           model.clearModel();
           import.convertCsv(model);
-          var baseFilename = fileObj.nameNoExtension;
-          var fileWithExt = _addExtensionIfNone(baseFilename);
+          final baseFilename = fileObj.nameNoExtension;
+          final fileWithExt = _addExtensionIfNone(baseFilename);
           model.fileObject = IOFile.currentType(fileWithExt);
           if (!(await model.fileObject.exists) ||
               await askOverwriteOk(fileWithExt)) {
@@ -333,16 +333,17 @@ class _FileControlState extends State<FileControl> with WindowListener {
               // New file command.
               icon: const Icon(Icons.add_box),
               onPressed: () async {
-                var filename = await commonDialogs.filenameDialog(
+                final filename = await commonDialogs.filenameDialog(
                   context: context,
                   label: 'Name for the new file:',
                 );
                 if (filename != null) {
-                  var fileObj =
+                  final fileObj =
                       IOFile.currentType(_addExtensionIfNone(filename));
                   if (!(await fileObj.exists) ||
                       await askOverwriteOk(fileObj.filename)) {
-                    var model = Provider.of<Structure>(context, listen: false);
+                    final model =
+                        Provider.of<Structure>(context, listen: false);
                     model.newFile(fileObj);
                     Navigator.pushNamed(context, '/frameView',
                             arguments: filename)
@@ -358,9 +359,10 @@ class _FileControlState extends State<FileControl> with WindowListener {
               // Command to show path, modified date & size for a selected file.
               icon: const Icon(Icons.info),
               onPressed: () async {
-                var fileObj = _selectedFiles.first;
-                var modTime = await fileObj.dataModTime;
-                var timeStr = DateFormat('MMM d, yyyy, h:mm a').format(modTime);
+                final fileObj = _selectedFiles.first;
+                final modTime = await fileObj.dataModTime;
+                final timeStr =
+                    DateFormat('MMM d, yyyy, h:mm a').format(modTime);
                 commonDialogs.okDialog(
                   context: context,
                   title: 'File Info - ${fileObj.nameNoExtension}',
@@ -385,9 +387,9 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       dialogTitle: 'Select File to be Added',
                     );
                     if (answer != null) {
-                      var cachePath = answer.files.single.path;
+                      final cachePath = answer.files.single.path;
                       if (cachePath != null) {
-                        var newFileObj =
+                        final newFileObj =
                             IOFile.currentType(p.basename(cachePath));
                         if (await newFileObj.exists) {
                           if (!(await askOverwriteOk(newFileObj.filename))) {
@@ -405,19 +407,18 @@ class _FileControlState extends State<FileControl> with WindowListener {
                         _updateFileList();
                       });
                     }
-                    break;
                   case MenuItems.copy:
                     // Copy current file to another name.
-                    var initName = _selectedFiles.first.nameNoExtension;
-                    var origExt = _selectedFiles.first.extension;
-                    var answer = await commonDialogs.filenameDialog(
+                    final initName = _selectedFiles.first.nameNoExtension;
+                    final origExt = _selectedFiles.first.extension;
+                    final answer = await commonDialogs.filenameDialog(
                       context: context,
                       initName: initName,
                       label: 'Copy "$initName" to:',
                     );
                     if (answer != null) {
-                      var fileObj = _selectedFiles.first;
-                      var newFileObj = IOFile.currentType(
+                      final fileObj = _selectedFiles.first;
+                      final newFileObj = IOFile.currentType(
                         _addExtensionIfNone(answer, ext: origExt),
                       );
                       if (await newFileObj.exists) {
@@ -431,7 +432,6 @@ class _FileControlState extends State<FileControl> with WindowListener {
                         _updateFileList();
                       });
                     }
-                    break;
                   case MenuItems.copyToFolder:
                     // Copy current file to an external directory.
                     String? folder = await FilePicker.platform.getDirectoryPath(
@@ -444,7 +444,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                           Platform.isMacOS ||
                           await Permission.storage.request().isGranted) {
                         for (var fileObj in _selectedFiles) {
-                          var newPath = p.join(folder, fileObj.filename);
+                          final newPath = p.join(folder, fileObj.filename);
                           errorLabel = 'Could not write to $newPath';
                           if (await File(newPath).exists()) {
                             if (!(await askOverwriteOk(p.basename(newPath)))) {
@@ -462,11 +462,10 @@ class _FileControlState extends State<FileControl> with WindowListener {
                     if (Platform.isAndroid || Platform.isIOS) {
                       FilePicker.platform.clearTemporaryFiles();
                     }
-                    break;
                   case MenuItems.uploadToNetwork:
                     // Copy current file from disk to the network.
                     for (var fileObj in _selectedFiles) {
-                      var newObj = NetworkFile(fileObj.filename);
+                      final newObj = NetworkFile(fileObj.filename);
                       if (await newObj.exists) {
                         if (!(await askOverwriteOk(newObj.filename))) {
                           break;
@@ -475,11 +474,10 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       errorLabel = 'Could not write to ${newObj.filename}';
                       await fileObj.copyToFile(newObj);
                     }
-                    break;
                   case MenuItems.downloadToStorage:
                     // Copy the current network file to local working directory.
                     for (var fileObj in _selectedFiles) {
-                      var newObj = LocalFile(fileObj.filename);
+                      final newObj = LocalFile(fileObj.filename);
                       if (await newObj.exists) {
                         if (!(await askOverwriteOk(newObj.filename))) {
                           break;
@@ -488,19 +486,18 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       errorLabel = 'Could not read/write to ${newObj.filename}';
                       await fileObj.copyToFile(newObj);
                     }
-                    break;
                   case MenuItems.rename:
                     // Give the current file a new name.
-                    var initName = _selectedFiles.first.nameNoExtension;
-                    var origExt = _selectedFiles.first.extension;
-                    var answer = await commonDialogs.filenameDialog(
+                    final initName = _selectedFiles.first.nameNoExtension;
+                    final origExt = _selectedFiles.first.extension;
+                    final answer = await commonDialogs.filenameDialog(
                       context: context,
                       initName: initName,
                       label: 'Rename "$initName" to:',
                     );
                     if (answer != null) {
-                      var newName = _addExtensionIfNone(answer, ext: origExt);
-                      var fileObj = _selectedFiles.first;
+                      final newName = _addExtensionIfNone(answer, ext: origExt);
+                      final fileObj = _selectedFiles.first;
                       if (await IOFile.currentType(newName).exists) {
                         if (!(await askOverwriteOk(newName))) {
                           break;
@@ -512,10 +509,9 @@ class _FileControlState extends State<FileControl> with WindowListener {
                         _updateFileList();
                       });
                     }
-                    break;
                   case MenuItems.delete:
                     // Delete the current file(s).
-                    var deleteOk = await commonDialogs.okCancelDialog(
+                    final deleteOk = await commonDialogs.okCancelDialog(
                       context: context,
                       title: 'Confirm Delete',
                       label: _selectedFiles.length == 1
@@ -531,7 +527,6 @@ class _FileControlState extends State<FileControl> with WindowListener {
                         _updateFileList();
                       });
                     }
-                    break;
                 }
               } on IOException catch (e) {
                 // Exception handling for all menu commands.
@@ -629,7 +624,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
 
   /// Ask user to overwrite a filename and return result.
   Future<bool> askOverwriteOk(String filename) async {
-    var ans = await commonDialogs.okCancelDialog(
+    final ans = await commonDialogs.okCancelDialog(
       context: context,
       title: 'Confirm Overwrite',
       label: 'File $filename already exists.\n\nOverwrite it?',

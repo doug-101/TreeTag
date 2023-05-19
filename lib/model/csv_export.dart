@@ -25,9 +25,9 @@ class CsvExport {
       [for (var field in model.fieldMap.values) field.name]
     ];
     for (var node in model.leafNodes) {
-      var row = <String>[];
+      final row = <String>[];
       for (var field in model.fieldMap.values) {
-        var text =
+        final text =
             useOutput ? field.outputText(node) : node.data[field.name] ?? '';
         row.add(text);
       }

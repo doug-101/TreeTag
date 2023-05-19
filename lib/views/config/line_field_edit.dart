@@ -1,6 +1,6 @@
 // line_field_edit.dart, a view to customize a field's details in a line.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -40,7 +40,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
   Future<bool> updateOnPop() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      var isChanged = widget.origPrefix != widget.field.prefix ||
+      final isChanged = widget.origPrefix != widget.field.prefix ||
           widget.origSuffix != widget.field.suffix ||
           widget.origFormat != widget.field.format;
       Navigator.pop(context, isChanged);
@@ -59,7 +59,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           IconButton(
             icon: const Icon(Icons.restore),
             onPressed: () {
-              var parentField = widget.field.altFormatParent;
+              final parentField = widget.field.altFormatParent;
               if (parentField != null) {
                 if (parentField.format.isNotEmpty) {
                   _fieldFormatKey.currentState!.didChange(parentField.format);

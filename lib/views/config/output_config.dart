@@ -1,6 +1,6 @@
 // output_config.dart, a view to edit the title and output line configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -22,7 +22,7 @@ class _OutputConfigState extends State<OutputConfig> {
   ParsedLine? selectedLine;
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
     var lineNum = 1;
     return Column(
       children: <Widget>[

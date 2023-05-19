@@ -20,14 +20,14 @@ class CsvImport {
   /// Convert the CSV data in [strData] to leaf nodes in a TreeTag file.
   void convertCsv(Structure model) {
     // Detect the first EOL and quotation delimiters in the file.
-    var detector = FirstOccurrenceSettingsDetector(
+    final detector = FirstOccurrenceSettingsDetector(
         eols: ['\r\n', '\n'], textDelimiters: ['"', "'"]);
-    var converter = CsvToListConverter(
+    final converter = CsvToListConverter(
       shouldParseNumbers: false,
       allowInvalid: false,
       csvSettingsDetector: detector,
     );
-    var rows = converter.convert(strData);
+    final rows = converter.convert(strData);
     for (var fieldName in rows.first) {
       // Replace all illegal characters with underscores.
       fieldName = fieldName.replaceAll(RegExp(r'\W'), '_');
@@ -36,20 +36,20 @@ class CsvImport {
       model.fieldMap[fieldName] = field;
       model.outputLines.add(ParsedLine.fromSingleField(field));
     }
-    var fieldList = List.of(model.fieldMap.values);
+    final fieldList = List.of(model.fieldMap.values);
     // Check for duplicate fields.
     if (Set.of(fieldList).length != fieldList.length) throw FormatException();
     model.titleLine = ParsedLine.fromSingleField(fieldList.first);
     rows.removeAt(0);
     for (var row in rows) {
       if (row.length > fieldList.length) throw FormatException();
-      var data = <String, String>{};
+      final data = <String, String>{};
       for (var i = 0; i < row.length; i++) {
         data[fieldList[i].name] = row[i];
       }
       model.leafNodes.add(LeafNode(data: data, modelRef: model));
     }
-    var root = TitleNode(title: 'Root', modelRef: model);
+    final root = TitleNode(title: 'Root', modelRef: model);
     root.isOpen = true;
     model.rootNodes.add(root);
     root.childRuleNode = RuleNode(

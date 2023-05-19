@@ -1,6 +1,6 @@
 // sort_edit.dart, a view to edit sorting rules containing fields.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -32,9 +32,9 @@ class _SortEditState extends State<SortEdit> {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
-    var usedFieldNames = [for (var key in widget.sortKeys) key.keyField.name];
-    var availFieldNames = [
+    final model = Provider.of<Structure>(context, listen: false);
+    final usedFieldNames = [for (var key in widget.sortKeys) key.keyField.name];
+    final availFieldNames = [
       for (var field in widget.availFields ?? model.fieldMap.values) field.name
     ];
     // Position number for the field card label.
@@ -61,7 +61,7 @@ class _SortEditState extends State<SortEdit> {
                     icon: const Icon(Icons.add_circle_outline),
                     enabled: usedFieldNames.length < availFieldNames.length,
                     onSelected: (fieldName) async {
-                      int pos = widget.sortKeys.length;
+                      var pos = widget.sortKeys.length;
                       if (selectedKey != null)
                         pos = widget.sortKeys.indexOf(selectedKey!);
                       setState(() {
@@ -113,7 +113,7 @@ class _SortEditState extends State<SortEdit> {
                         ? null
                         : () {
                             setState(() {
-                              var pos = widget.sortKeys.indexOf(selectedKey!);
+                              final pos = widget.sortKeys.indexOf(selectedKey!);
                               widget.sortKeys.removeAt(pos);
                               widget.sortKeys.insert(pos - 1, selectedKey!);
                               isChanged = true;
@@ -129,7 +129,7 @@ class _SortEditState extends State<SortEdit> {
                         ? null
                         : () {
                             setState(() {
-                              var pos = widget.sortKeys.indexOf(selectedKey!);
+                              final pos = widget.sortKeys.indexOf(selectedKey!);
                               widget.sortKeys.removeAt(pos);
                               widget.sortKeys.insert(pos + 1, selectedKey!);
                               isChanged = true;

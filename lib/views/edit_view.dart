@@ -47,7 +47,7 @@ class _EditViewState extends State<EditView> {
     if (_formKey.currentState!.validate()) {
       // Allow user to discard an unchanged new node.
       if (!_isChanged && widget.editMode == EditMode.newNode) {
-        var toBeSaved = await commonDialogs.okCancelDialog(
+        final toBeSaved = await commonDialogs.okCancelDialog(
           context: context,
           title: 'Save Unchanged',
           label: 'Save unmodified new node?',
@@ -291,8 +291,8 @@ class TextForm extends FormField<String> {
 }
 
 class _TextFormState extends FormFieldState<String> {
-  var _textController = TextEditingController();
-  var _spellChecker = (Platform.isAndroid || Platform.isIOS)
+  final _textController = TextEditingController();
+  final _spellChecker = (Platform.isAndroid || Platform.isIOS)
       ? DefaultSpellCheckService()
       : SpellChecker();
 
@@ -363,14 +363,14 @@ class SpellChecker extends SpellCheckService {
     Locale locale,
     String text,
   ) async {
-    var errorSpans = <SuggestionSpan>[];
+    final errorSpans = <SuggestionSpan>[];
     var textPos = 0;
     var wordStart = -1;
     for (var rune in text.runes) {
-      var char = String.fromCharCode(rune);
+      final char = String.fromCharCode(rune);
       if (SpellChecker.sepChars.contains(char)) {
         if (wordStart >= 0) {
-          var word = text.substring(wordStart, textPos).toLowerCase();
+          final word = text.substring(wordStart, textPos).toLowerCase();
           if (!wordSet.contains(word)) {
             errorSpans.add(
               SuggestionSpan(
@@ -426,8 +426,8 @@ class AutoChoiceForm extends FormField<String> {
                         state._textController.text = value;
                       },
                       itemBuilder: (BuildContext context) {
-                        var options = List.of(initialOptions);
-                        var newText = state._textController.text;
+                        final options = List.of(initialOptions);
+                        final newText = state._textController.text;
                         if (newText.isNotEmpty &&
                             !initialOptions.contains(newText)) {
                           options.add(newText);
@@ -452,8 +452,8 @@ class AutoChoiceForm extends FormField<String> {
 }
 
 class _AutoChoiceFormState extends FormFieldState<String> {
-  var _textController = TextEditingController();
-  var _spellChecker = (Platform.isAndroid || Platform.isIOS)
+  final _textController = TextEditingController();
+  final _spellChecker = (Platform.isAndroid || Platform.isIOS)
       ? DefaultSpellCheckService()
       : SpellChecker();
 
@@ -492,7 +492,7 @@ class DateFormField extends FormField<DateTime> {
           builder: (FormFieldState<DateTime> state) {
             return InkWell(
               onTap: () async {
-                var newDate = await showDatePicker(
+                final newDate = await showDatePicker(
                   context: state.context,
                   initialDate: state.value ?? DateTime.now(),
                   firstDate: DateTime(0),
@@ -502,7 +502,7 @@ class DateFormField extends FormField<DateTime> {
                   state.didChange(newDate);
                 } else if (state.value != null) {
                   // Give option of removing the value after cancelling.
-                  var keepValue = await commonDialogs.okCancelDialog(
+                  final keepValue = await commonDialogs.okCancelDialog(
                     context: state.context,
                     title: 'Cancelled Date Entry',
                     label: 'Keep the previous date value?',
@@ -552,7 +552,7 @@ class TimeFormField extends FormField<DateTime> {
           builder: (FormFieldState<DateTime> state) {
             return InkWell(
               onTap: () async {
-                var newTime = await showTimePicker(
+                final newTime = await showTimePicker(
                   context: state.context,
                   initialTime: state.value != null
                       ? TimeOfDay.fromDateTime(state.value!)
@@ -564,7 +564,7 @@ class TimeFormField extends FormField<DateTime> {
                   );
                 } else if (state.value != null) {
                   // Give option of removing the value after cancelling.
-                  var keepValue = await commonDialogs.okCancelDialog(
+                  final keepValue = await commonDialogs.okCancelDialog(
                     context: state.context,
                     title: 'Cancelled Time Entry',
                     label: 'Keep the previous time value?',

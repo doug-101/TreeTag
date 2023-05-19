@@ -23,7 +23,7 @@ class Structure extends ChangeNotifier {
   final leafNodes = <LeafNode>[];
 
   /// The node series currently shown in the [DetailView].
-  final detailViewRecords = <DetailViewRecord>[];
+  final detailViewRecords = <({Node node, GroupNode? parent})>[];
 
   /// Rencently deleted nodes, used by [DetailView] to label old pages.
   final obsoleteNodes = <Node>{};
@@ -52,9 +52,9 @@ class Structure extends ChangeNotifier {
   /// Open an existng file using the given JSON data.
   void openFromData(Map<String, dynamic> jsonData) {
     clearModel();
-    var autoChoiceFields = <AutoChoiceField>[];
+    final autoChoiceFields = <AutoChoiceField>[];
     for (var fieldData in jsonData['fields'] ?? []) {
-      var field = Field.fromJson(fieldData);
+      final field = Field.fromJson(fieldData);
       fieldMap[field.name] = field;
       if (field is AutoChoiceField) autoChoiceFields.add(field);
     }
@@ -73,7 +73,7 @@ class Structure extends ChangeNotifier {
       throw FormatException('Missing sections in file');
     }
     if (jsonData['usemarkdown'] != null) useMarkdownOutput = true;
-    var seconds = jsonData['properties']?['modtime'];
+    final seconds = jsonData['properties']?['modtime'];
     if (seconds != null) {
       modTime = DateTime.fromMillisecondsSinceEpoch(seconds);
     }
@@ -99,7 +99,7 @@ class Structure extends ChangeNotifier {
     fieldMap[mainFieldName] = Field.createField(name: mainFieldName);
     const categoryFieldName = 'Category';
     fieldMap[categoryFieldName] = Field.createField(name: categoryFieldName);
-    var root = TitleNode(title: 'Root', modelRef: this);
+    final root = TitleNode(title: 'Root', modelRef: this);
     root.isOpen = true;
     rootNodes.add(root);
     root.childRuleNode = RuleNode(
@@ -137,23 +137,23 @@ class Structure extends ChangeNotifier {
   void saveFile({doModCheck = true}) async {
     // Prior to saving, check for files that were externally modified.
     if (doModCheck) {
-      var fileModTime = await fileObject.fileModTime;
+      final fileModTime = await fileObject.fileModTime;
       // Quickly check based on file's system modified time.
       // Uses a one minute difference to account for file system or
       // network delays during the previous save.
       if (fileModTime.difference(modTime).inSeconds >= 60) {
         // Do a slower data time check to avoid false positives due to copies
         // or other file system changes.
-        var dataModTime = await fileObject.dataModTime;
+        final dataModTime = await fileObject.dataModTime;
         if (dataModTime.difference(modTime).inSeconds >= 60) {
-          var timeStr = DateFormat('MMM d, yyyy, h:mm a').format(fileModTime);
+          final timeStr = DateFormat('MMM d, yyyy, h:mm a').format(fileModTime);
           throw ExternalModException('Modified on $timeStr');
         }
       }
     }
-    var packageInfo = await PackageInfo.fromPlatform();
+    final packageInfo = await PackageInfo.fromPlatform();
     modTime = DateTime.now();
-    var jsonData = <String, dynamic>{
+    final jsonData = <String, dynamic>{
       'properties': {
         'ttversion': packageInfo.version,
         'modtime': modTime.millisecondsSinceEpoch,
@@ -182,8 +182,8 @@ class Structure extends ChangeNotifier {
   /// Starts from [startNode] if given, else starts from the [rootNodes].
   /// Called from [SearchView] and from the updateAllChildren member below.
   Node? openLeafParent(LeafNode targetNode, {Node? startNode}) {
-    var startNodes = startNode != null ? [startNode] : rootNodes;
-    var parentMatch = _parentOfMatch(startNodes, targetNode);
+    final startNodes = startNode != null ? [startNode] : rootNodes;
+    final parentMatch = _parentOfMatch(startNodes, targetNode);
     var parent = parentMatch;
     while (parent != null) {
       parent.isOpen = true;
@@ -234,9 +234,10 @@ class Structure extends ChangeNotifier {
       {Node? parent, bool doClearFirst = false}) {
     if (doClearFirst) detailViewRecords.clear();
     // Only stores the parent for leaves (other nodes have parent member).
-    detailViewRecords.add(DetailViewRecord(
-      node,
-      node is LeafNode && parent is GroupNode ? parent as GroupNode : null,
+    detailViewRecords.add((
+      node: node,
+      parent:
+          node is LeafNode && parent is GroupNode ? parent as GroupNode : null,
     ));
     notifyListeners();
   }
@@ -249,7 +250,7 @@ class Structure extends ChangeNotifier {
     List<LeafNode> availableNodes, {
     Field? searchField,
   }) {
-    var results = <LeafNode>[];
+    final results = <LeafNode>[];
     for (var node in availableNodes) {
       if (node.isSearchMatch(searchTerms, searchField)) {
         results.add(node);
@@ -263,19 +264,16 @@ class Structure extends ChangeNotifier {
   }
 
   /// Return nodes from [availableNodes] that match the [regExp].
-  List<LeafNode> regExpSearchResults(
-    RegExp exp,
-    List<LeafNode> availableNodes, {
-    Field? searchField,
-  }) {
-    var results = <LeafNode>[];
+  List<LeafNode> regExpSearchResults(RegExp exp, List<LeafNode> availableNodes,
+      {Field? searchField}) {
+    final results = <LeafNode>[];
     for (var node in availableNodes) {
       if (node.isRegExpMatch(exp, searchField)) {
         results.add(node);
       }
     }
     if (results.length > 1) {
-      var sortFields = [for (var field in fieldMap.values) SortKey(field)];
+      final sortFields = [for (var field in fieldMap.values) SortKey(field)];
       nodeFullSort(results, sortFields);
     }
     return results;
@@ -298,8 +296,9 @@ class Structure extends ChangeNotifier {
       replaceGroupMatches =
           RegExp(r'(?<!\$)\$\d').allMatches(replacement).toList();
     }
-    var fields = searchField != null ? [searchField] : fieldMap.values.toList();
-    var undos = <Undo>[];
+    final fields =
+        searchField != null ? [searchField] : fieldMap.values.toList();
+    final undos = <Undo>[];
     for (var node in availableNodes) {
       undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
       var nodeChanged = false;
@@ -345,17 +344,18 @@ class Structure extends ChangeNotifier {
   /// Does not create undo objects or update views - that is done in
   /// [editNodeData()] after the user edits the new node.
   LeafNode newNode({Node? copyFromNode}) {
-    var data = Map<String, String>.of(copyFromNode?.data ?? <String, String>{});
+    final data =
+        Map<String, String>.of(copyFromNode?.data ?? <String, String>{});
     if (copyFromNode is GroupNode) {
       while (copyFromNode?.parent is GroupNode) {
         copyFromNode = copyFromNode?.parent;
         data.addAll(copyFromNode?.data ?? {});
       }
     }
-    var newNode = LeafNode(data: data, modelRef: this);
+    final newNode = LeafNode(data: data, modelRef: this);
     for (var field in fieldMap.values) {
       if (data[field.name] == null) {
-        var initValue = field.initialValue();
+        final initValue = field.initialValue();
         if (initValue != null) newNode.data[field.name] = initValue;
       }
     }
@@ -369,7 +369,7 @@ class Structure extends ChangeNotifier {
   /// Common data is included in the node's map, including null values for
   /// mising/empty values.  The map contains a null char when values vary.
   LeafNode? commonChildDataNode() {
-    var rootNode = currentDetailViewNode();
+    final rootNode = currentDetailViewNode();
     if (rootNode == null ||
         rootNode is LeafNode ||
         rootNode.availableNodes.isEmpty ||
@@ -378,7 +378,7 @@ class Structure extends ChangeNotifier {
     }
     Map<String, String> data = {};
     for (var field in fieldMap.values) {
-      var value = _commonData(field, rootNode.availableNodes);
+      final value = _commonData(field, rootNode.availableNodes);
       if (value != null) data[field.name] = value;
     }
     return LeafNode(data: data, modelRef: this);
@@ -388,7 +388,7 @@ class Structure extends ChangeNotifier {
   // Returns a null char if values vary, but returns a null value for
   // consistently missing/empty values.
   String? _commonData(Field field, List<LeafNode> nodes) {
-    var value = nodes[0].data[field.name];
+    final value = nodes[0].data[field.name];
     for (var node in nodes) {
       if ((node.data[field.name]) != value) return '\u0000';
     }
@@ -412,13 +412,13 @@ class Structure extends ChangeNotifier {
 
   /// Called from the [EditView] to edit data in all child nodes.
   void editChildData(Map<String, String> nodeData) {
-    var rootNode = currentDetailViewNode();
+    final rootNode = currentDetailViewNode();
     if (rootNode != null) {
-      var undos = <Undo>[];
+      final undos = <Undo>[];
       for (var node in rootNode.availableNodes) {
         undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
         for (var field in fieldMap.values) {
-          var newValue = nodeData[field.name];
+          final newValue = nodeData[field.name];
           if (newValue != null && newValue != '\u0000') {
             node.data[field.name] = newValue;
           } else if (newValue == null) {
@@ -454,8 +454,8 @@ class Structure extends ChangeNotifier {
         rootNode is! LeafNode &&
         rootNode.availableNodes.isNotEmpty &&
         !obsoleteNodes.contains(rootNode)) {
-      var childNodes = List.of(rootNode.availableNodes);
-      var undos = [
+      final childNodes = List.of(rootNode.availableNodes);
+      final undos = [
         for (var leafNode in childNodes)
           UndoDeleteLeafNode('', leafNodes.indexOf(leafNode), leafNode)
       ];
@@ -470,9 +470,9 @@ class Structure extends ChangeNotifier {
 
   /// Called from [FrameView] to merge another TreeTag file with this one.
   Future<void> mergeFile(IOFile fileObj) async {
-    var mergeStruct = Structure();
+    final mergeStruct = Structure();
     await mergeStruct.openFile(fileObj);
-    var undos = <Undo>[];
+    final undos = <Undo>[];
     for (var field in mergeStruct.fieldMap.values) {
       if (!fieldMap.containsKey(field.name)) {
         undos.add(UndoAddNewField('', field.name));
@@ -490,9 +490,10 @@ class Structure extends ChangeNotifier {
 
   /// Called from the [FieldEdit] view to add a new [field].
   void addNewField(Field field, {int? newPos, bool doAddOutput = false}) {
-    var fieldUndo = UndoAddNewField('Add new field: ${field.name}', field.name);
+    final fieldUndo =
+        UndoAddNewField('Add new field: ${field.name}', field.name);
     if (newPos != null) {
-      var fieldList = List.of(fieldMap.values);
+      final fieldList = List.of(fieldMap.values);
       fieldList.insert(newPos, field);
       fieldMap.clear();
       for (var fld in fieldList) {
@@ -502,8 +503,8 @@ class Structure extends ChangeNotifier {
       fieldMap[field.name] = field;
     }
     if (doAddOutput) {
-      var outputUndo = UndoAddOutputLine('', outputLines.length);
-      var newLine = ParsedLine.empty();
+      final outputUndo = UndoAddOutputLine('', outputLines.length);
+      final newLine = ParsedLine.empty();
       newLine.segments.add(LineSegment(field: field));
       outputLines.add(newLine);
       undoList.add(
@@ -521,13 +522,13 @@ class Structure extends ChangeNotifier {
   /// Choices from [ChoiceField] need to be updated if [removeChoices].
   void editField(Field oldField, Field editedField,
       {bool removeChoices = false}) {
-    var undos = <Undo>[];
-    var pos = List.of(fieldMap.values).indexOf(oldField);
+    final undos = <Undo>[];
+    final pos = List.of(fieldMap.values).indexOf(oldField);
     undos.add(UndoEditField(
         'Edit field: ${oldField.name}', pos, Field.copy(oldField)));
     if (oldField.name != editedField.name) {
       // Field was renamed.
-      var fieldList = List.of(fieldMap.values);
+      final fieldList = List.of(fieldMap.values);
       fieldMap.clear();
       for (var fld in fieldList) {
         if (fld == oldField) {
@@ -537,7 +538,7 @@ class Structure extends ChangeNotifier {
         }
       }
       for (var leaf in leafNodes) {
-        var data = leaf.data[oldField.name];
+        final data = leaf.data[oldField.name];
         if (data != null) {
           undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
           leaf.data[editedField.name] = data;
@@ -566,12 +567,12 @@ class Structure extends ChangeNotifier {
   ///
   /// Called from the [FieldEdit] view.
   void replaceField(Field oldField, Field newField) {
-    var undos = <Undo>[];
-    var pos = List.of(fieldMap.values).indexOf(oldField);
+    final undos = <Undo>[];
+    final pos = List.of(fieldMap.values).indexOf(oldField);
     undos.add(UndoEditField('Edit field: ${oldField.name}', pos, oldField));
     if (oldField.name != newField.name) {
       for (var leaf in leafNodes) {
-        var data = leaf.data[oldField.name];
+        final data = leaf.data[oldField.name];
         if (data != null) {
           undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
           leaf.data[newField.name] = data;
@@ -580,7 +581,7 @@ class Structure extends ChangeNotifier {
       }
     }
     // Replace the field stored in the [fieldMap].
-    var fieldList = List.of(fieldMap.values);
+    final fieldList = List.of(fieldMap.values);
     fieldMap.clear();
     for (var fld in fieldList) {
       if (fld == oldField) {
@@ -606,7 +607,7 @@ class Structure extends ChangeNotifier {
     for (var root in rootNodes) {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
-          var rule = item.node as RuleNode;
+          final rule = item.node as RuleNode;
           if (rule.ruleLine.fields().contains(oldField)) {
             undos.add(UndoEditRuleLine('', storedNodeId(rule), rule.ruleLine));
             rule.ruleLine.replaceField(oldField, newField);
@@ -632,8 +633,8 @@ class Structure extends ChangeNotifier {
 
   /// Called from [FieldConfig] to remove a field.
   void deleteField(Field field) {
-    var undos = <Undo>[];
-    var pos = List.of(fieldMap.values).indexOf(field);
+    final undos = <Undo>[];
+    final pos = List.of(fieldMap.values).indexOf(field);
     undos.add(UndoDeleteField('Delete field: ${field.name}', pos, field));
     fieldMap.remove(field.name);
     for (var leaf in leafNodes) {
@@ -649,7 +650,7 @@ class Structure extends ChangeNotifier {
     }
     if (isFieldInOutput(field)) {
       for (var line in outputLines.toList()) {
-        var fieldMatches = field.matchingFieldDescendents(line.fields());
+        final fieldMatches = field.matchingFieldDescendents(line.fields());
         if (fieldMatches.isNotEmpty) {
           int linePos = outputLines.indexOf(line);
           if (line.hasMultipleFields()) {
@@ -671,7 +672,7 @@ class Structure extends ChangeNotifier {
     for (var root in rootNodes) {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
-          var rule = item.node as RuleNode;
+          final rule = item.node as RuleNode;
           if (field.matchingFieldDescendents(rule.ruleLine.fields()).isNotEmpty)
             badRules.add(rule);
           if (rule.isFieldInChildSort(field)) {
@@ -715,7 +716,7 @@ class Structure extends ChangeNotifier {
 
   /// Called from [FieldConfig] to move a field up or down.
   void moveField(Field field, {bool up = true}) {
-    var fieldList = List.of(fieldMap.values);
+    final fieldList = List.of(fieldMap.values);
     var pos = fieldList.indexOf(field);
     undoList.add(UndoMoveField('Move field: ${field.name}', pos, up));
     fieldList.removeAt(pos);
@@ -780,7 +781,7 @@ class Structure extends ChangeNotifier {
 
   /// Update all alt format fields by removing unused and updating parents.
   void updateAltFormatFields() {
-    var usedFields = <Field>{};
+    final usedFields = <Field>{};
     usedFields.addAll(titleLine.fields());
     for (var line in outputLines) usedFields.addAll(line.fields());
     for (var root in rootNodes) {
@@ -800,7 +801,7 @@ class Structure extends ChangeNotifier {
 
   String storedNodeId(Node? node) {
     if (node == null) return '';
-    var posList = <int>[];
+    final posList = <int>[];
     while (node!.parent != null) {
       posList.insert(0, node.parent!.storedChildren().indexOf(node));
       assert(posList[0] != -1);
@@ -813,7 +814,7 @@ class Structure extends ChangeNotifier {
 
   Node? storedNodeFromId(String id) {
     if (id.isEmpty) return null;
-    var posList = [for (var i in id.split('.')) int.parse(i)];
+    final posList = [for (var i in id.split('.')) int.parse(i)];
     var node = rootNodes[posList.removeAt(0)];
     while (posList.isNotEmpty) {
       node = node.storedChildren()[posList.removeAt(0)];
@@ -822,18 +823,18 @@ class Structure extends ChangeNotifier {
   }
 
   int storedNodePos(Node node) {
-    var parent = node.parent;
+    final parent = node.parent;
     if (parent != null) return parent.storedChildren().indexOf(node);
     return rootNodes.indexOf(node);
   }
 
   /// Called from [TreeConfig] to add a new title node as a sibling.
   void addTitleSibling(TitleNode siblingNode, String newTitle) {
-    var parent = siblingNode.parent;
-    var pos = storedNodePos(siblingNode) + 1;
+    final parent = siblingNode.parent;
+    final pos = storedNodePos(siblingNode) + 1;
     undoList.add(UndoAddTreeNode(
         'Add title node: $newTitle', storedNodeId(parent), pos));
-    var newNode = TitleNode(title: newTitle, modelRef: this, parent: parent);
+    final newNode = TitleNode(title: newTitle, modelRef: this, parent: parent);
     if (parent != null) {
       (parent as TitleNode).addChildTitleNode(newNode, pos: pos);
     } else {
@@ -844,7 +845,7 @@ class Structure extends ChangeNotifier {
 
   /// Called from [TreeConfig] to add a new title node as a child.
   void addTitleChild(TitleNode parentNode, String newTitle) {
-    var undos = <Undo>[];
+    final undos = <Undo>[];
     undoList.add(
       UndoAddTreeNode(
         'Add title node: $newTitle',
@@ -854,7 +855,7 @@ class Structure extends ChangeNotifier {
             : 0,
       ),
     );
-    var newNode =
+    final newNode =
         TitleNode(title: newTitle, modelRef: this, parent: parentNode);
     if (parentNode.childRuleNode != null) {
       newNode.replaceChildRule(parentNode.childRuleNode);
@@ -879,14 +880,14 @@ class Structure extends ChangeNotifier {
         storedNodeId(newNode.parent),
         0));
     if (newNode.parent is TitleNode) {
-      var parent = newNode.parent as TitleNode;
+      final parent = newNode.parent as TitleNode;
       if (parent.childRuleNode != null) {
         // Move any existing rule nodes lower in the structure.
         newNode.replaceChildRule(parent.childRuleNode);
       }
       parent.replaceChildRule(newNode);
     } else {
-      var parent = newNode.parent as RuleNode;
+      final parent = newNode.parent as RuleNode;
       if (parent.childRuleNode != null) {
         // Move any existing rule nodes lower in the structure.
         newNode.replaceChildRule(parent.childRuleNode);
@@ -899,15 +900,15 @@ class Structure extends ChangeNotifier {
   }
 
   void editRuleLine(RuleNode node, ParsedLine newRuleLine) {
-    var editUndo = UndoEditRuleLine(
+    final editUndo = UndoEditRuleLine(
         'Edit rule line: ${node.ruleLine.getUnparsedLine()}',
         storedNodeId(node),
         node.ruleLine);
     node.ruleLine = newRuleLine;
-    var prevSortKeys = List.of(node.sortFields);
+    final prevSortKeys = List.of(node.sortFields);
     if (node.setDefaultRuleSortFields(checkCustom: true)) {
       // Save custom sort keys if they've changed.
-      var sortUndo = UndoEditSortKeys(
+      final sortUndo = UndoEditSortKeys(
         '',
         storedNodeId(node),
         prevSortKeys,
@@ -932,7 +933,7 @@ class Structure extends ChangeNotifier {
         replaceCount: keepChildren ? node.storedChildren().length : 0,
       ));
       if (keepChildren && node.hasChildren && node.parent != null) {
-        var parentTitleNode = node.parent as TitleNode;
+        final parentTitleNode = node.parent as TitleNode;
         if (node.childRuleNode == null) {
           parentTitleNode.replaceChildTitleNode(node, node.storedChildren());
         } else {
@@ -942,7 +943,7 @@ class Structure extends ChangeNotifier {
       } else if (node.parent != null) {
         (node.parent as TitleNode).removeChildTitleNode(node);
       } else if (keepChildren && node.hasChildren) {
-        var pos = rootNodes.indexOf(node);
+        final pos = rootNodes.indexOf(node);
         node.storedChildren().forEach((newNode) {
           newNode.parent = null;
         });
@@ -963,7 +964,7 @@ class Structure extends ChangeNotifier {
         (node.parent as TitleNode)
             .replaceChildRule(keepChildren ? node.childRuleNode : null);
       } else {
-        var parentRule = node.parent as RuleNode;
+        final parentRule = node.parent as RuleNode;
         if (keepChildren && node.childRuleNode != null) {
           parentRule.replaceChildRule(node.childRuleNode);
         } else {
@@ -977,7 +978,7 @@ class Structure extends ChangeNotifier {
 
   /// Called from [TreeConfig] to move a title node up or down.
   void moveTitleNode(TitleNode node, {bool up = true}) {
-    var siblings =
+    final siblings =
         node.parent != null ? node.parent!.storedChildren() : rootNodes;
     var pos = siblings.indexOf(node);
     undoList.add(UndoMoveTitleNode(
@@ -989,7 +990,7 @@ class Structure extends ChangeNotifier {
 
   bool canNodeMove(Node node, {bool up = true}) {
     if (node is! TitleNode) return false;
-    var siblings =
+    final siblings =
         node.parent != null ? node.parent!.storedChildren() : rootNodes;
     var pos = siblings.indexOf(node);
     if (up && pos > 0) return true;
@@ -1128,7 +1129,7 @@ class Structure extends ChangeNotifier {
     }
     // Check whether the position of the current detail node has changed.
     if (detailViewRecords.isNotEmpty) {
-      var record = detailViewRecords.last;
+      final record = detailViewRecords.last;
       if (record.parent != null &&
           !record.parent!.matchingNodes.contains(record.node)) {
         // The parent at the new position should be opened.
@@ -1208,13 +1209,6 @@ Iterable<LeveledNode> storedNodeGenerator(Node node, {int level = 0}) sync* {
   for (var child in node.storedChildren()) {
     yield* storedNodeGenerator(child, level: level + 1);
   }
-}
-
-class DetailViewRecord {
-  final Node node;
-  final GroupNode? parent;
-
-  DetailViewRecord(this.node, [this.parent]);
 }
 
 /// An exception thrown prior to saving files that were externally modified.

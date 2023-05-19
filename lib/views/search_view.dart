@@ -38,20 +38,20 @@ class _SearchViewState extends State<SearchView> {
   final TextEditingController _controller = TextEditingController();
   late final List<LeafNode> availableNodes;
   var resultNodes = <LeafNode>[];
-  var selectedNodes = <LeafNode>[];
+  final selectedNodes = <LeafNode>[];
   var searchType = SearchType.phrase;
   Field? searchField;
 
   void initState() {
     super.initState();
-    var parent = widget.parentNode;
+    final parent = widget.parentNode;
     if (parent != null && parent is GroupNode) {
       availableNodes = parent.availableNodes;
     } else {
-      var model = Provider.of<Structure>(context, listen: false);
+      final model = Provider.of<Structure>(context, listen: false);
       availableNodes = model.leafNodes;
     }
-    var lastTypeIndex = prefs.getInt('searchtype');
+    final lastTypeIndex = prefs.getInt('searchtype');
     if (lastTypeIndex != null) {
       searchType = SearchType.values[lastTypeIndex];
     }
@@ -66,11 +66,11 @@ class _SearchViewState extends State<SearchView> {
   /// Perform the search, updating [resultNodes].
   void doSearch(String searchString) {
     setState(() {
-      var model = Provider.of<Structure>(context, listen: false);
+      final model = Provider.of<Structure>(context, listen: false);
       if (searchString.trim().isNotEmpty) {
         if (searchType == SearchType.regExp) {
           try {
-            var exp = RegExp(searchString);
+            final exp = RegExp(searchString);
             resultNodes = model.regExpSearchResults(exp, availableNodes,
                 searchField: searchField);
           } on FormatException {
@@ -98,7 +98,7 @@ class _SearchViewState extends State<SearchView> {
 
   /// Return a widget with the long node output with matches highlighted.
   Widget longOutput(LeafNode node) {
-    var text = node.outputs().join('\n');
+    final text = node.outputs().join('\n');
     var matches = <Match>[];
     if (searchType == SearchType.phrase) {
       matches =
@@ -117,14 +117,14 @@ class _SearchViewState extends State<SearchView> {
     if (matches.isEmpty) return Text(text);
     var delta = 0;
     if (searchField != null) {
-      var nullableDelta = node.fieldOuputStart(searchField!);
+      final nullableDelta = node.fieldOuputStart(searchField!);
       if (nullableDelta != null) {
         delta = nullableDelta;
       } else {
         return Text(text);
       }
     }
-    var spans = <TextSpan>[];
+    final spans = <TextSpan>[];
     var nextStart = 0;
     try {
       for (var match in matches) {
@@ -150,13 +150,13 @@ class _SearchViewState extends State<SearchView> {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
-    var fieldTitle =
+    final model = Provider.of<Structure>(context, listen: false);
+    final fieldTitle =
         searchField != null ? '${searchField!.name} field' : 'all fields';
     return WillPopScope(
       onWillPop: () async {
         if (selectedNodes.isNotEmpty) {
-          var parent = model.openLeafParent(
+          final parent = model.openLeafParent(
             selectedNodes.last,
             startNode: model.currentDetailViewNode(),
           );
@@ -219,17 +219,14 @@ class _SearchViewState extends State<SearchView> {
                     searchType = SearchType.phrase;
                     prefs.setInt('searchtype', searchType.index);
                     doSearch(_controller.text);
-                    break;
                   case MenuItems.keywordSearch:
                     searchType = SearchType.keyword;
                     prefs.setInt('searchtype', searchType.index);
                     doSearch(_controller.text);
-                    break;
                   case MenuItems.regExpSearch:
                     searchType = SearchType.regExp;
                     prefs.setInt('searchtype', searchType.index);
                     doSearch(_controller.text);
-                    break;
                   case MenuItems.fieldChange:
                     var fieldName = await choiceDialog(
                       context: context,
@@ -240,11 +237,9 @@ class _SearchViewState extends State<SearchView> {
                       searchField = model.fieldMap[fieldName];
                       doSearch(_controller.text);
                     }
-                    break;
                   case MenuItems.allFields:
                     searchField = null;
                     doSearch(_controller.text);
-                    break;
                   case MenuItems.replace:
                     var result = await _replaceDialog(
                       context: context,
@@ -266,7 +261,6 @@ class _SearchViewState extends State<SearchView> {
                         label: '$changeCount nodes were changed',
                       );
                     }
-                    break;
                 }
                 setState(() {});
               },

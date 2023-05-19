@@ -13,7 +13,7 @@ class ThemeModel extends ChangeNotifier {
 
   /// Return the theme based on the current light/dark setting.
   ThemeData getTheme() {
-    var isDark = prefs.getBool('darktheme') ?? false;
+    final isDark = prefs.getBool('darktheme') ?? false;
     return isDark ? darkTheme : lightTheme;
   }
 

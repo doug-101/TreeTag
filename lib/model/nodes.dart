@@ -86,7 +86,7 @@ class TitleNode implements Node {
   /// Update child groups if [forceUpdate] is true or if the list is empty.
   List<Node> childNodes({bool forceUpdate = false}) {
     if (childRuleNode != null && (forceUpdate || _children.length == 0)) {
-      var newChildren = childRuleNode!.createGroups(modelRef.leafNodes, this);
+      final newChildren = childRuleNode!.createGroups(modelRef.leafNodes, this);
       _children.clear();
       _children.addAll(newChildren);
     }
@@ -141,7 +141,7 @@ class TitleNode implements Node {
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{'title': title};
     if (hasChildren) {
-      var childList = <Map<String, dynamic>>[];
+      final childList = <Map<String, dynamic>>[];
       for (var child in storedChildren()) {
         childList.add(child.toJson());
       }
@@ -183,7 +183,7 @@ class RuleNode implements Node {
   RuleNode._fromJson(Map<String, dynamic> jsonData, this.modelRef,
       [this.parent]) {
     ruleLine = ParsedLine(jsonData['rule']!, modelRef.fieldMap);
-    var sortData = jsonData['sortfields'];
+    final sortData = jsonData['sortfields'];
     if (sortData != null) {
       sortFields = [
         for (var fieldName in sortData)
@@ -193,7 +193,7 @@ class RuleNode implements Node {
     } else {
       setDefaultRuleSortFields();
     }
-    var childSortData = jsonData['childsortfields'];
+    final childSortData = jsonData['childsortfields'];
     if (childSortData != null) {
       childSortFields = [
         for (var fieldName in childSortData)
@@ -203,7 +203,7 @@ class RuleNode implements Node {
     } else {
       setDefaultChildSortFields();
     }
-    var childData = jsonData['child'];
+    final childData = jsonData['child'];
     if (childData != null) {
       childRuleNode = RuleNode._fromJson(childData, modelRef, this);
     }
@@ -234,7 +234,7 @@ class RuleNode implements Node {
       sortFields = [for (var field in ruleLine.fields()) SortKey(field)];
     } else if (checkCustom) {
       // Only keep unique sort fields that are found in the rules.
-      var ruleFields = ruleLine.fields();
+      final ruleFields = ruleLine.fields();
       for (var key in List.of(sortFields)) {
         if (!ruleFields.contains(key.keyField)) {
           sortFields.remove(key);
@@ -305,13 +305,13 @@ class RuleNode implements Node {
   /// Return a new list of [GroupNode] based on this node's rule.
   List<GroupNode> createGroups(List<LeafNode> availableNodes,
       [Node? parentRef]) {
-    var nodeData = <String, List<LeafNode>>{};
+    final nodeData = <String, List<LeafNode>>{};
     for (var node in availableNodes) {
       nodeData.update(
           ruleLine.formattedLine(node), (List<LeafNode> list) => list + [node],
           ifAbsent: () => [node]);
     }
-    var oldGroups = <String, GroupNode>{};
+    final oldGroups = <String, GroupNode>{};
     if (parentRef is GroupNode) {
       for (var grp in parentRef._childGroups) {
         oldGroups[grp.title] = grp;
@@ -321,16 +321,16 @@ class RuleNode implements Node {
         if (node is GroupNode) oldGroups[node.title] = node;
       }
     }
-    var groups = <GroupNode>[];
+    final groups = <GroupNode>[];
     for (var line in nodeData.keys) {
-      var groupNode =
+      final groupNode =
           oldGroups[line] ?? GroupNode(line, modelRef, this, parentRef);
       oldGroups.remove(line);
       groupNode._ruleRef = this;
       groupNode.matchingNodes = nodeData[line]!;
       groupNode.data.clear();
       for (var field in ruleLine.fields()) {
-        var fieldValue = groupNode.matchingNodes[0].data[field.name];
+        final fieldValue = groupNode.matchingNodes[0].data[field.name];
         if (fieldValue != null) groupNode.data[field.name] = fieldValue;
       }
       groups.add(groupNode);
@@ -370,7 +370,7 @@ class GroupNode implements Node {
   List<Node> childNodes({bool forceUpdate = false}) {
     if (_ruleRef.childRuleNode != null) {
       if (forceUpdate || _childGroups.isEmpty) {
-        var newChildren =
+        final newChildren =
             _ruleRef.childRuleNode!.createGroups(matchingNodes, this);
         _childGroups.clear();
         _childGroups.addAll(newChildren);
@@ -389,7 +389,7 @@ class GroupNode implements Node {
   List<Node> storedChildren() => [];
 
   Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+    final result = <String, dynamic>{};
     return result;
   }
 }
@@ -425,7 +425,7 @@ class LeafNode implements Node {
   String get title => modelRef.titleLine.formattedLine(this);
 
   List<String> outputs() {
-    var lines = [
+    final lines = [
       for (var line in modelRef.outputLines) line.formattedLine(this)
     ];
     lines.removeWhere((line) => line.isEmpty);
@@ -441,14 +441,14 @@ class LeafNode implements Node {
   }
 
   Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+    Map<String, dynamic> result;
     result = data;
     return result;
   }
 
   /// Return true if all of the searchTerms are found in the data output.
   bool isSearchMatch(List<String> searchTerms, Field? searchField) {
-    var text = searchField == null
+    final text = searchField == null
         ? outputs().join('\n').toLowerCase()
         : searchField.outputText(this).toLowerCase();
     for (var term in searchTerms) {
@@ -459,7 +459,7 @@ class LeafNode implements Node {
 
   /// Return true if the regular expression is found in the data output.
   bool isRegExpMatch(RegExp exp, Field? searchField) {
-    var text = searchField == null
+    final text = searchField == null
         ? outputs().join('\n')
         : searchField.outputText(this);
     return exp.hasMatch(text);
@@ -531,14 +531,14 @@ void nodeFullSort(List<Node> nodes, List<SortKey> keys) {
 
 /// A stable insertion sort for nodes using a single field key.
 void nodeSingleSort(List<Node> nodes, SortKey key) {
-  var start = 0;
-  var end = nodes.length;
+  final start = 0;
+  final end = nodes.length;
   for (var pos = start + 1; pos < end; pos++) {
     var min = start;
     var max = pos;
     var node = nodes[pos];
     while (min < max) {
-      var mid = min + ((max - min) >> 1);
+      final mid = min + ((max - min) >> 1);
       var comparison = key.keyField.compareNodes(node, nodes[mid]);
       if (!key.isAscend) comparison = -comparison;
       if (comparison < 0) {

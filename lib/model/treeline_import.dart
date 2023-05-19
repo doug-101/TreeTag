@@ -24,9 +24,9 @@ class TreeLineImport {
 
   /// Convert the nodes matching [typeName] in the [jsonData] to a TreeTag file.
   void convertNodeType(String typeName, Structure model) {
-    var boolFieldNames = <String>{};
-    var textFieldNames = <String>{};
-    var formatData = jsonData['formats']
+    final boolFieldNames = <String>{};
+    final textFieldNames = <String>{};
+    final formatData = jsonData['formats']
         .firstWhere((item) => item['formatname'] == typeName);
     for (var fieldData in formatData['fields'] ?? []) {
       if (fieldData['fieldtype'] == 'Boolean') {
@@ -38,7 +38,7 @@ class TreeLineImport {
         // Store text field names for later tag conversions.
         textFieldNames.add(fieldData['fieldname']);
       }
-      var field = Field.fromJson(fieldData);
+      final field = Field.fromJson(fieldData);
       model.fieldMap[field.name] = field;
       if (field.fieldType == 'Date' || field.fieldType == 'Time') {
         field.format = _adjustDateTimeFormat(field.format);
@@ -48,12 +48,12 @@ class TreeLineImport {
     for (var lineString in formatData['outputlines'] ?? []) {
       model.outputLines.add(ParsedLine(lineString ?? '', model.fieldMap));
     }
-    var lineEndExp = RegExp(r'<br\s*/?>', multiLine: true);
-    var htmlTagExp = RegExp(r'<[^>]*>', multiLine: true);
-    var unescape = HtmlUnescape();
+    final lineEndExp = RegExp(r'<br\s*/?>', multiLine: true);
+    final htmlTagExp = RegExp(r'<[^>]*>', multiLine: true);
+    final unescape = HtmlUnescape();
     for (var nodeInfo in jsonData['nodes']) {
       if (nodeInfo['format'] == typeName && nodeInfo['data'] != null) {
-        var leafNode = LeafNode(data: nodeInfo['data'], modelRef: model);
+        final leafNode = LeafNode(data: nodeInfo['data'], modelRef: model);
         model.leafNodes.add(leafNode);
         for (var field in model.fieldMap.values) {
           if (leafNode.data[field.name] != null) {
@@ -79,7 +79,7 @@ class TreeLineImport {
         }
       }
     }
-    var root = TitleNode(title: 'Root', modelRef: model);
+    final root = TitleNode(title: 'Root', modelRef: model);
     root.isOpen = true;
     model.rootNodes.add(root);
     root.childRuleNode = RuleNode(
@@ -116,7 +116,7 @@ String _adjustDateTimeFormat(String origFormat) {
     '%p': 'a',
     '%%': "'%'",
   };
-  var regExp = RegExp(r'%-?[daAmbByYjHIMSfp%]');
+  final regExp = RegExp(r'%-?[daAmbByYjHIMSfp%]');
   var newFormat = origFormat.replaceAllMapped(
       regExp,
       (Match m) => replacements[m.group(0)] != null

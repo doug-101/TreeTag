@@ -1,6 +1,6 @@
 // choice_format_edit.dart, a view to edit a choice field format entity.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -61,7 +61,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     onPressed: () async {
-                      var text = await commonDialogs.textDialog(
+                      final text = await commonDialogs.textDialog(
                         context: context,
                         title: 'Choice Field Format',
                         label: 'Segment Text',
@@ -84,7 +84,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                     onPressed: (selectedSegment == null)
                         ? null
                         : () async {
-                            var text = await commonDialogs.textDialog(
+                            final text = await commonDialogs.textDialog(
                               context: context,
                               initText: selectedSegment,
                               title: 'Choice Field Format',
@@ -93,7 +93,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                             );
                             if (text != null && !segments.contains(text)) {
                               setState(() {
-                                var pos = segments.indexOf(selectedSegment!);
+                                final pos = segments.indexOf(selectedSegment!);
                                 segments[pos] = text;
                                 selectedSegment = text;
                                 isChanged = true;
@@ -121,7 +121,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                             segments.indexOf(selectedSegment!) == 0)
                         ? null
                         : () {
-                            var pos = segments.indexOf(selectedSegment!);
+                            final pos = segments.indexOf(selectedSegment!);
                             setState(() {
                               segments.removeAt(pos);
                               segments.insert(pos - 1, selectedSegment!);
@@ -137,7 +137,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                                 segments.length - 1)
                         ? null
                         : () {
-                            var pos = segments.indexOf(selectedSegment!);
+                            final pos = segments.indexOf(selectedSegment!);
                             setState(() {
                               segments.removeAt(pos);
                               segments.insert(pos + 1, selectedSegment!);

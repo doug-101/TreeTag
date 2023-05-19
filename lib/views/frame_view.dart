@@ -45,17 +45,18 @@ class FrameView extends StatelessWidget {
     return Consumer<Structure>(
       builder: (context, model, child) {
         model.hasWideDisplay = MediaQuery.of(context).size.width > 600;
-        var detailRootNode = model.currentDetailViewNode();
-        var detailViewTitle = detailRootNode != null
+        final detailRootNode = model.currentDetailViewNode();
+        final detailViewTitle = detailRootNode != null
             ? (detailRootNode.title.isNotEmpty
                 ? detailRootNode.title
                 : emptyTitleName)
             : emptyViewName;
-        var isDetailLeafNode = detailRootNode is LeafNode &&
+        final isDetailLeafNode = detailRootNode is LeafNode &&
             !model.obsoleteNodes.contains(detailRootNode);
-        var hasDetailViewOnly = !model.hasWideDisplay && detailRootNode != null;
+        final hasDetailViewOnly =
+            !model.hasWideDisplay && detailRootNode != null;
         // Size placeholder for hidden icons, includes 8/side padding.
-        var iconSize = (IconTheme.of(context).size ?? 24.0) + 16.0;
+        final iconSize = (IconTheme.of(context).size ?? 24.0) + 16.0;
         return Scaffold(
           drawer: hasDetailViewOnly
               ? null
@@ -112,20 +113,20 @@ class FrameView extends StatelessWidget {
                             );
                             return;
                           }
-                          var filenames = [
+                          final filenames = [
                             for (var f in fileList)
                               if (f.nameNoExtension != fileRootName &&
                                   f.extension == fileExtension)
                                 f.filename
                           ];
                           filenames.sort();
-                          var fileName = await commonDialogs.choiceDialog(
+                          final fileName = await commonDialogs.choiceDialog(
                             context: context,
                             choices: filenames,
                             title: 'Choose File to Merge',
                           );
                           if (fileName != null) {
-                            var fileObj = IOFile.currentType(fileName);
+                            final fileObj = IOFile.currentType(fileName);
                             try {
                               await model.mergeFile(fileObj);
                             } on FormatException {
@@ -154,8 +155,8 @@ class FrameView extends StatelessWidget {
                         title: const Text('Export to TreeLine'),
                         onTap: () async {
                           Navigator.pop(context);
-                          var exportData = TreeLineExport(model).jsonData();
-                          var fileObj = IOFile.currentType(
+                          final exportData = TreeLineExport(model).jsonData();
+                          final fileObj = IOFile.currentType(
                               model.fileObject.nameNoExtension + '.trln');
                           if (await fileObj.exists) {
                             var ans = await commonDialogs.okCancelDialog(
@@ -179,25 +180,25 @@ class FrameView extends StatelessWidget {
                         title: const Text('Export to CSV'),
                         onTap: () async {
                           Navigator.pop(context);
-                          var converter = CsvExport(model);
+                          final converter = CsvExport(model);
                           // Ask for raw vs. output string option.
                           const options = [
                             'Field text as output',
                             'Field text as stored',
                           ];
-                          var ans = await commonDialogs.choiceDialog(
+                          final ans = await commonDialogs.choiceDialog(
                             context: context,
                             title: 'CSV Export Options',
                             choices: options,
                           );
                           if (ans == null) return;
-                          var useOutput = ans == options[0];
-                          var exportData =
+                          final useOutput = ans == options[0];
+                          final exportData =
                               converter.csvString(useOutput: useOutput);
-                          var fileObj = LocalFile(
+                          final fileObj = LocalFile(
                               model.fileObject.nameNoExtension + '.csv');
                           if (await fileObj.exists) {
-                            var ans = await commonDialogs.okCancelDialog(
+                            final ans = await commonDialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
                               label: 'File ${fileObj.filename} already '
@@ -365,7 +366,7 @@ class FrameView extends StatelessWidget {
                 icon: const Icon(Icons.add_circle),
                 // Create a new node using data copied from the shown nodes.
                 onPressed: () {
-                  var newNode = model.newNode(copyFromNode: detailRootNode);
+                  final newNode = model.newNode(copyFromNode: detailRootNode);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -383,7 +384,7 @@ class FrameView extends StatelessWidget {
                   onSelected: (result) async {
                     switch (result) {
                       case MenuItems.editChildren:
-                        var commonNode = model.commonChildDataNode();
+                        final commonNode = model.commonChildDataNode();
                         if (commonNode != null) {
                           Navigator.push(
                             context,
@@ -398,7 +399,7 @@ class FrameView extends StatelessWidget {
                         break;
                       case MenuItems.deleteChildren:
                         if (detailRootNode is TitleNode) {
-                          var ans = await commonDialogs.okCancelDialog(
+                          final ans = await commonDialogs.okCancelDialog(
                             context: context,
                             title: 'Confirm Delete',
                             label: 'Deleting from a title node deletes all '

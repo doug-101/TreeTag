@@ -1,6 +1,6 @@
 // field_format_tools.dart, functions to work with field format strings.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 final numberFormatMap = const {
@@ -54,16 +54,16 @@ List<FormatSegment> parseFieldFormat(
     String format, Map<String, String> formatMap) {
   // Use null char to hande escaped (double) single quotes.
   format = format.replaceAll("''", "\x00");
-  var result = <FormatSegment>[];
+  final result = <FormatSegment>[];
   while (format.isNotEmpty) {
     if (format[0] == "'") {
-      var endPos = format.indexOf("'", 1);
+      final endPos = format.indexOf("'", 1);
       if (endPos < 0) throw FormatException('Expected closing quote');
       result.add(FormatSegment(
           extraText: format.substring(1, endPos).replaceAll("\x00", "'")));
       format = format.substring(endPos + 1);
     } else {
-      var formatLen = format.length;
+      final formatLen = format.length;
       for (var len = 4 <= format.length ? 4 : format.length; len > 0; len--) {
         if (formatMap.containsKey(format.substring(0, len))) {
           result.add(FormatSegment(formatCode: format.substring(0, len)));
@@ -72,7 +72,7 @@ List<FormatSegment> parseFieldFormat(
         }
       }
       if (formatLen == format.length) {
-        var matchLen = RegExp(r"\W+").matchAsPrefix(format)?.end;
+        final matchLen = RegExp(r"\W+").matchAsPrefix(format)?.end;
         if (matchLen != null && matchLen > 0) {
           result.add(
             FormatSegment(
@@ -95,7 +95,7 @@ List<FormatSegment> parseFieldFormat(
 String combineFieldFormat(List<FormatSegment> parsedList,
     {bool condense = false}) {
   if (condense) {
-    var condensedList = <FormatSegment>[];
+    final condensedList = <FormatSegment>[];
     for (var segment in parsedList) {
       if (condensedList.isNotEmpty &&
           condensedList.last.extraText != null &&
@@ -108,7 +108,7 @@ String combineFieldFormat(List<FormatSegment> parsedList,
     }
     parsedList = condensedList;
   }
-  var result = StringBuffer();
+  final result = StringBuffer();
   for (var segment in parsedList) {
     if (segment.formatCode != null) {
       if (result.toString().endsWith(segment.formatCode![0]) &&
@@ -120,7 +120,7 @@ String combineFieldFormat(List<FormatSegment> parsedList,
       result.write(segment.formatCode);
     } else {
       // Duplicate the single quotes to escape them.
-      var text = segment.extraText!.replaceAll("'", "''");
+      final text = segment.extraText!.replaceAll("'", "''");
       if (RegExp(r'\w').hasMatch(text)) {
         // Quotes required if alphabetic char are in text.
         result.write("'" + text + "'");

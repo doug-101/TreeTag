@@ -1,6 +1,6 @@
 // field_format_edit.dart, a display widget and an edit view for field formats.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:ui' show PointerDeviceKind;
@@ -27,7 +27,7 @@ class FieldFormatDisplay extends FormField<String> {
             builder: (FormFieldState<String> state) {
               return InkWell(
                 onTap: () async {
-                  var newFormat = await Navigator.push(
+                  final newFormat = await Navigator.push(
                     state.context,
                     MaterialPageRoute<String?>(
                       builder: (context) {
@@ -116,7 +116,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
       ),
       body: WillPopScope(
         onWillPop: () async {
-          var formatResult = combineFieldFormat(segments, condense: true);
+          final formatResult = combineFieldFormat(segments, condense: true);
           if (!_fieldFormatIsValid(widget.fieldType, formatResult)) {
             return false;
           }
@@ -140,7 +140,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                       FormatSegment? newSegment;
                       if (result == 'add text') {
                         // Add a segemnt with extra text.
-                        var text = await commonDialogs.textDialog(
+                        final text = await commonDialogs.textDialog(
                           context: context,
                           title: 'Field Format',
                           label: 'Segment Text',
@@ -182,7 +182,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                         ? null
                         : () async {
                             // Edit a segment with extra text.
-                            var text = await commonDialogs.textDialog(
+                            final text = await commonDialogs.textDialog(
                               context: context,
                               initText: selectedSegment!.extraText!,
                               title: 'Field Format',
@@ -217,7 +217,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                         ? null
                         : () {
                             // Move a segment to the left.
-                            var pos = segments.indexOf(selectedSegment!);
+                            final pos = segments.indexOf(selectedSegment!);
                             setState(() {
                               segments.removeAt(pos);
                               segments.insert(pos - 1, selectedSegment!);
@@ -233,7 +233,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                         ? null
                         : () {
                             // Move a segment to the right.
-                            var pos = segments.indexOf(selectedSegment!);
+                            final pos = segments.indexOf(selectedSegment!);
                             setState(() {
                               segments.removeAt(pos);
                               segments.insert(pos + 1, selectedSegment!);
@@ -322,7 +322,7 @@ String _fieldFormatPreview(String fieldType, String fieldFormat) {
     if (fieldType == 'Date' || fieldType == 'Time')
       return DateFormat(fieldFormat).format(DateTime.now());
     if (fieldType == 'Number') {
-      var result = NumberFormat(fieldFormat).format(12345.6789);
+      final result = NumberFormat(fieldFormat).format(12345.6789);
       return '$result  ($fieldFormat)';
     }
     if (fieldType == 'Choice')

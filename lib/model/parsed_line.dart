@@ -1,6 +1,6 @@
 // parsed_line.dart, a class to parse and output lines with field content.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -9,7 +9,7 @@ import 'nodes.dart';
 
 /// A single line of output, broken into fields and static text.
 class ParsedLine {
-  var segments = <LineSegment>[];
+  final segments = <LineSegment>[];
 
   ParsedLine(String unparsedLine, Map<String, Field> fieldMap) {
     parseLine(unparsedLine, fieldMap);
@@ -23,7 +23,7 @@ class ParsedLine {
   ParsedLine.empty();
 
   ParsedLine copy() {
-    var newParsedLine = ParsedLine.empty();
+    final newParsedLine = ParsedLine.empty();
     for (var segment in segments) {
       newParsedLine.segments.add(segment._copy());
     }
@@ -36,7 +36,7 @@ class ParsedLine {
   void parseLine(String unparsedLine, Map<String, Field> fieldMap) {
     segments.clear();
     var start = 0;
-    var regExp = RegExp(r'{\*([\w_\-.]+)(:\d+)?\*}');
+    final regExp = RegExp(r'{\*([\w_\-.]+)(:\d+)?\*}');
     for (var match in regExp.allMatches(unparsedLine, start)) {
       if (match.start > start) {
         segments
@@ -44,9 +44,9 @@ class ParsedLine {
       }
       var field = fieldMap[match.group(1)];
       if (field != null) {
-        var altFieldStr = match.group(2);
+        final altFieldStr = match.group(2);
         if (altFieldStr != null) {
-          var altField =
+          final altField =
               field.altFormatField(int.parse(altFieldStr.substring(1)));
           if (altField != null) field = altField;
         }
@@ -63,10 +63,10 @@ class ParsedLine {
 
   /// Return this line filled in with data fields from [node].
   String formattedLine(LeafNode node) {
-    var result = StringBuffer();
+    final result = StringBuffer();
     var fieldsBlank = true;
     for (var segment in segments) {
-      var text = segment.output(node);
+      final text = segment.output(node);
       if (text.isNotEmpty) {
         if (segment.hasField) fieldsBlank = false;
         result.write(text);
@@ -77,7 +77,7 @@ class ParsedLine {
   }
 
   String getUnparsedLine() {
-    var result = StringBuffer();
+    final result = StringBuffer();
     for (var segment in segments) {
       result.write(segment.unparsedKey());
     }
@@ -131,7 +131,7 @@ class ParsedLine {
 
   /// Return this line as Flutter text spans using [fieldStyle] for field names.
   List<TextSpan> richLineSpans(TextStyle fieldStyle) {
-    var spans = <TextSpan>[];
+    final spans = <TextSpan>[];
     for (var segment in segments) {
       spans.add(segment.richText(fieldStyle));
     }
@@ -177,7 +177,7 @@ class LineSegment {
   }
 
   LineSegment _copy() {
-    var newSegment = LineSegment();
+    final newSegment = LineSegment();
     newSegment.field = field;
     newSegment.text = text;
     return newSegment;

@@ -34,7 +34,7 @@ Future<void> main() async {
     () => Stream<LicenseEntry>.value(
       const LicenseEntryWithLineBreaks(
         <String>['TreeTag'],
-        'TreeTag, Copyright (C) 2022 by Douglas W. Bell\n\n'
+        'TreeTag, Copyright (C) 2023 by Douglas W. Bell\n\n'
         'This program is free software; you can redistribute it and/or modify '
         'it under the terms of the GNU General Public License as published by '
         'the Free Software Foundation; either version 2 of the License, or '
@@ -118,7 +118,7 @@ Future<void> main() async {
       navigatorKey.currentState!.push(
         MaterialPageRoute(
           builder: (context) {
-            var model = Provider.of<Structure>(context, listen: false);
+            final model = Provider.of<Structure>(context, listen: false);
             return AlertDialog(
               title: Text('Warning'),
               content:
@@ -167,7 +167,7 @@ Future<void> main() async {
       ],
       child: Consumer<ThemeModel>(
         builder: (context, themeModel, child) {
-          var ratio = prefs.getDouble('viewscale') ?? 1.0;
+          final ratio = prefs.getDouble('viewscale') ?? 1.0;
           return FractionallySizedBox(
             widthFactor: 1 / ratio,
             heightFactor: 1 / ratio,
@@ -219,7 +219,7 @@ Future<void> main() async {
 
 Future<void> saveWindowGeo() async {
   if (!allowSaveWindowGeo) return;
-  var bounds = await windowManager.getBounds();
+  final bounds = await windowManager.getBounds();
   await prefs.setDouble('winsizex', bounds.size.width);
   await prefs.setDouble('winsizey', bounds.size.height);
   await prefs.setDouble('winposx', bounds.left);

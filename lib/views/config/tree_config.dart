@@ -1,6 +1,6 @@
 // tree_config.dart, a view to edit the tree structure configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class _TreeConfigState extends State<TreeConfig> {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
     return Column(
       children: <Widget>[
         Row(
@@ -40,7 +40,7 @@ class _TreeConfigState extends State<TreeConfig> {
               onSelected: (result) async {
                 switch (result) {
                   case AddMenuItems.titleSibling:
-                    var name = await commonDialogs.textDialog(
+                    final name = await commonDialogs.textDialog(
                       context: context,
                       title: 'Title Name',
                       label: 'New title text',
@@ -50,9 +50,8 @@ class _TreeConfigState extends State<TreeConfig> {
                         model.addTitleSibling(selectedNode! as TitleNode, name);
                       });
                     }
-                    break;
                   case AddMenuItems.titleChild:
-                    var name = await commonDialogs.textDialog(
+                    final name = await commonDialogs.textDialog(
                       context: context,
                       title: 'Title Name',
                       label: 'New title text',
@@ -62,9 +61,8 @@ class _TreeConfigState extends State<TreeConfig> {
                         model.addTitleChild(selectedNode! as TitleNode, name);
                       });
                     }
-                    break;
                   case AddMenuItems.ruleChild:
-                    var newRule = RuleNode(
+                    final newRule = RuleNode(
                       rule: '',
                       modelRef: model,
                       parent: selectedNode!,
@@ -77,7 +75,6 @@ class _TreeConfigState extends State<TreeConfig> {
                       ),
                     );
                     setState(() {});
-                    break;
                 }
               },
               itemBuilder: (context) => [
@@ -108,8 +105,8 @@ class _TreeConfigState extends State<TreeConfig> {
                   ? null
                   : () async {
                       if (selectedNode! is TitleNode) {
-                        var node = selectedNode! as TitleNode;
-                        var name = await commonDialogs.textDialog(
+                        final node = selectedNode! as TitleNode;
+                        final name = await commonDialogs.textDialog(
                           context: context,
                           initText: node.title,
                           title: 'Title Name',
@@ -145,13 +142,11 @@ class _TreeConfigState extends State<TreeConfig> {
                       );
                       selectedNode = null;
                     });
-                    break;
                   case DeleteMenuItems.branch:
                     setState(() {
                       model.deleteTreeNode(selectedNode!);
                       selectedNode = null;
                     });
-                    break;
                 }
               },
               itemBuilder: (context) => [
@@ -222,7 +217,7 @@ class _TreeConfigState extends State<TreeConfig> {
     final items = <Widget>[];
     for (var root in model.rootNodes) {
       for (var leveledNode in storedNodeGenerator(root)) {
-        var node = leveledNode.node;
+        final node = leveledNode.node;
         late Text titleText;
         if (node is RuleNode) {
           var ruleTitleSpans = node.ruleLine.richLineSpans(contrastStyle);

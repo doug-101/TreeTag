@@ -54,11 +54,11 @@ class TreeView extends StatelessWidget {
 
   /// A single widget for a tree node.
   Widget _row(LeveledNode leveledNode, BuildContext context) {
-    var spacing = (prefs.getBool('linespacing') ??
+    final spacing = (prefs.getBool('linespacing') ??
             Platform.isLinux || Platform.isWindows || Platform.isMacOS)
         ? 2.0
         : 8.0;
-    var model = Provider.of<Structure>(context, listen: false);
+    final model = Provider.of<Structure>(context, listen: false);
     final node = leveledNode.node;
     String nodeText;
     if (node is LeafNode && node.isExpanded(leveledNode.parent!)) {
@@ -66,7 +66,7 @@ class TreeView extends StatelessWidget {
     } else {
       nodeText = node.title.isNotEmpty ? node.title : emptyName;
     }
-    var isNodeSelected =
+    final isNodeSelected =
         model.hasWideDisplay && node == model.currentDetailViewNode();
     return Padding(
       padding: EdgeInsets.fromLTRB(
