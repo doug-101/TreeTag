@@ -1185,18 +1185,30 @@ class LeveledNode {
   LeveledNode(this.node, this.level, {this.parent});
 }
 
-/// Generate [LeveledNodes] for all of the open nodes in the branch.
-Iterable<LeveledNode> leveledNodeGenerator(Node node,
-    {int level = 0, Node? parent, bool forceUpdate = false}) sync* {
+/// Generate [LeveledNodes] for all of the nodes in the branch.
+///
+/// Defaults to only including nodes with open parents.
+Iterable<LeveledNode> leveledNodeGenerator(
+  Node node, {
+  int level = 0,
+  Node? parent,
+  bool openOnly = true,
+  bool forceUpdate = false,
+}) sync* {
   yield LeveledNode(node, level, parent: parent);
-  if (node.isOpen) {
+  if (node.isOpen || !openOnly) {
     if (node.isStale) {
       forceUpdate = true;
       node.isStale = false;
     }
     for (var child in node.childNodes(forceUpdate: forceUpdate)) {
-      yield* leveledNodeGenerator(child,
-          level: level + 1, parent: node, forceUpdate: forceUpdate);
+      yield* leveledNodeGenerator(
+        child,
+        level: level + 1,
+        parent: node,
+        openOnly: openOnly,
+        forceUpdate: forceUpdate,
+      );
     }
   } else if (forceUpdate && node.hasChildren) {
     node.isStale = true;

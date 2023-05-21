@@ -24,6 +24,7 @@ import '../model/csv_export.dart';
 import '../model/io_file.dart';
 import '../model/nodes.dart';
 import '../model/structure.dart';
+import '../model/text_export.dart';
 import '../model/treeline_export.dart';
 
 const emptyViewName = '[No Current Nodes]';
@@ -207,6 +208,46 @@ class FrameView extends StatelessWidget {
                             if (ans == null || !ans) return;
                           }
                           await fileObj.writeString(exportData);
+                          await commonDialogs.okDialog(
+                            context: context,
+                            title: 'Export',
+                            label:
+                                'Local file ${fileObj.filename} was written.',
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.format_align_right),
+                        title: const Text('Export to indented text'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          final converter = TextExport(model);
+                          const options = [
+                            'Title lines only',
+                            'All output lines',
+                          ];
+                          final ans = await commonDialogs.choiceDialog(
+                            context: context,
+                            title: 'Text Export Options',
+                            choices: options,
+                          );
+                          if (ans == null) return;
+                          final includeOutput = ans == options[1];
+                          final exportText = converter.textString(
+                            includeOutput: includeOutput,
+                          );
+                          final fileObj = LocalFile(
+                              model.fileObject.nameNoExtension + '.txt');
+                          if (await fileObj.exists) {
+                            final ans = await commonDialogs.okCancelDialog(
+                              context: context,
+                              title: 'Confirm Overwrite',
+                              label: 'File ${fileObj.filename} already '
+                                  'exists.\n\nOverwrite it?',
+                            );
+                            if (ans == null || !ans) return;
+                          }
+                          await fileObj.writeString(exportText);
                           await commonDialogs.okDialog(
                             context: context,
                             title: 'Export',
