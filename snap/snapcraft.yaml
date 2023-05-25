@@ -1,5 +1,5 @@
 name: treetag # you probably want to 'snapcraft register <name>'
-version: '0.5.0'
+version: '0.6.0'
 summary: TreeTag is a personal data manager.
 description: |
   TreeTag is a personal data manager. It stores information in a hierarchy

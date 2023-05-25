@@ -19,7 +19,7 @@
 </div>
 
 <div class="toplinks">
-<p>Version 0.5.0 (stable)</p>
+<p>Version 0.6.0 (stable)</p>
 
 <p><a href="http://www.bellz.org/progs.html">Other Programs</a></p>
 <p><a href="http://www.bellz.org/contact.html">Contact Info</a></p>
@@ -174,12 +174,14 @@ string will substitute matching groups from the search results.</p>
 
 <p>The hamburger (three lines) menu includes commands for the configuration
 editor, the settings view and the undo list, all described in subsequent
-sections. There is also a command to merge the data from a second file.  The
-second file should have similar fields, but any missing fields will be added
-as necessary. Otherwise, the configuration of the current file is kept.
-Finally, there are commands to export the current data to a TreeLine file or
-to a CSV file. The CSV export gives options for field text to be as output
-(same as displayed) or as stored (better for re-import).</p>
+sections.  There is also a command to merge the data from a second file.  The
+second file should have similar fields, but any missing fields will be added as
+necessary.  Otherwise, the configuration of the current file is kept.  Finally,
+there are commands to export the current data to a TreeLine file, to a CSV file
+or to an indented text file.  The CSV export gives options for field text to be
+as output (same as displayed) or as stored (better for re-import).  The
+indented text export gives options to include titles only or all node output
+lines.</p>
 
 <a id="detailview"></a> <h2>Detail View</h2>
 
@@ -362,15 +364,17 @@ removed.</p>
 <a id="settingsview"></a> <h2>Settings View</h2>
 
 <p>The settings view contains general customization options.  Options not
-previously discussed include hiding dot files, tight line spacing, remember
-window geometry and enabling spell checks.  File names that begin with a dot
-will not be shown if the hidden option is enabled. The tight line spacing
-option allows more lines to fit on the screen.  It is recommended when using a
-mouse, but may not leave enough space for touch interfaces.  The window size
-and position will be restored from the previous session use if enabled.  The
-red underline under misspelled English words is controlled by the spell check
-setting.  Currently, no suggestions are shown for misspelled words on desktop
-platforms.</p>
+previously discussed include hiding dot files, enabling spell checks, tight
+line spacing, a dark theme, remember window geometry and a view scale ratio.
+File names that begin with a dot will not be shown if the hidden option is
+enabled.  The red underline under misspelled English words is controlled by the
+spell check setting (currently, no suggestions are shown for misspelled words
+on desktop platforms). The tight line spacing option allows more lines to fit
+on the screen - it is recommended when using a mouse, but may not leave enough
+space for touch interfaces.  A darker theme can be enabled in place of the
+default light theme.  The window size and position will be restored from the
+previous session use if enabled.  The view scale ratio can be set to make the
+content smaller or larger (useful for high-dpi displays).</p>
 
 <p>On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.</p>

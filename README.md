@@ -45,6 +45,7 @@ Also visit <http://treetag.bellz.org> for more information.
   can be undone.
 * The data from a two TreeTag files can be merged together.
 * Files can be imported and exported to or from both TreeLine and CSV files.
+* Files can be exported to indented text files.
 * TreeTag can interface with a Kinto storage server to store and retrieve files
   from the cloud.
 
@@ -202,7 +203,7 @@ view.  The detail view is described in the next section.  The tree view will
 highlight current parent or node in the detail view.
 
 The "+" icon in the top bar will create a new leaf node and show it in an edit
-view. Once the editing is complete, the new node will be properly placed into
+view.  Once the editing is complete, the new node will be properly placed into
 the tree.  In many cases, it's easier to start new nodes when the detail view is
 showing a group or leaf node, since at least some of the fields will initially
 be populated to match the group or leaf.
@@ -214,7 +215,7 @@ node or no node, all leaf nodes will be searched.  Note that searching is not
 available if a leaf node is being shown.  The search view menu can be used to
 set the search method to a phrase, keywords or regular expressions.  Note that
 only regular expressions are case sensitive.  As a string is typed in the top
-bar, matching nodes will be shown in the main view. Tapping/clicking on a
+bar, matching nodes will be shown in the main view.  Tapping/clicking on a
 resulting node will select it and show its full output, with the matching text
 highlighted.  The last node selected when leaving the search view will become
 current in the detail view and expanded in the tree.  There is also a replace
@@ -222,14 +223,16 @@ option in the menu when searching by phrase or regular expression.  When
 searching with regular expressions, adding "$1", "$2", etc. in the replacement
 string will substitute matching groups from the search results.
 
-The hamburger (three lines) menu includes commands for the configuration editor,
-the settings view and the undo list, all described in subsequent sections. There
-is also a command to merge the data from a second file.  The second file should
-have similar fields, but any missing fields will be added as necessary.
-Otherwise, the configuration of the current file is kept.  Finally, there are
-commands to export the current data to a TreeLine file or to a CSV file. The CSV
-export gives options for field text to be as output (same as displayed) or as
-stored (better for re-import).
+The hamburger (three lines) menu includes commands for the configuration
+editor, the settings view and the undo list, all described in subsequent
+sections.  There is also a command to merge the data from a second file.  The
+second file should have similar fields, but any missing fields will be added as
+necessary.  Otherwise, the configuration of the current file is kept.  Finally,
+there are commands to export the current data to a TreeLine file, to a CSV file
+or to an indented text file.  The CSV export gives options for field text to be
+as output (same as displayed) or as stored (better for re-import).  The
+indented text export gives options to include titles only or all node output
+lines.
 
 ## Detail View
 
@@ -406,15 +409,17 @@ removed.
 ## Settings View
 
 The settings view contains general customization options.  Options not
-previously discussed include hiding dot files, tight line spacing, remember
-window geometry and enabling spell checks.  File names that begin with a dot
-will not be shown if the hidden option is enabled. The tight line spacing option
-allows more lines to fit on the screen.  It is recommended when using a mouse,
-but may not leave enough space for touch interfaces.  The window size and
-position will be restored from the previous session use if enabled.  The red
-underline under misspelled English words is controlled by the spell check
-setting.  Currently, no suggestions are shown for misspelled words on desktop
-platforms.
+previously discussed include hiding dot files, enabling spell checks, tight
+line spacing, a dark theme, remember window geometry and a view scale ratio.
+File names that begin with a dot will not be shown if the hidden option is
+enabled.  The red underline under misspelled English words is controlled by the
+spell check setting (currently, no suggestions are shown for misspelled words
+on desktop platforms). The tight line spacing option allows more lines to fit
+on the screen - it is recommended when using a mouse, but may not leave enough
+space for touch interfaces.  A darker theme can be enabled in place of the
+default light theme.  The window size and position will be restored from the
+previous session use if enabled.  The view scale ratio can be set to make the
+content smaller or larger (useful for high-dpi displays).
 
 On desktop platforms, there is also an option to set the working directory.
 This is where all files in the main file list are stored.
