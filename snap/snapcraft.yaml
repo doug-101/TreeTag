@@ -11,27 +11,51 @@ confinement: strict # use 'strict' (not 'devmode') once you have the right plugs
 base: core22 # the base snap is the execution environment for this snap
 grade: stable # must be 'stable' (not 'devel') to release into candidate/stable channels
 
+parts:
+  flutter-git:
+    source: https://github.com/flutter/flutter.git
+    source-tag: 3.10.0
+    plugin: nil
+    override-build: |
+      set -eux
+      mkdir -p $CRAFT_PART_INSTALL/usr/bin
+      mkdir -p $CRAFT_PART_INSTALL/usr/libexec
+      cp -r $CRAFT_PART_SRC $CRAFT_PART_INSTALL/usr/libexec/flutter
+      ln -sf $CRAFT_PART_INSTALL/usr/libexec/flutter/bin/flutter $CRAFT_PART_INSTALL/usr/bin/flutter
+      export PATH="$CRAFT_PART_INSTALL/usr/bin:$PATH"
+      flutter doctor
+    build-packages:
+      - clang
+      - cmake
+      - curl
+      - ninja-build
+      - unzip
+    override-prime: ''
+
+  zenity:
+    plugin: nil
+    stage-packages:
+      - zenity
+
+  treetag:
+    after:
+      - flutter-git
+      - zenity
+    plugin: nil
+    source: .
+    override-build: |
+      set -eux
+      flutter pub get || true
+      flutter build linux --release -v
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      cp -r build/linux/*/release/bundle/* $CRAFT_PART_INSTALL/bin/
+
 apps:
   treetag:
-    command: treetag
+    command: bin/treetag
     extensions: [gnome]
     plugs:
       - home
       - desktop
       - network
-
-parts:
-  zenity:
-    plugin: nil
-    stage-packages:
-      - zenity
-  treetag:
-    after:
-      - zenity
-    plugin: flutter
-    source: .
-    flutter-channel: stable
-    flutter-target: lib/main.dart
-    build-packages: 
-      - libharfbuzz-dev
 
