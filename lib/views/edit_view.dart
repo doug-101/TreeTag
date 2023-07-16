@@ -25,8 +25,7 @@ class EditView extends StatefulWidget {
   final LeafNode node;
   final EditMode editMode;
 
-  EditView({Key? key, required this.node, this.editMode = EditMode.normal})
-      : super(key: key);
+  EditView({super.key, required this.node, this.editMode = EditMode.normal});
 
   @override
   State<EditView> createState() => _EditViewState();

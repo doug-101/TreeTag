@@ -39,7 +39,7 @@ enum MenuItems { editChildren, deleteChildren }
 class FrameView extends StatelessWidget {
   final String fileRootName;
 
-  FrameView({Key? key, required this.fileRootName}) : super(key: key);
+  FrameView({super.key, required this.fileRootName});
 
   @override
   Widget build(BuildContext context) {

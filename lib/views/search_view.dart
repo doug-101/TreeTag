@@ -28,7 +28,7 @@ enum SearchType { phrase, keyword, regExp }
 class SearchView extends StatefulWidget {
   final Node? parentNode;
 
-  SearchView({Key? key, required this.parentNode}) : super(key: key);
+  SearchView({super.key, required this.parentNode});
 
   @override
   State<SearchView> createState() => _SearchViewState();

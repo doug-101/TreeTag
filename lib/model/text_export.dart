@@ -25,7 +25,9 @@ class TextExport {
             ? node.outputs() + ['']
             : [node.title.isNotEmpty ? node.title : emptyName];
         for (var line in lines) {
-          resultLines.add('\t' * leveledNode.level + line);
+          for (var ln in line.trimRight().split('\n')) {
+            resultLines.add('\t' * leveledNode.level + ln);
+          }
         }
       }
     }

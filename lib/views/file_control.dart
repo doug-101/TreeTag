@@ -25,15 +25,6 @@ import '../model/treeline_import.dart';
 
 const fileExtension = '.trtg';
 
-/// Provides a file listview with options for new files, open files, etc.
-///
-/// File handling options include new, open, copy, add from folder, rename,
-/// and delete.
-class FileControl extends StatefulWidget {
-  @override
-  State<FileControl> createState() => _FileControlState();
-}
-
 enum MenuItems {
   addFromFolder,
   copy,
@@ -42,6 +33,15 @@ enum MenuItems {
   downloadToStorage,
   rename,
   delete,
+}
+
+/// Provides a file listview with options for new files, open files, etc.
+///
+/// File handling options include new, open, copy, add from folder, rename,
+/// and delete.
+class FileControl extends StatefulWidget {
+  @override
+  State<FileControl> createState() => _FileControlState();
 }
 
 class _FileControlState extends State<FileControl> with WindowListener {

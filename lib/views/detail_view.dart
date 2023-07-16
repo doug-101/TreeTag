@@ -22,7 +22,7 @@ const emptyTitleName = '[Empty Title]';
 /// Shows details of a single node if it is a [LeafNode].
 /// Shows a node and children if it is a [TitleNode] or a [GroupNode].
 class DetailView extends StatelessWidget {
-  DetailView({Key? key}) : super(key: key);
+  DetailView({super.key});
 
   @override
   Widget build(BuildContext context) {

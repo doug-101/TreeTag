@@ -15,7 +15,7 @@ import '../model/theme_model.dart';
 
 /// A user settings view.
 class SettingEdit extends StatefulWidget {
-  SettingEdit({Key? key}) : super(key: key);
+  SettingEdit({super.key});
 
   @override
   State<SettingEdit> createState() => _SettingEditState();
