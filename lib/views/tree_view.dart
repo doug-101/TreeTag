@@ -30,7 +30,7 @@ const _activeLeafIcon = Icon(Icons.circle, size: 8.0, color: Colors.orange);
 class TreeView extends StatelessWidget {
   late final String headerName;
 
-  TreeView({Key? key, required String fileRootName}) : super(key: key) {
+  TreeView({super.key, required String fileRootName}){
     headerName = 'TreeTag - $fileRootName';
   }
 
