@@ -26,6 +26,7 @@ class ThemeModel extends ChangeNotifier {
     colorScheme: ColorScheme.light(
       primary: Colors.teal[700]!,
       secondary: Colors.teal[500]!,
+      onSurface: Colors.white,
     ),
     iconTheme: IconThemeData(color: Colors.teal),
   );
@@ -34,6 +35,7 @@ class ThemeModel extends ChangeNotifier {
     colorScheme: ColorScheme.dark(
       primary: Colors.teal[700]!,
       secondary: Colors.teal[500]!,
+      //onPrimary: Colors.teal[200]!,
       onSurface: Colors.teal[200]!,
     ),
     iconTheme: IconThemeData(color: Colors.teal),

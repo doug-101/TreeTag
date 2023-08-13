@@ -11,6 +11,7 @@ import 'package:flutter_markdown_selectionarea/flutter_markdown.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'common_dialogs.dart' as commonDialogs;
 import 'detail_view.dart';
 import 'edit_view.dart';
@@ -329,13 +330,30 @@ class FrameView extends StatelessWidget {
                     child: model.useMarkdownOutput
                         ? MarkdownBody(
                             data: detailViewTitle,
+                            onTapLink: (String text, String? href,
+                                String title) async {
+                              if (href != null) {
+                                if (href.startsWith('file:')) {
+                                  var path = href.substring(5);
+                                  if (p.isRelative(path)) {
+                                    path = p.normalize(p.join(
+                                        prefs.getString('workdir')!, path));
+                                    href = 'file:$path';
+                                  }
+                                }
+                                launchUrl(
+                                  Uri.parse(href),
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              }
+                            },
                             styleSheet: MarkdownStyleSheet.fromTheme(
                               ThemeData(
                                 textTheme: TextTheme(
                                   bodyText2: TextStyle(
                                     fontSize: 20.0,
                                     color:
-                                        Theme.of(context).colorScheme.onPrimary,
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
