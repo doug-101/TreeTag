@@ -5,10 +5,8 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown_selectionarea/flutter_markdown.dart';
-import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'common_widgets.dart';
 import '../main.dart' show prefs;
 import '../model/nodes.dart';
 import '../model/structure.dart';
@@ -39,25 +37,7 @@ class DetailView extends StatelessWidget {
       builder: (context, model, child) {
         final outWidget = model.useMarkdownOutput
             ? ((String s) {
-                return MarkdownBody(
-                  data: s,
-                  onTapLink: (String text, String? href, String title) async {
-                    if (href != null) {
-                      if (href.startsWith('file:')) {
-                        var path = href.substring(5);
-                        if (p.isRelative(path)) {
-                          path = p.normalize(
-                              p.join(prefs.getString('workdir')!, path));
-                          href = 'file:$path';
-                        }
-                      }
-                      launchUrl(
-                        Uri.parse(href),
-                        mode: LaunchMode.externalApplication,
-                      );
-                    }
-                  },
-                );
+                return MarkdownWithLinks(data: s);
               })
             : ((String s) {
                 return Text(s);
