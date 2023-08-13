@@ -4,9 +4,11 @@
 // Free software, GPL v2 or later.
 
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:path/path.dart' as p;
 import 'common_dialogs.dart' as commonDialogs;
 import '../main.dart' show prefs;
 import '../model/field_format_tools.dart';
@@ -122,43 +124,19 @@ class _EditViewState extends State<EditView> {
       labelString = '$labelString [varies]';
       initString = null;
     }
-    if (field is LongTextField) {
-      return TextForm(
-        label: labelString,
-        minLines: 4,
-        maxLines: 12,
-        initialValue: initString ?? '',
-        validator: field.validateMessage,
-        onSaved: (String? value) {
-          if (value != null && value.isNotEmpty) {
-            nodeData[field.name] = value;
-          } else if (widget.editMode == EditMode.nodeChildren &&
-              node.data[field.name] == '\u0000') {
-            nodeData[field.name] = '\u0000';
-          } else {
-            nodeData.remove(field.name);
-          }
-        },
-      );
-    }
-    if (field is ChoiceField) {
-      return DropdownButtonFormField<String>(
-        items: [
-          for (var str in splitChoiceFormat(field.format))
-            DropdownMenuItem<String>(
-              value: str,
-              child: Text(str.isNotEmpty ? str : '[Empty Value]'),
-            )
-        ],
-        decoration: InputDecoration(labelText: labelString),
-        // Null value gives a blank.
-        value: initString,
-        onChanged: (String? value) {
-          setState(() {});
-        },
-        onSaved: (String? value) {
-          if (value != null) {
-            if (value.isNotEmpty) {
+    switch (field) {
+      case LongTextField _:
+        return TextForm(
+          label: labelString,
+          minLines: 4,
+          maxLines: 12,
+          isFileLinkAvail: node.modelRef.useMarkdownOutput &&
+              !(Platform.isAndroid || Platform.isIOS),
+          useRelativeLinks: node.modelRef.useRelativeLinks,
+          initialValue: initString ?? '',
+          validator: field.validateMessage,
+          onSaved: (String? value) {
+            if (value != null && value.isNotEmpty) {
               nodeData[field.name] = value;
             } else if (widget.editMode == EditMode.nodeChildren &&
                 node.data[field.name] == '\u0000') {
@@ -166,93 +144,118 @@ class _EditViewState extends State<EditView> {
             } else {
               nodeData.remove(field.name);
             }
-          }
-        },
-      );
+          },
+        );
+      case ChoiceField _:
+        return DropdownButtonFormField<String>(
+          items: [
+            for (var str in splitChoiceFormat(field.format))
+              DropdownMenuItem<String>(
+                value: str,
+                child: Text(str.isNotEmpty ? str : '[Empty Value]'),
+              )
+          ],
+          decoration: InputDecoration(labelText: labelString),
+          // Null value gives a blank.
+          value: initString,
+          onChanged: (String? value) {},
+          onSaved: (String? value) {
+            if (value != null) {
+              if (value.isNotEmpty) {
+                nodeData[field.name] = value;
+              } else if (widget.editMode == EditMode.nodeChildren &&
+                  node.data[field.name] == '\u0000') {
+                nodeData[field.name] = '\u0000';
+              } else {
+                nodeData.remove(field.name);
+              }
+            }
+          },
+        );
+      case AutoChoiceField _:
+        return AutoChoiceForm(
+          label: labelString,
+          initialValue: initString ?? '',
+          initialOptions: field.options,
+          onSaved: (String? value) {
+            if (value != null && value.isNotEmpty) {
+              nodeData[field.name] = value;
+              field.options.add(value);
+            } else if (widget.editMode == EditMode.nodeChildren &&
+                node.data[field.name] == '\u0000') {
+              nodeData[field.name] = '\u0000';
+            } else {
+              nodeData.remove(field.name);
+            }
+          },
+        );
+      case NumberField _:
+        return TextFormField(
+          decoration: InputDecoration(labelText: labelString),
+          initialValue: initString ?? '',
+          validator: field.validateMessage,
+          onSaved: (String? value) {
+            if (value != null && value.isNotEmpty) {
+              nodeData[field.name] = num.parse(value).toString();
+            } else if (widget.editMode == EditMode.nodeChildren &&
+                node.data[field.name] == '\u0000') {
+              nodeData[field.name] = '\u0000';
+            } else {
+              nodeData.remove(field.name);
+            }
+          },
+        );
+      case DateField _:
+        var storedDateFormat = DateFormat('yyyy-MM-dd');
+        return DateFormField(
+          fieldFormat: field.format,
+          initialValue:
+              initString != null ? storedDateFormat.parse(initString) : null,
+          heading: labelString,
+          onSaved: (DateTime? value) async {
+            if (value != null) {
+              nodeData[field.name] = storedDateFormat.format(value);
+            } else {
+              nodeData.remove(field.name);
+            }
+          },
+        );
+      case TimeField _:
+        var storedTimeFormat = DateFormat('HH:mm:ss.S');
+        return TimeFormField(
+          fieldFormat: field.format,
+          initialValue:
+              initString != null ? storedTimeFormat.parse(initString) : null,
+          heading: labelString,
+          onSaved: (DateTime? value) {
+            if (value != null) {
+              nodeData[field.name] = storedTimeFormat.format(value);
+            } else {
+              nodeData.remove(field.name);
+            }
+          },
+        );
+      default:
+        // Default return for a regular TextField
+        return TextForm(
+          label: labelString,
+          isFileLinkAvail: node.modelRef.useMarkdownOutput &&
+              !(Platform.isAndroid || Platform.isIOS),
+          useRelativeLinks: node.modelRef.useRelativeLinks,
+          initialValue: initString ?? '',
+          validator: field.validateMessage,
+          onSaved: (String? value) {
+            if (value != null && value.isNotEmpty) {
+              nodeData[field.name] = value;
+            } else if (widget.editMode == EditMode.nodeChildren &&
+                node.data[field.name] == '\u0000') {
+              nodeData[field.name] = '\u0000';
+            } else {
+              nodeData.remove(field.name);
+            }
+          },
+        );
     }
-    if (field is AutoChoiceField) {
-      return AutoChoiceForm(
-        label: labelString,
-        initialValue: initString ?? '',
-        initialOptions: field.options,
-        onSaved: (String? value) {
-          if (value != null && value.isNotEmpty) {
-            nodeData[field.name] = value;
-            field.options.add(value);
-          } else if (widget.editMode == EditMode.nodeChildren &&
-              node.data[field.name] == '\u0000') {
-            nodeData[field.name] = '\u0000';
-          } else {
-            nodeData.remove(field.name);
-          }
-        },
-      );
-    }
-    if (field is NumberField) {
-      return TextFormField(
-        decoration: InputDecoration(labelText: labelString),
-        initialValue: initString ?? '',
-        validator: field.validateMessage,
-        onSaved: (String? value) {
-          if (value != null && value.isNotEmpty) {
-            nodeData[field.name] = num.parse(value).toString();
-          } else if (widget.editMode == EditMode.nodeChildren &&
-              node.data[field.name] == '\u0000') {
-            nodeData[field.name] = '\u0000';
-          } else {
-            nodeData.remove(field.name);
-          }
-        },
-      );
-    }
-    if (field is DateField) {
-      var storedDateFormat = DateFormat('yyyy-MM-dd');
-      return DateFormField(
-        fieldFormat: field.format,
-        initialValue:
-            initString != null ? storedDateFormat.parse(initString) : null,
-        heading: labelString,
-        onSaved: (DateTime? value) async {
-          if (value != null) {
-            nodeData[field.name] = storedDateFormat.format(value);
-          } else {
-            nodeData.remove(field.name);
-          }
-        },
-      );
-    }
-    if (field is TimeField) {
-      var storedTimeFormat = DateFormat('HH:mm:ss.S');
-      return TimeFormField(
-        fieldFormat: field.format,
-        initialValue:
-            initString != null ? storedTimeFormat.parse(initString) : null,
-        heading: labelString,
-        onSaved: (DateTime? value) {
-          if (value != null) {
-            nodeData[field.name] = storedTimeFormat.format(value);
-          } else {
-            nodeData.remove(field.name);
-          }
-        },
-      );
-    }
-    // Default return for a regular TextField
-    return TextForm(
-      label: labelString,
-      initialValue: initString ?? '',
-      validator: field.validateMessage,
-      onSaved: (String? value) {
-        if (value != null && value.isNotEmpty) {
-          nodeData[field.name] = value;
-        } else if (widget.editMode == EditMode.nodeChildren &&
-            node.data[field.name] == '\u0000') {
-          nodeData[field.name] = '\u0000';
-        } else {
-          nodeData.remove(field.name);
-        }
-      },
-    );
   }
 }
 
@@ -260,6 +263,8 @@ class _EditViewState extends State<EditView> {
 class TextForm extends FormField<String> {
   TextForm({
     String? label,
+    bool isFileLinkAvail = false,
+    bool useRelativeLinks = false,
     int? minLines,
     int? maxLines,
     String? initialValue,
@@ -281,6 +286,45 @@ class TextForm extends FormField<String> {
                       ? SpellCheckConfiguration(
                           spellCheckService: state._spellChecker)
                       : SpellCheckConfiguration.disabled(),
+              contextMenuBuilder: (context, editableTextState) {
+                final buttonItems = editableTextState.contextMenuButtonItems;
+                if (isFileLinkAvail && !editableTextState.copyEnabled) {
+                  final cursorPos = editableTextState
+                      .currentTextEditingValue.selection.base.offset;
+                  buttonItems.add(
+                    ContextMenuButtonItem(
+                      label: 'Add file link',
+                      onPressed: () async {
+                        ContextMenuController.removeAny();
+                        FilePickerResult? answer =
+                            await FilePicker.platform.pickFiles(
+                          initialDirectory: prefs.getString('workdir')!,
+                          dialogTitle: 'Select Link File',
+                        );
+                        if (answer != null) {
+                          var linkPath = answer.files.single.path;
+                          if (linkPath != null) {
+                            if (useRelativeLinks) {
+                              linkPath = p.relative(linkPath,
+                                  from: prefs.getString('workdir')!);
+                            }
+                            final linkText =
+                                '[${p.basename(linkPath)}](file:$linkPath)';
+                            final text = state._textController.text
+                                .replaceRange(cursorPos, cursorPos, linkText);
+                            state._textController.text = text;
+                            state._textController.notifyListeners();
+                          }
+                        }
+                      },
+                    ),
+                  );
+                }
+                return AdaptiveTextSelectionToolbar.buttonItems(
+                  anchors: editableTextState.contextMenuAnchors,
+                  buttonItems: buttonItems,
+                );
+              },
             );
           },
         );

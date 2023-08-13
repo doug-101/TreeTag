@@ -32,6 +32,7 @@ class Structure extends ChangeNotifier {
   late ParsedLine titleLine;
   final outputLines = <ParsedLine>[];
   var useMarkdownOutput = false;
+  var useRelativeLinks = false;
   IOFile fileObject = IOFile.currentType('');
   var modTime = DateTime.fromMillisecondsSinceEpoch(0);
   late UndoList undoList;
@@ -73,6 +74,7 @@ class Structure extends ChangeNotifier {
       throw FormatException('Missing sections in file');
     }
     if (jsonData['usemarkdown'] != null) useMarkdownOutput = true;
+    if (jsonData['userelativelinks'] != null) useRelativeLinks = true;
     final seconds = jsonData['properties']?['modtime'];
     if (seconds != null) {
       modTime = DateTime.fromMillisecondsSinceEpoch(seconds);
@@ -130,6 +132,7 @@ class Structure extends ChangeNotifier {
     titleLine = ParsedLine('', fieldMap);
     outputLines.clear();
     useMarkdownOutput = false;
+    useRelativeLinks = false;
     modTime = DateTime.fromMillisecondsSinceEpoch(0);
     undoList.clear();
   }
@@ -171,6 +174,7 @@ class Structure extends ChangeNotifier {
         await [for (var line in outputLines) line.getUnparsedLine()];
     jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
     if (useMarkdownOutput) jsonData['usemarkdown'] = true;
+    if (useRelativeLinks) jsonData['userelativelinks'] = true;
     jsonData['undos'] = await undoList.toJson();
     await fileObject.writeJson(jsonData);
   }
@@ -1103,8 +1107,17 @@ class Structure extends ChangeNotifier {
 
   /// Called from [OptionConfig] to change the Markdown output setting.
   void setMarkdownOutput(bool setting) {
+    undoList.add(UndoParameters(
+        'Set markdown output option', useMarkdownOutput, useRelativeLinks));
     useMarkdownOutput = setting;
     updateAll();
+  }
+
+  /// Called from [OptionConfig] to change the relative link setting.
+  void setUseRelativeLink(bool setting) {
+    undoList.add(UndoParameters(
+        'Set relative link option', useMarkdownOutput, useRelativeLinks));
+    useRelativeLinks = setting;
   }
 
   /// Update tree children, view states and save the file.

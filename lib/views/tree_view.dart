@@ -6,6 +6,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_selectionarea/flutter_markdown.dart';
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../main.dart' show prefs;
@@ -30,7 +31,7 @@ const _activeLeafIcon = Icon(Icons.circle, size: 8.0, color: Colors.orange);
 class TreeView extends StatelessWidget {
   late final String headerName;
 
-  TreeView({super.key, required String fileRootName}){
+  TreeView({super.key, required String fileRootName}) {
     headerName = 'TreeTag - $fileRootName';
   }
 
@@ -111,6 +112,14 @@ class TreeView extends StatelessWidget {
                       onTapLink:
                           (String text, String? href, String title) async {
                         if (href != null) {
+                          if (href.startsWith('file:')) {
+                            var path = href.substring(5);
+                            if (p.isRelative(path)) {
+                              path = p.normalize(
+                                  p.join(prefs.getString('workdir')!, path));
+                              href = 'file:$path';
+                            }
+                          }
                           launchUrl(
                             Uri.parse(href),
                             mode: LaunchMode.externalApplication,

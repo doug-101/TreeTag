@@ -118,6 +118,8 @@ abstract class Undo {
         undo = UndoEditOutputLine._fromJson(jsonData);
       case 'moveoutputline':
         undo = UndoMoveOutputLine._fromJson(jsonData);
+      case 'parameters':
+        undo = UndoParameters._fromJson(jsonData);
       default:
         throw FormatException('Stored undo data is corrupt');
     }
@@ -886,6 +888,38 @@ class UndoMoveOutputLine extends Undo {
     final result = super.toJson();
     result['linepos'] = origLinePos;
     result['isup'] = isUp;
+    return result;
+  }
+}
+
+class UndoParameters extends Undo {
+  final bool useMarkdownOutput;
+  final bool useRelativeLinks;
+
+  UndoParameters(String title, this.useMarkdownOutput, this.useRelativeLinks,
+      {bool isRedo = false})
+      : super(title, 'parameters', isRedo);
+
+  UndoParameters._fromJson(Map<String, dynamic> jsonData)
+      : useMarkdownOutput = jsonData['markdown'],
+        useRelativeLinks = jsonData['relative'],
+        super(jsonData['title'], 'parameters', jsonData['isredo']);
+
+  @override
+  Undo undo(Structure modelRef) {
+    final redo = UndoParameters(
+        _toggleTitleRedo(title), !useMarkdownOutput, !useRelativeLinks,
+        isRedo: !isRedo);
+    modelRef.useMarkdownOutput = useMarkdownOutput;
+    modelRef.useRelativeLinks = useRelativeLinks;
+    return redo;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final result = super.toJson();
+    result['markdown'] = useMarkdownOutput;
+    result['relative'] = useRelativeLinks;
     return result;
   }
 }
