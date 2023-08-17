@@ -75,7 +75,7 @@ flutter:
   assets:
     - assets/images/tree_icon_48.png
     - assets/samples/
-    - README.md
+    - assets/help/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

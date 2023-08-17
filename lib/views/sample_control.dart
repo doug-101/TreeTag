@@ -1,6 +1,6 @@
 // sample_control.dart, a view listing and opening sample files.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2023, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show json;
@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'common_dialogs.dart' as commonDialogs;
 import 'frame_view.dart';
 import '../main.dart' show prefs;
@@ -32,10 +32,10 @@ class _SampleControlState extends State<SampleControl> {
 
   /// Load the sample file list from the resources.
   void _loadSampleList() async {
-    final manifestContent = await rootBundle.loadString('AssetManifest.json');
-    final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
     _samplePaths = List.of(
-        manifestMap.keys.where((path) => path.startsWith('assets/samples')));
+      manifest.listAssets().where((path) => path.startsWith('assets/samples')),
+    );
     setState(() {});
   }
 
