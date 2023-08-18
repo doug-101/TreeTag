@@ -45,6 +45,7 @@ class _SettingEditState extends State<SettingEdit> {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.close),
+            tooltip: 'Revert all changes',
             onPressed: () {
               _cancelFlag = true;
               Navigator.pop(context, null);

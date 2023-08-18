@@ -366,30 +366,18 @@ class FrameView extends StatelessWidget {
                       iconSize * (model.detailViewRecords.length > 1 ? 1 : 2),
                   height: 1.0,
                 ),
-              if (!isDetailLeafNode)
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            SearchView(parentNode: detailRootNode),
-                      ),
-                    );
-                  },
-                ),
-              if (isDetailLeafNode)
+              if (isDetailLeafNode) ...[
                 IconButton(
                   icon: const Icon(Icons.delete),
+                  tooltip: 'Delete leaf node',
                   // Delete the shown [LeafNode].
                   onPressed: () {
                     model.deleteNode(detailRootNode as LeafNode);
                   },
                 ),
-              if (isDetailLeafNode)
                 IconButton(
                   icon: const Icon(Icons.edit),
+                  tooltip: 'Edit leaf node',
                   // Edit the shown [LeafNode].
                   onPressed: () {
                     Navigator.push(
@@ -401,8 +389,24 @@ class FrameView extends StatelessWidget {
                     );
                   },
                 ),
+              ] else ...[
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  tooltip: 'Search children',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SearchView(parentNode: detailRootNode),
+                      ),
+                    );
+                  },
+                ),
+              ],
               IconButton(
                 icon: const Icon(Icons.add_circle),
+                tooltip: 'Add a new leaf node',
                 // Create a new node using data copied from the shown nodes.
                 onPressed: () {
                   final newNode = model.newNode(copyFromNode: detailRootNode);
@@ -417,7 +421,7 @@ class FrameView extends StatelessWidget {
               ),
               if (!isDetailLeafNode &&
                   (hasDetailViewOnly ||
-                      (model.hasWideDisplay && detailRootNode != null)))
+                      (model.hasWideDisplay && detailRootNode != null))) ...[
                 PopupMenuButton(
                   icon: const Icon(Icons.more_vert),
                   onSelected: (result) async {
@@ -461,14 +465,13 @@ class FrameView extends StatelessWidget {
                     ),
                   ],
                 ),
-              // Reserve space for hidden menu icon if not present.
-              if (isDetailLeafNode ||
-                  (!hasDetailViewOnly &&
-                      (!model.hasWideDisplay || detailRootNode == null)))
+              ] else ...[
+                // Reserve space for hidden menu icon if not present.
                 SizedBox(
                   width: iconSize,
                   height: 1.0,
                 ),
+              ],
             ],
           ),
           body: model.hasWideDisplay

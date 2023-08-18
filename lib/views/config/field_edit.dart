@@ -126,6 +126,7 @@ class _FieldEditState extends State<FieldEdit> {
                 // Close control for new fields only.
                 IconButton(
                   icon: const Icon(Icons.close),
+                  tooltip: 'Cancel new field',
                   onPressed: () {
                     _cancelNewFlag = true;
                     Navigator.pop(context, null);
@@ -136,6 +137,7 @@ class _FieldEditState extends State<FieldEdit> {
                 // Restore control for non-new fields.
                 IconButton(
                   icon: const Icon(Icons.restore),
+                  tooltip: 'Restore field settings',
                   onPressed: () {
                     if (_isFieldTypeChanged) {
                       _editedField = Field.copy(widget.field);

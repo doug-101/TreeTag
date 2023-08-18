@@ -332,6 +332,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
             IconButton(
               // New file command.
               icon: const Icon(Icons.add_box),
+              tooltip: 'New file',
               onPressed: () async {
                 final filename = await commonDialogs.filenameDialog(
                   context: context,
@@ -358,6 +359,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
             IconButton(
               // Command to show path, modified date & size for a selected file.
               icon: const Icon(Icons.info),
+              tooltip: 'File info',
               onPressed: () async {
                 final fileObj = _selectedFiles.first;
                 final modTime = await fileObj.dataModTime;

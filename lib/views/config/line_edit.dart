@@ -70,6 +70,7 @@ class _LineEditState extends State<LineEdit> {
                   // Add a field or text.
                   PopupMenuButton(
                     icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Show add menu',
                     onSelected: (result) async {
                       LineSegment? newSegment;
                       if (result == 'add text') {
@@ -111,6 +112,7 @@ class _LineEditState extends State<LineEdit> {
                   // Edit the selected segment.
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Edit a segment',
                     onPressed: _selectedSegment == null
                         ? null
                         : () async {
@@ -164,6 +166,7 @@ class _LineEditState extends State<LineEdit> {
                   // Delete the selected segment.
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete a segment',
                     onPressed: (_selectedSegment == null ||
                             widget.line.segments.length < 2)
                         ? null
@@ -178,6 +181,7 @@ class _LineEditState extends State<LineEdit> {
                   // Move the selected segment to the left.
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
+                    tooltip: 'Move a segment left',
                     onPressed: (_selectedSegment == null ||
                             widget.line.segments.indexOf(_selectedSegment!) ==
                                 0)
@@ -196,6 +200,7 @@ class _LineEditState extends State<LineEdit> {
                   // Move the selected segment to the right.
                   IconButton(
                     icon: const Icon(Icons.arrow_forward),
+                    tooltip: 'Move a segment right',
                     onPressed: (_selectedSegment == null ||
                             widget.line.segments.indexOf(_selectedSegment!) ==
                                 widget.line.segments.length - 1)

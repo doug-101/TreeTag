@@ -193,6 +193,7 @@ class _SearchViewState extends State<SearchView> {
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.clear),
+                        tooltip: 'Clear the search field',
                         onPressed: () {
                           // Clear the search field.
                           _controller.clear();
@@ -289,13 +290,14 @@ class _SearchViewState extends State<SearchView> {
                   child: Text('Search All Fields'),
                   value: MenuItems.allFields,
                 ),
-                if (searchType != SearchType.keyword && resultNodes.isNotEmpty)
+                if (searchType != SearchType.keyword &&
+                    resultNodes.isNotEmpty) ...[
                   PopupMenuDivider(),
-                if (searchType != SearchType.keyword && resultNodes.isNotEmpty)
                   PopupMenuItem(
                     child: Text('Replace Matches'),
                     value: MenuItems.replace,
-                  )
+                  ),
+                ],
               ],
             ),
           ],

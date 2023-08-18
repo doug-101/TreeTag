@@ -32,6 +32,7 @@ class _OutputConfigState extends State<OutputConfig> {
             // Add a new output line before the selection or at the end.
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Add a new line',
               onPressed: selectedLine == model.titleLine
                   ? null
                   : () async {
@@ -58,6 +59,7 @@ class _OutputConfigState extends State<OutputConfig> {
             // Edit the selected line.
             IconButton(
               icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit a line',
               onPressed: selectedLine == null
                   ? null
                   : () async {
@@ -83,6 +85,7 @@ class _OutputConfigState extends State<OutputConfig> {
             // Delete the selected line.
             IconButton(
               icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete a line',
               onPressed: (selectedLine == null ||
                       selectedLine == model.titleLine ||
                       model.outputLines.length < 2)
@@ -97,6 +100,7 @@ class _OutputConfigState extends State<OutputConfig> {
             // Move the selected line up.
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
+              tooltip: 'Move a line up',
               onPressed: (selectedLine == null ||
                       selectedLine == model.titleLine ||
                       model.outputLines.indexOf(selectedLine!) == 0)
@@ -110,6 +114,7 @@ class _OutputConfigState extends State<OutputConfig> {
             // Move the selected line down.
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
+              tooltip: 'Move a line down',
               onPressed: (selectedLine == null ||
                       selectedLine == model.titleLine ||
                       model.outputLines.indexOf(selectedLine!) ==

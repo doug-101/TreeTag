@@ -60,6 +60,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   // Add a new text segment.
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Add text item',
                     onPressed: () async {
                       final text = await commonDialogs.textDialog(
                         context: context,
@@ -81,6 +82,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   // Edit an existing text segment.
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Edit a text item',
                     onPressed: (selectedSegment == null)
                         ? null
                         : () async {
@@ -104,6 +106,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   // Delete a text segment.
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete a segment',
                     onPressed: (selectedSegment == null || segments.length < 2)
                         ? null
                         : () {
@@ -117,6 +120,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   // Move a segment to the left.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_up),
+                    tooltip: 'Move a segment left',
                     onPressed: (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) == 0)
                         ? null
@@ -132,6 +136,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   // Move a segment to the right.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_down),
+                    tooltip: 'Move a segment right',
                     onPressed: (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) ==
                                 segments.length - 1)

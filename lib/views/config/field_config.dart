@@ -35,6 +35,7 @@ class _FieldConfigState extends State<FieldConfig> {
             // Add a new field.
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Add a new field',
               onPressed: () async {
                 final newField = Field.createField(name: '');
                 int? newPos;
@@ -54,6 +55,7 @@ class _FieldConfigState extends State<FieldConfig> {
             // Edit the selected field.
             IconButton(
               icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit a field',
               onPressed: selectedField == null
                   ? null
                   : () async {
@@ -69,6 +71,7 @@ class _FieldConfigState extends State<FieldConfig> {
             // Delete the selected field.
             IconButton(
               icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete a field',
               onPressed: (selectedField == null || fieldList.length < 2)
                   ? null
                   : () async {
@@ -103,6 +106,7 @@ class _FieldConfigState extends State<FieldConfig> {
             // Move the selected field up.
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
+              tooltip: 'Move a field up',
               onPressed: (selectedField == null ||
                       fieldList.indexOf(selectedField!) == 0)
                   ? null
@@ -115,6 +119,7 @@ class _FieldConfigState extends State<FieldConfig> {
             // Move the selected field down.
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
+              tooltip: 'Move a field down',
               onPressed: (selectedField == null ||
                       fieldList.indexOf(selectedField!) == fieldList.length - 1)
                   ? null

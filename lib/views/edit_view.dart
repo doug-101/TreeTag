@@ -86,6 +86,7 @@ class _EditViewState extends State<EditView> {
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.restore),
+            tooltip: 'Restore values',
             onPressed: () {
               _formKey.currentState!.reset();
               _isChanged = false;

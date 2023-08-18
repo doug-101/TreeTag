@@ -136,6 +136,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                 children: <Widget>[
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Show add menu',
                     onSelected: (result) async {
                       FormatSegment? newSegment;
                       if (result == 'add text') {
@@ -177,6 +178,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Edit segment',
                     onPressed: (selectedSegment == null ||
                             selectedSegment?.extraText == null)
                         ? null
@@ -199,6 +201,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Delete segment',
                     onPressed: (selectedSegment == null || segments.length < 2)
                         ? null
                         : () {
@@ -212,6 +215,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
+                    tooltip: 'Move segment left',
                     onPressed: (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) == 0)
                         ? null
@@ -227,6 +231,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.arrow_forward),
+                    tooltip: 'Move segment right',
                     onPressed: (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) ==
                                 segments.length - 1)

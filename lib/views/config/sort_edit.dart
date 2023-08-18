@@ -59,6 +59,7 @@ class _SortEditState extends State<SortEdit> {
                   // Add a field to the list.
                   PopupMenuButton(
                     icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Add a field',
                     enabled: usedFieldNames.length < availFieldNames.length,
                     onSelected: (fieldName) async {
                       var pos = widget.sortKeys.length;
@@ -82,6 +83,7 @@ class _SortEditState extends State<SortEdit> {
                   // Swap sort direction for the selected field.
                   IconButton(
                     icon: const Icon(Icons.swap_vert),
+                    tooltip: 'Swap sort direction',
                     onPressed: selectedKey == null
                         ? null
                         : () {
@@ -94,6 +96,7 @@ class _SortEditState extends State<SortEdit> {
                   // Delete the selected field.
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Remove a field',
                     onPressed:
                         (selectedKey == null || widget.sortKeys.length < 2)
                             ? null
@@ -108,6 +111,7 @@ class _SortEditState extends State<SortEdit> {
                   // Move the selected field up.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_up),
+                    tooltip: 'Move a field up',
                     onPressed: (selectedKey == null ||
                             widget.sortKeys.indexOf(selectedKey!) == 0)
                         ? null
@@ -123,6 +127,7 @@ class _SortEditState extends State<SortEdit> {
                   // Move the selected field down.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_down),
+                    tooltip: 'Move a field down',
                     onPressed: (selectedKey == null ||
                             widget.sortKeys.indexOf(selectedKey!) ==
                                 widget.sortKeys.length - 1)

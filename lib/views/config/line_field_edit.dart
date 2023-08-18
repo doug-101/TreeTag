@@ -58,6 +58,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           // Reset back to the alt format's parent field.
           IconButton(
             icon: const Icon(Icons.restore),
+            tooltip: 'Restore settings',
             onPressed: () {
               final parentField = widget.field.altFormatParent;
               if (parentField != null) {

@@ -37,6 +37,7 @@ class _TreeConfigState extends State<TreeConfig> {
             // Menu for adding nodes.
             PopupMenuButton(
               icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Add an item',
               onSelected: (result) async {
                 switch (result) {
                   case AddMenuItems.titleSibling:
@@ -101,6 +102,7 @@ class _TreeConfigState extends State<TreeConfig> {
             // Button to edit a selected node.
             IconButton(
               icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit an item',
               onPressed: selectedNode == null
                   ? null
                   : () async {
@@ -132,6 +134,7 @@ class _TreeConfigState extends State<TreeConfig> {
             // Menu for deleting a nodes.
             PopupMenuButton(
               icon: const Icon(Icons.delete_outline),
+              tooltip: 'Remove an item',
               onSelected: (result) async {
                 switch (result) {
                   case DeleteMenuItems.nodeOnly:
@@ -176,6 +179,7 @@ class _TreeConfigState extends State<TreeConfig> {
             // Button to move a title node up.
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
+              tooltip: 'Move an item up',
               onPressed:
                   (selectedNode == null || !model.canNodeMove(selectedNode!))
                       ? null
@@ -188,6 +192,7 @@ class _TreeConfigState extends State<TreeConfig> {
             // Button to move a title node down.
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
+              tooltip: 'Move an item down',
               onPressed: (selectedNode == null ||
                       !model.canNodeMove(selectedNode!, up: false))
                   ? null
