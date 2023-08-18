@@ -130,7 +130,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
         isDissmissable: false,
       );
     }
-    _fileList.sort((a, b) => a.filename.compareTo(b.filename));
+    _fileList.sort(
+        (a, b) => a.filename.toLowerCase().compareTo(b.filename.toLowerCase()));
     _selectedFiles.clear();
     setState(() {});
   }
