@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# tt_make.sh, a Linux build/install tool for TreeTag.
+# TreeTag, an information storage program with an automatic tree structure.
+# Copyright (c) 2023, Douglas W. Bell.
+# Free software, GPL v2 or later.
+
 depends_error () {
     echo
     echo "Error installing dependencies." 1>&2
@@ -13,6 +18,7 @@ depends_error () {
     echo "    Ninja build"
     echo "    pkg-config"
     echo "    XZ development headers"
+    echo "    zenity"
     echo
     exit 1
 }
@@ -38,17 +44,17 @@ case "$1" in
             echo "Detected 'apt-get' (Debian-based system)"
             echo
             apt-get -y install clang cmake curl git libgtk-3-dev ninja-build \
-                pkgconf liblzma-dev || depends_error
+                pkgconf liblzma-dev zenity || depends_error
         elif [ -x "$(command -v dnf)" ]; then
             echo "Detected 'dnf' (Fedora-based system)"
             echo
             dnf -y install clang cmake curl git gtk3-devel ninja-build \
-                pkgconf xz-devel || depends_error
+                pkgconf xz-devel zenity || depends_error
         elif [ -x "$(command -v pacman)" ]; then
             echo "Detected 'pacman' (Arch-based system)"
             echo
             pacman -S --needed --noconfirm clang cmake curl git gtk3 ninja \
-                pkgconf xz || depends_error
+                pkgconf xz zenity || depends_error
         else
             echo "Could not find a supported package manager"
             depends_error
@@ -89,7 +95,7 @@ case "$1" in
             || misc_error "Could not create '/opt/treetag' directory"
         cp -pr `pwd`/build/linux/x64/release/bundle/* /opt/treetag/. \
             || misc_error "Could not copy files to '/opt/treetag' directory"
-        cp -p `pwd`/treetag.desktop `pwd`/tree_icon_64.png /opt/treetag/.
+        cp -p `pwd`/treetag.desktop `pwd`/treetag_icon_64.png /opt/treetag/.
         echo "Copy done"
         echo
         echo "Creating symlinks..."
@@ -100,9 +106,23 @@ case "$1" in
         echo "Symlinks created"
         ;;
 
+    "uninstall")
+        if [ "$(id -u)" != "0" ]; then
+            misc_error "'uninstall' must be run as sudo or root"
+        fi
+        rm -rf /opt/treetag && echo "Removed /opt/treetag/" \
+            || echo "Failed to remove /opt/treetag/"
+        rm /usr/local/bin/treetag \
+            && echo "Removed /usr/local/bin/treetag (link)" \
+            || echo "Failed to remove /usr/local/bin/treetag (link)"
+        rm /usr/local/share/applications/treetag.desktop \
+            && echo "Removed treetag.desktop (link)" \
+            || echo "Failed to remove treetag.desktop (link)"
+        ;;
+
     *)
-        misc_error \
-            "Must have 'depends', 'build' or 'install' as the first argument"
+        opt_list="'depends', 'build', 'install' or 'uninstall'"
+        misc_error "Must have $opt_list as the first argument"
         ;;
 esac
 
