@@ -41,6 +41,11 @@ Also visit <http://treetag.bellz.org> for more information.
 * String replace operations can be performed on search results.
 * By default, the text field editor will show misspelled English words with a
   red underline.
+* An option can be set to support Markdown text formatting in all text fields.
+* When using Markdown, links can be added that will open web pages in an
+  external browser.
+* When using Markdown on desktop platforms, file links can be added that will
+  open files using their default applications.
 * Undo operations are stored in the files, so operations from a previous session
   can be undone.
 * The data from a two TreeTag files can be merged together.
@@ -59,6 +64,19 @@ TreeTag should run on Android 4.1 (Jelly Bean) and above.
 
 TreeTag should run on any 64-bit Linux OS.  There is no support for 32-bit
 platforms.
+
+The following dependencies are required to build and run TreeTag, but the
+install script will automatically install them using your native packaging
+system:
+* Clang
+* CMake
+* curl
+* git
+* GTK development headers
+* Ninja build
+* pkg-config
+* XZ development headers
+* zenity
 
 ## Windows
 
@@ -84,16 +102,24 @@ device and run. This app is not yet in any app stores.
 
 ## Linux
 
-The simplest approach is to install from a snap.  If not already installed,
-install snapd from a distribution package.  Then enter "sudo snap install
-treetag" in a terminal.
+Extract the files from the archive (treetag_x.x.x.tar.gz) into a user-owned
+directory.  You need to have at least 2GB of disk space available for the
+automated build.  Then change to the `TreeTag` directory in a terminal, and
+run the following commands:
 
-To compile TreeTag from source, install the TreeTag source from
-<https://github.com/doug-101/TreeTag>.  Also install Flutter based on the
-instructions in <https://docs.flutter.dev/get-started/install/linux>.  The
-Android Setup is not required - just the Linux setup from the bottom of the
-page.  In addition to the libraries noted in the Flutter instructions, TreeTag
-also requires zenity to be installed.
+    $ sudo ./tt_make.sh depends
+    $ ./tt_make.sh build
+    $ sudo ./tt_make.sh install
+
+The first command automatically installs dependencies using the `apt-get`,
+`dnf` or `pacman` native packaging system.  If desired, you can manually
+install the dependencies in the Requirements section and skip this line.
+
+The second line (build) downloads Flutter and builds TreeTag.
+
+The third line (install) copies the necessary files into directories under
+`/opt`.  After this step, the temporary `TreeTag` build directory can be
+deleted.
 
 ## Windows
 
@@ -360,13 +386,20 @@ the left arrow at the top.
 
 ## Configure Options
 
-The Options tab of the Configuration view shows only one option: to enable
-Markdown text formatting.  If enabled, text entries with Markdown syntax will
-show formatted text in the Tree and Detail Views.  Many guides to markdown
-syntax are available on the web.  TreeTag specifically supports the GitHub
-Flavored Markdown version.  Clickable links to http and https addresses can be
-entered with the link text enclosed in square brackets followed by the address
-in parenthesis.
+The Options tab of the Configuration view shows an option to enable Markdown
+text formatting.  If enabled, text entries with Markdown syntax will show
+formatted text in the Tree and Detail Views.  Many guides to Markdown syntax
+are available on the web.  TreeTag specifically supports the GitHub Flavored
+Markdown version.  Clickable links to http and https addresses can be entered
+with the link text enclosed in square brackets followed by the address in
+parenthesis.
+
+On desktop platforms, right-clicking on field text editors when Markdown is
+enabled will show a command to add a file link.  This will show a file
+select dialog box to select the link target.  Clicking on that link in the
+formatted tree or detail views opens the default application for that file
+type.  An option in the Options tab is used to toggle between absolute and
+relative paths for new links.
 
 ## Undo View
 

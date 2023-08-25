@@ -11,16 +11,25 @@ device and run. This app is not yet in any app stores.
 
 ## Linux
 
-The simplest approach is to install from a snap.  If not already installed,
-install snapd from a distribution package.  Then enter "sudo snap install
-treetag" in a terminal.
+Extract the files from the archive (treetag_x.x.x.tar.gz) into a user-owned
+directory.  You need to have at least 2GB of disk space available for the
+automated build.  Then change to the `TreeTag` directory in a terminal, and
+run the following commands:
 
-To compile TreeTag from source, install the TreeTag source from
-<https://github.com/doug-101/TreeTag>.  Also install Flutter based on the
-instructions in <https://docs.flutter.dev/get-started/install/linux>.  The
-Android Setup is not required - just the Linux setup from the bottom of the
-page.  In addition to the libraries noted in the Flutter instructions, TreeTag
-also requires zenity to be installed.
+    $ sudo ./tt_make.sh depends
+    $ ./tt_make.sh build
+    $ sudo ./tt_make.sh install
+
+The first command automatically installs dependencies using the `apt-get`,
+`dnf` or `pacman` native packaging system.  If desired, you can manually
+install the dependencies in the [Requirements](requirements.md) section and
+skip this line.
+
+The second line (build) downloads Flutter and builds TreeTag.
+
+The third line (install) copies the necessary files into directories under
+`/opt`.  After this step, the temporary `TreeTag` build directory can be
+deleted.
 
 ---
 

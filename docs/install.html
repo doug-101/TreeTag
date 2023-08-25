@@ -19,7 +19,7 @@
 </div>
 
 <div class="toplinks">
-<p>Version 0.6.0 (stable)</p>
+<p>Version 0.7.0 (stable)</p>
 
 <p><a href="http://www.bellz.org/progs.html">Other Programs</a></p>
 <p><a href="http://www.bellz.org/contact.html">Contact Info</a></p>
@@ -49,17 +49,27 @@ downloaded to an Android device and run.</p>
 
 <h2>Linux</h2>
 
-<p>The simplest approach is to install from a snap.  If not already installed,
-install snapd from a distribution package.  Then enter "sudo snap install
-treetag" in a terminal.</p>
+<p>Extract the files from the archive (treetag_x.x.x.tar.gz) into a user-owned
+directory.  You need to have at least 2GB of disk space available for the
+automated build.  Then change to the <code>TreeTag</code> directory in a
+terminal, and run the following commands:</p>
 
-<p>To compile TreeTag from source, install the TreeTag source from <a
-href="https://github.com/doug-101/TreeTag">GitHub</a>.  Also install Flutter
-based on the instructions <a
-href="https://docs.flutter.dev/get-started/install/linux">here</a>.  The
-Android Setup is not required - just the Linux setup from the bottom of the
-page.  In addition to the libraries noted in the Flutter instructions, TreeTag
-also requires zenity to be installed.</p>
+<pre>
+    $ sudo ./tt_make.sh depends
+    $ ./tt_make.sh build
+    $ sudo ./tt_make.sh install
+</pre>
+
+<p>The first command automatically installs dependencies using the apt-get,
+dnf or pacman native packaging system.  If desired, you can manually install
+the dependencies in the <a href="require.html">Requirements</a> section and
+skip this line.</p>
+
+<p>The second line (build) downloads Flutter and builds TreeTag.</p>
+
+<p>The third line (install) copies the necessary files into directories under
+<code>/opt</code>.  After this step, the temporary <code>TreeTag</code> build
+directory can be deleted.</p>
 
 <h2>Windows</h2>
 

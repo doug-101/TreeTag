@@ -13,6 +13,19 @@ TreeTag should run on Android 4.1 (Jelly Bean) and above.
 TreeTag should run on any 64-bit Linux OS.  There is no support for 32-bit
 platforms.
 
+The following dependencies are required to build and run TreeTag, but the
+install script will automatically install them using your native packaging
+system:
+* Clang
+* CMake
+* curl
+* git
+* GTK development headers
+* Ninja build
+* pkg-config
+* XZ development headers
+* zenity
+
 ---
 
 ## Windows

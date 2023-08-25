@@ -99,8 +99,8 @@ case "$1" in
         echo "Copy done"
         echo
         echo "Creating symlinks..."
-        ln -s /opt/treetag/treetag /usr/local/bin/. \
-            && ln -s /opt/treetag/treetag.desktop \
+        ln -sf /opt/treetag/treetag /usr/local/bin/. \
+            && ln -sf /opt/treetag/treetag.desktop \
             /usr/local/share/applications/. \
             || misc_error "Could not create symlinks"
         echo "Symlinks created"
@@ -122,7 +122,14 @@ case "$1" in
 
     *)
         opt_list="'depends', 'build', 'install' or 'uninstall'"
-        misc_error "Must have $opt_list as the first argument"
+        echo "Must have $opt_list as the first argument" 1>&2
+        echo
+        echo "Typical usage:"
+        echo "    $ sudo ./tt_make.sh depends"
+        echo "    $ ./tt_make.sh build"
+        echo "    $ sudo ./tt_make.sh install"
+        echo
+        exit 1
         ;;
 esac
 

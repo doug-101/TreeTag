@@ -19,6 +19,11 @@
 * String replace operations can be performed on search results.
 * By default, the text field editor will show misspelled English words with a
   red underline.
+* An option can be set to support Markdown text formatting in all text fields.
+* When using Markdown, links can be added that will open web pages in an
+  external browser.
+* When using Markdown on desktop platforms, file links can be added that will
+  open files using their default applications.
 * Undo operations are stored in the files, so operations from a previous session
   can be undone.
 * The data from a two TreeTag files can be merged together.
