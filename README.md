@@ -97,8 +97,11 @@ supported.  Assistance with creating an iOS port would be appreciated.
 
 ## Android
 
-An APK file (treetag_x.x.x.apk) is provided that can be downloaded to an Android
-device and run. This app is not yet in any app stores.
+Treetag can be installed from Google Play,
+[here](https://play.google.com/store/apps/details?id=org.bellz.treetag).
+
+Alternatively, an APK file (treetag_x.x.x.apk) is provided that can be
+downloaded to an Android device and run.
 
 ## Linux
 
