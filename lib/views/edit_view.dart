@@ -309,8 +309,8 @@ class TextForm extends FormField<String> {
                               linkPath = p.relative(linkPath,
                                   from: prefs.getString('workdir')!);
                             }
-                            final linkText =
-                                '[${p.basename(linkPath)}](file:$linkPath)';
+                            final uri = p.toUri(linkPath).toString();
+                            final linkText = '[${p.basename(linkPath)}]($uri)';
                             final text = state._textController.text
                                 .replaceRange(cursorPos, cursorPos, linkText);
                             state._textController.text = text;
