@@ -309,7 +309,12 @@ class TextForm extends FormField<String> {
                               linkPath = p.relative(linkPath,
                                   from: prefs.getString('workdir')!);
                             }
-                            final uri = p.toUri(linkPath).toString();
+                            // Convert to URI to fix path separators onWindows.
+                            var uri = p.toUri(linkPath).toString();
+                            if (!uri.startsWith('file:')) {
+                              // This is only needed for relative paths.
+                              uri = 'file:$uri';
+                            }
                             final linkText = '[${p.basename(linkPath)}]($uri)';
                             final text = state._textController.text
                                 .replaceRange(cursorPos, cursorPos, linkText);
