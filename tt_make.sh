@@ -91,7 +91,11 @@ case "$1" in
             misc_error "'build' must be successfully run prior to 'install'"
         fi
         echo "Copying Files..."
-        mkdir -p /opt/treetag \
+        if [ ! -d "/opt" ]; then
+            mkdir -m 755 /opt \
+                || misc_error "Could not create '/opt/treetag' directory"
+        fi
+        mkdir -p -m 755 /opt/treetag \
             || misc_error "Could not create '/opt/treetag' directory"
         cp -pr `pwd`/build/linux/x64/release/bundle/* /opt/treetag/. \
             || misc_error "Could not copy files to '/opt/treetag' directory"
@@ -104,6 +108,14 @@ case "$1" in
             /usr/local/share/applications/. \
             || misc_error "Could not create symlinks"
         echo "Symlinks created"
+        case ":$PATH:" in
+            *:/usr/local/bin:*) ;;
+            *) echo
+               echo "Note that /usr/local/bin is not in your \$PATH variable."
+               echo "Consider adding it or creating symlinks elsewhwere."
+               echo
+               ;;
+        esac
         ;;
 
     "uninstall")
