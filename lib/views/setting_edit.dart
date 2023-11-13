@@ -58,192 +58,203 @@ class _SettingEditState extends State<SettingEdit> {
         onWillPop: updateOnPop,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: ListView(
-            children: <Widget>[
-              if (Platform.isLinux || Platform.isWindows || Platform.isMacOS)
-                PathFormField(
-                  initialValue: prefs.getString('workdir'),
-                  heading: 'Working Directory',
-                  onSaved: (String? value) async {
-                    if (value != null) {
-                      await prefs.setString('workdir', value);
-                    }
-                  },
-                ),
-              TextFormField(
-                initialValue: prefs.getString('netaddress'),
-                decoration: const InputDecoration(
-                  labelText: 'Network Address',
-                ),
-                onSaved: (String? value) async {
-                  if (value != null) {
-                    await prefs.setString('netaddress', value);
-                  }
-                },
-              ),
-              TextFormField(
-                initialValue: prefs.getString('netuser'),
-                decoration: const InputDecoration(
-                  labelText: 'Network User Name',
-                ),
-                onSaved: (String? value) async {
-                  if (value != null) {
-                    await prefs.setString('netuser', value);
-                  }
-                },
-              ),
-              TextFormField(
-                key: _passwordKey,
-                initialValue: prefs.getString('netpassword'),
-                decoration: const InputDecoration(
-                  labelText: 'Network Password',
-                ),
-                obscureText: true,
-                onSaved: (String? value) async {
-                  if (value != null) {
-                    await prefs.setString('netpassword', value);
-                    NetworkFile.password = value;
-                  }
-                },
-              ),
-              // Links to dialog to change password on server.
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Center(
+            child: SizedBox(
+              width: 450.0,
+              child: ListView(
                 children: <Widget>[
-                  InkWell(
-                    onTap: () async {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                      } else {
-                        return;
-                      }
-                      if ((prefs.getString('netaddress') ?? '').isEmpty ||
-                          (prefs.getString('netuser') ?? '').isEmpty) {
-                        await okDialog(
-                          context: context,
-                          title: 'Missing Data',
-                          label:
-                              'Network address & user name must be filled in',
-                        );
-                        return;
-                      }
-                      final result = await serverPassDialog(context: context);
-                      if (result ?? false) {
-                        // Set the form value to avoid overwriting it on close.
-                        _passwordKey.currentState!
-                            .setValue(prefs.getString('netpassword'));
-                        setState(() {});
+                  if (Platform.isLinux ||
+                      Platform.isWindows ||
+                      Platform.isMacOS)
+                    PathFormField(
+                      initialValue: prefs.getString('workdir'),
+                      heading: 'Working Directory',
+                      onSaved: (String? value) async {
+                        if (value != null) {
+                          await prefs.setString('workdir', value);
+                        }
+                      },
+                    ),
+                  TextFormField(
+                    initialValue: prefs.getString('netaddress'),
+                    decoration: const InputDecoration(
+                      labelText: 'Network Address',
+                    ),
+                    onSaved: (String? value) async {
+                      if (value != null) {
+                        await prefs.setString('netaddress', value);
                       }
                     },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Text('Change Password on Network Server'),
-                    ),
                   ),
-                  Divider(
-                    thickness: 3.0,
-                    height: 6.0,
+                  TextFormField(
+                    initialValue: prefs.getString('netuser'),
+                    decoration: const InputDecoration(
+                      labelText: 'Network User Name',
+                    ),
+                    onSaved: (String? value) async {
+                      if (value != null) {
+                        await prefs.setString('netuser', value);
+                      }
+                    },
+                  ),
+                  TextFormField(
+                    key: _passwordKey,
+                    initialValue: prefs.getString('netpassword'),
+                    decoration: const InputDecoration(
+                      labelText: 'Network Password',
+                    ),
+                    obscureText: true,
+                    onSaved: (String? value) async {
+                      if (value != null) {
+                        await prefs.setString('netpassword', value);
+                        NetworkFile.password = value;
+                      }
+                    },
+                  ),
+                  // Links to dialog to change password on server.
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                          } else {
+                            return;
+                          }
+                          if ((prefs.getString('netaddress') ?? '').isEmpty ||
+                              (prefs.getString('netuser') ?? '').isEmpty) {
+                            await okDialog(
+                              context: context,
+                              title: 'Missing Data',
+                              label:
+                                  'Network address & user name must be filled in',
+                            );
+                            return;
+                          }
+                          final result =
+                              await serverPassDialog(context: context);
+                          if (result ?? false) {
+                            // Set the form value to avoid overwriting it on close.
+                            _passwordKey.currentState!
+                                .setValue(prefs.getString('netpassword'));
+                            setState(() {});
+                          }
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.0),
+                          child: Text('Change Password on Network Server'),
+                        ),
+                      ),
+                      Divider(
+                        thickness: 3.0,
+                        height: 6.0,
+                      ),
+                    ],
+                  ),
+                  BoolFormField(
+                    initialValue: prefs.getBool('hidedotfiles') ?? true,
+                    heading: 'Hide Dot Files',
+                    onSaved: (bool? value) async {
+                      if (value != null) {
+                        await prefs.setBool('hidedotfiles', value);
+                      }
+                    },
+                  ),
+                  BoolFormField(
+                    initialValue: prefs.getBool('enablespellcheck') ?? true,
+                    heading: 'Enable Editor Spell Check',
+                    onSaved: (bool? value) async {
+                      if (value != null) {
+                        await prefs.setBool('enablespellcheck', value);
+                      }
+                    },
+                  ),
+                  BoolFormField(
+                    initialValue: prefs.getBool('linespacing') ??
+                        (Platform.isLinux ||
+                            Platform.isWindows ||
+                            Platform.isMacOS),
+                    heading: 'Tight Text Line Spacing',
+                    onSaved: (bool? value) async {
+                      if (value != null) {
+                        await prefs.setBool('linespacing', value);
+                        Provider.of<Structure>(context, listen: false)
+                            .notifyListeners();
+                      }
+                    },
+                  ),
+                  BoolFormField(
+                    initialValue: prefs.getBool('darktheme') ?? false,
+                    heading: 'Use Dark Color Theme',
+                    onSaved: (bool? value) async {
+                      if (value != null) {
+                        await prefs.setBool('darktheme', value);
+                        Provider.of<ThemeModel>(context, listen: false)
+                            .updateTheme();
+                      }
+                    },
+                  ),
+                  if (Platform.isLinux ||
+                      Platform.isWindows ||
+                      Platform.isMacOS)
+                    BoolFormField(
+                      initialValue: prefs.getBool('savewindowgeo') ?? true,
+                      heading: 'Remember Window Position and Size',
+                      onSaved: (bool? value) async {
+                        if (value != null) {
+                          await prefs.setBool('savewindowgeo', value);
+                          allowSaveWindowGeo = value;
+                          if (allowSaveWindowGeo) saveWindowGeo();
+                        }
+                      },
+                    ),
+                  TextFormField(
+                    initialValue:
+                        (prefs.getDouble('viewscale') ?? 1.0).toString(),
+                    decoration: const InputDecoration(
+                      labelText: 'App view scale ratio',
+                    ),
+                    validator: (String? value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (double.tryParse(value) == null) {
+                          return 'Must be an number';
+                        }
+                        final scale = double.parse(value);
+                        if (scale > 5.0 || scale < 0.2) {
+                          return 'Valid range is 0.2 to 5.0';
+                        }
+                      }
+                      return null;
+                    },
+                    onSaved: (String? value) async {
+                      if (value != null && value.isNotEmpty) {
+                        await prefs.setDouble('viewscale', double.parse(value));
+                      }
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: (prefs.getInt('undodays') ?? 7).toString(),
+                    decoration: const InputDecoration(
+                      labelText: 'Days to Store Undo History',
+                    ),
+                    validator: (String? value) {
+                      if (value != null &&
+                          value.isNotEmpty &&
+                          int.tryParse(value) == null) {
+                        return 'Must be an integer';
+                      }
+                      return null;
+                    },
+                    onSaved: (String? value) async {
+                      if (value != null && value.isNotEmpty) {
+                        await prefs.setInt('undodays', int.parse(value));
+                      }
+                    },
                   ),
                 ],
               ),
-              BoolFormField(
-                initialValue: prefs.getBool('hidedotfiles') ?? true,
-                heading: 'Hide Dot Files',
-                onSaved: (bool? value) async {
-                  if (value != null) {
-                    await prefs.setBool('hidedotfiles', value);
-                  }
-                },
-              ),
-              BoolFormField(
-                initialValue: prefs.getBool('enablespellcheck') ?? true,
-                heading: 'Enable Editor Spell Check',
-                onSaved: (bool? value) async {
-                  if (value != null) {
-                    await prefs.setBool('enablespellcheck', value);
-                  }
-                },
-              ),
-              BoolFormField(
-                initialValue: prefs.getBool('linespacing') ??
-                    (Platform.isLinux ||
-                        Platform.isWindows ||
-                        Platform.isMacOS),
-                heading: 'Tight Text Line Spacing',
-                onSaved: (bool? value) async {
-                  if (value != null) {
-                    await prefs.setBool('linespacing', value);
-                    Provider.of<Structure>(context, listen: false)
-                        .notifyListeners();
-                  }
-                },
-              ),
-              BoolFormField(
-                initialValue: prefs.getBool('darktheme') ?? false,
-                heading: 'Use Dark Color Theme',
-                onSaved: (bool? value) async {
-                  if (value != null) {
-                    await prefs.setBool('darktheme', value);
-                    Provider.of<ThemeModel>(context, listen: false)
-                        .updateTheme();
-                  }
-                },
-              ),
-              if (Platform.isLinux || Platform.isWindows || Platform.isMacOS)
-                BoolFormField(
-                  initialValue: prefs.getBool('savewindowgeo') ?? true,
-                  heading: 'Remember Window Position and Size',
-                  onSaved: (bool? value) async {
-                    if (value != null) {
-                      await prefs.setBool('savewindowgeo', value);
-                      allowSaveWindowGeo = value;
-                      if (allowSaveWindowGeo) saveWindowGeo();
-                    }
-                  },
-                ),
-              TextFormField(
-                initialValue: (prefs.getDouble('viewscale') ?? 1.0).toString(),
-                decoration: const InputDecoration(
-                  labelText: 'App view scale ratio',
-                ),
-                validator: (String? value) {
-                  if (value != null && value.isNotEmpty) {
-                    if (double.tryParse(value) == null) {
-                      return 'Must be an number';
-                    }
-                    final scale = double.parse(value);
-                    if (scale > 5.0 || scale < 0.2) {
-                      return 'Valid range is 0.2 to 5.0';
-                    }
-                  }
-                  return null;
-                },
-                onSaved: (String? value) async {
-                  if (value != null && value.isNotEmpty) {
-                    await prefs.setDouble('viewscale', double.parse(value));
-                  }
-                },
-              ),
-              TextFormField(
-                initialValue: (prefs.getInt('undodays') ?? 7).toString(),
-                decoration: const InputDecoration(
-                  labelText: 'Days to Store Undo History',
-                ),
-                validator: (String? value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      int.tryParse(value) == null) {
-                    return 'Must be an integer';
-                  }
-                  return null;
-                },
-                onSaved: (String? value) async {
-                  if (value != null && value.isNotEmpty) {
-                    await prefs.setInt('undodays', int.parse(value));
-                  }
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),

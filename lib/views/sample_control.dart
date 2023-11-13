@@ -83,23 +83,31 @@ class _SampleControlState extends State<SampleControl> {
       appBar: AppBar(
         title: const Text('Sample Files'),
       ),
-      body: ListView(
-        children: <Widget>[
-          for (var path in _samplePaths)
-            Card(
-              child: InkWell(
-                onLongPress: () {
-                  _openSample(path);
-                },
-                onDoubleTap: () {
-                  _openSample(path);
-                },
-                child: ListTile(
-                  title: Text(p.basenameWithoutExtension(path)),
-                ),
-              ),
+      body: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Center(
+          child: SizedBox(
+            width: 350.0,
+            child: ListView(
+              children: <Widget>[
+                for (var path in _samplePaths)
+                  Card(
+                    child: InkWell(
+                      onLongPress: () {
+                        _openSample(path);
+                      },
+                      onDoubleTap: () {
+                        _openSample(path);
+                      },
+                      child: ListTile(
+                        title: Text(p.basenameWithoutExtension(path)),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-        ],
+          ),
+        ),
       ),
     );
   }

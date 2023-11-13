@@ -68,7 +68,7 @@ Future<void> main() async {
     await windowManager.setSize(size);
     windowManager.waitUntilReadyToShow(null, () async {
       await windowManager.setTitle('TreeTag');
-      await windowManager.setMinimumSize(Size(160, 160));
+      await windowManager.setMinimumSize(Size(300, 180));
       await windowManager.setSize(size);
       if (offsetX != null && offsetY != null) {
         await windowManager.setPosition(Offset(offsetX, offsetY));
@@ -177,6 +177,7 @@ Future<void> main() async {
                 navigatorKey: navigatorKey,
                 title: 'TreeTag',
                 theme: themeModel.getTheme(),
+                debugShowCheckedModeBanner: false,
                 initialRoute: '/fileControl',
                 onGenerateRoute: (settings) {
                   switch (settings.name) {

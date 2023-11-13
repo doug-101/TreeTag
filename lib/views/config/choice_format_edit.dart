@@ -117,10 +117,10 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                             });
                           },
                   ),
-                  // Move a segment to the left.
+                  // Move a segment up.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_up),
-                    tooltip: 'Move a segment left',
+                    tooltip: 'Move a segment up',
                     onPressed: (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) == 0)
                         ? null
@@ -133,10 +133,10 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                             });
                           },
                   ),
-                  // Move a segment to the right.
+                  // Move a segment down.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_down),
-                    tooltip: 'Move a segment right',
+                    tooltip: 'Move a segment down',
                     onPressed: (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) ==
                                 segments.length - 1)
@@ -153,38 +153,44 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                 ],
               ),
               Expanded(
-                child: Wrap(
-                  direction: Axis.vertical,
-                  children: [
-                    for (var segment in segments)
-                      Padding(
-                        padding: EdgeInsets.all(2.0),
-                        child: InputChip(
-                          backgroundColor: Colors.transparent,
-                          shape: StadiumBorder(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 1.0,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: 350.0,
+                    child: Wrap(
+                      direction: Axis.vertical,
+                      children: [
+                        for (var segment in segments)
+                          Padding(
+                            padding: EdgeInsets.all(2.0),
+                            child: InputChip(
+                              backgroundColor: Colors.transparent,
+                              shape: StadiumBorder(
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 1.0,
+                                ),
+                              ),
+                              showCheckmark: false,
+                              label: Text(segment),
+                              // Tap target setting prevents uneven spacing
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              selected: segment == selectedSegment,
+                              onSelected: (bool isSelected) {
+                                setState(() {
+                                  if (isSelected) {
+                                    selectedSegment = segment;
+                                  } else {
+                                    selectedSegment = null;
+                                  }
+                                });
+                              },
                             ),
                           ),
-                          showCheckmark: false,
-                          label: Text(segment),
-                          // Tap target setting prevents uneven spacing
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          selected: segment == selectedSegment,
-                          onSelected: (bool isSelected) {
-                            setState(() {
-                              if (isSelected) {
-                                selectedSegment = segment;
-                              } else {
-                                selectedSegment = null;
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

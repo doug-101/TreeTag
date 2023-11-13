@@ -581,46 +581,54 @@ class _FileControlState extends State<FileControl> with WindowListener {
           ),
         ],
       ),
-      body: ListView(
-        children: <Widget>[
-          for (var fileObj in _fileList)
-            Card(
-              color: (_selectedFiles.contains(fileObj))
-                  ? Theme.of(context).highlightColor
-                  : null,
-              child: InkWell(
-                onTap: () async {
-                  setState(() {
-                    if (_selectedFiles.contains(fileObj)) {
-                      _selectedFiles.remove(fileObj);
-                    } else {
-                      _selectedFiles.add(fileObj);
-                    }
-                  });
-                },
-                onLongPress: () {
-                  _openTappedFile(fileObj);
-                },
-                onDoubleTap: () {
-                  _openTappedFile(fileObj);
-                },
-                child: ListTile(
-                  title: Text.rich(
-                    // Show file extension less prominently.
-                    TextSpan(
-                      text: '${fileObj.nameNoExtension} ',
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: fileObj.extension,
-                          style: Theme.of(context).textTheme.caption,
+      body: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Center(
+          child: SizedBox(
+            width: 350.0,
+            child: ListView(
+              children: <Widget>[
+                for (var fileObj in _fileList)
+                  Card(
+                    color: (_selectedFiles.contains(fileObj))
+                        ? Theme.of(context).highlightColor
+                        : null,
+                    child: InkWell(
+                      onTap: () async {
+                        setState(() {
+                          if (_selectedFiles.contains(fileObj)) {
+                            _selectedFiles.remove(fileObj);
+                          } else {
+                            _selectedFiles.add(fileObj);
+                          }
+                        });
+                      },
+                      onLongPress: () {
+                        _openTappedFile(fileObj);
+                      },
+                      onDoubleTap: () {
+                        _openTappedFile(fileObj);
+                      },
+                      child: ListTile(
+                        title: Text.rich(
+                          // Show file extension less prominently.
+                          TextSpan(
+                            text: '${fileObj.nameNoExtension} ',
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: fileObj.extension,
+                                style: Theme.of(context).textTheme.caption,
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
+              ],
             ),
-        ],
+          ),
+        ),
       ),
     );
   }

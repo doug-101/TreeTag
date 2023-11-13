@@ -25,35 +25,40 @@ class _OptionConfigState extends State<OptionConfig> {
     final model = Provider.of<Structure>(context, listen: false);
     return Padding(
       padding: const EdgeInsets.all(10.0),
-      child: ListView(
-        children: <Widget>[
-          SwitchListTile(
-            title: const Text('Enable Markdown text formatting'),
-            value: model.useMarkdownOutput,
-            onChanged: (bool value) {
-              model.setMarkdownOutput(value);
-              setState(() {});
-            },
+      child: Center(
+        child: SizedBox(
+          width: 450.0,
+          child: ListView(
+            children: <Widget>[
+              SwitchListTile(
+                title: const Text('Enable Markdown text formatting'),
+                value: model.useMarkdownOutput,
+                onChanged: (bool value) {
+                  model.setMarkdownOutput(value);
+                  setState(() {});
+                },
+              ),
+              // File liks are only supported on the desktop.
+              if (!Platform.isAndroid && !Platform.isIOS)
+                SwitchListTile(
+                  title: const Text('Use relative paths for file links'),
+                  value: model.useRelativeLinks,
+                  onChanged: (bool value) async {
+                    model.setUseRelativeLink(value);
+                    if (!model.useMarkdownOutput) {
+                      await commonDialogs.okDialog(
+                        context: context,
+                        title: 'Markdown Required',
+                        label:
+                            'Markdwon formatting must be enabled to use file links',
+                      );
+                    }
+                    setState(() {});
+                  },
+                ),
+            ],
           ),
-          // File liks are only supported on the desktop.
-          if (!Platform.isAndroid && !Platform.isIOS)
-            SwitchListTile(
-              title: const Text('Use relative paths for file links'),
-              value: model.useRelativeLinks,
-              onChanged: (bool value) async {
-                model.setUseRelativeLink(value);
-                if (!model.useMarkdownOutput) {
-                  await commonDialogs.okDialog(
-                    context: context,
-                    title: 'Markdown Required',
-                    label:
-                        'Markdwon formatting must be enabled to use file links',
-                  );
-                }
-                setState(() {});
-              },
-            ),
-        ],
+        ),
       ),
     );
   }

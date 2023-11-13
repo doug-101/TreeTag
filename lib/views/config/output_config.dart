@@ -131,13 +131,18 @@ class _OutputConfigState extends State<OutputConfig> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: ListView(
-              children: <Widget>[
-                _lineRow('Title Line', model.titleLine),
-                Divider(),
-                for (var outLine in model.outputLines)
-                  _lineRow('Output Line ${lineNum++}', outLine),
-              ],
+            child: Center(
+              child: SizedBox(
+                width: 600.0,
+                child: ListView(
+                  children: <Widget>[
+                    _lineRow('Title Line', model.titleLine),
+                    Divider(),
+                    for (var outLine in model.outputLines)
+                      _lineRow('Output Line ${lineNum++}', outLine),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

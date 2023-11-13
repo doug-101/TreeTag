@@ -66,9 +66,17 @@ class _UndoViewState extends State<UndoView> {
         appBar: AppBar(
           title: Text('Undo List'),
         ),
-        body: ListView(
-          controller: _scrollController,
-          children: _undoCards(),
+        body: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Center(
+            child: SizedBox(
+              width: 600.0,
+              child: ListView(
+                controller: _scrollController,
+                children: _undoCards(),
+              ),
+            ),
+          ),
         ),
       ),
     );

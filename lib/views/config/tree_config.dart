@@ -206,8 +206,13 @@ class _TreeConfigState extends State<TreeConfig> {
           ],
         ),
         Expanded(
-          child: ListView(
-            children: _treeRows(context),
+          child: Center(
+            child: SizedBox(
+              width: 600.0,
+              child: ListView(
+                children: _treeRows(context),
+              ),
+            ),
           ),
         ),
       ],

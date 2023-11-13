@@ -134,28 +134,33 @@ class _FieldConfigState extends State<FieldConfig> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: ListView(
-              children: <Widget>[
-                for (var field in model.fieldMap.values)
-                  Card(
-                    color: field == selectedField
-                        ? Theme.of(context).highlightColor
-                        : null,
-                    child: ListTile(
-                      title: Text(field.name),
-                      subtitle: Text(field.fieldType),
-                      onTap: () {
-                        setState(() {
-                          if (field != selectedField) {
-                            selectedField = field;
-                          } else {
-                            selectedField = null;
-                          }
-                        });
-                      },
-                    ),
-                  ),
-              ],
+            child: Center(
+              child: SizedBox(
+                width: 350.0,
+                child: ListView(
+                  children: <Widget>[
+                    for (var field in model.fieldMap.values)
+                      Card(
+                        color: field == selectedField
+                            ? Theme.of(context).highlightColor
+                            : null,
+                        child: ListTile(
+                          title: Text(field.name),
+                          subtitle: Text(field.fieldType),
+                          onTap: () {
+                            setState(() {
+                              if (field != selectedField) {
+                                selectedField = field;
+                              } else {
+                                selectedField = null;
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

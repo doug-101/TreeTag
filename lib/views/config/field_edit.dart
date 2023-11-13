@@ -160,139 +160,147 @@ class _FieldEditState extends State<FieldEdit> {
         onWillPop: updateOnPop,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: ListView(
-            children: <Widget>[
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Field Name'),
-                autofocus: widget.isNew,
-                initialValue: _editedField.name,
-                validator: (String? text) {
-                  if (text == null) return null;
-                  if (text.isEmpty) return 'Cannot be empty';
-                  final badCharMatches = RegExp(r'\W').allMatches(text);
-                  if (badCharMatches.isNotEmpty) {
-                    final badChars = [
-                      for (var match in badCharMatches) match.group(0)
-                    ];
-                    return 'Illegal characters: "${badChars.join()}"';
-                  }
-                  final model = Provider.of<Structure>(context, listen: false);
-                  if (text != widget.field.name &&
-                      model.fieldMap.containsKey(text))
-                    return 'Duplicate field name';
-                  return null;
-                },
-                onSaved: (String? text) {
-                  if (text != null) {
-                    _editedField.name = text;
-                  }
-                },
-              ),
-              DropdownButtonFormField<String>(
-                key: _dropdownTypeKey,
-                decoration: InputDecoration(labelText: 'Field Type'),
-                value: _editedField.fieldType,
-                items: [
-                  for (var type in fieldTypes)
-                    DropdownMenuItem<String>(
-                      value: type,
-                      child: Text(type),
+          child: Center(
+            child: SizedBox(
+              width: 350.0,
+              child: ListView(
+                children: <Widget>[
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Field Name'),
+                    autofocus: widget.isNew,
+                    initialValue: _editedField.name,
+                    validator: (String? text) {
+                      if (text == null) return null;
+                      if (text.isEmpty) return 'Cannot be empty';
+                      final badCharMatches = RegExp(r'\W').allMatches(text);
+                      if (badCharMatches.isNotEmpty) {
+                        final badChars = [
+                          for (var match in badCharMatches) match.group(0)
+                        ];
+                        return 'Illegal characters: "${badChars.join()}"';
+                      }
+                      final model =
+                          Provider.of<Structure>(context, listen: false);
+                      if (text != widget.field.name &&
+                          model.fieldMap.containsKey(text))
+                        return 'Duplicate field name';
+                      return null;
+                    },
+                    onSaved: (String? text) {
+                      if (text != null) {
+                        _editedField.name = text;
+                      }
+                    },
+                  ),
+                  DropdownButtonFormField<String>(
+                    key: _dropdownTypeKey,
+                    decoration: InputDecoration(labelText: 'Field Type'),
+                    value: _editedField.fieldType,
+                    items: [
+                      for (var type in fieldTypes)
+                        DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(type),
+                        )
+                    ],
+                    onSaved: (String? newType) {
+                      // Changes are made in onChanged.
+                    },
+                    onChanged: (String? newType) {
+                      if (newType != null &&
+                          newType != _editedField.fieldType) {
+                        if (newType == widget.field.fieldType) {
+                          _editedField = Field.copy(widget.field);
+                          _isFieldTypeChanged = false;
+                        } else {
+                          _editedField = _editedField.copyToType(newType);
+                          _isFieldTypeChanged = true;
+                          if (_fieldFormatKey.currentState != null) {
+                            _fieldFormatKey.currentState!
+                                .didChange(_editedField.format);
+                          }
+                          if (_editedField.initValue.isNotEmpty) {
+                            _editedField.initValue = '';
+                            if (_fieldInitBoolKey.currentState != null) {
+                              _fieldInitBoolKey.currentState!.didChange(false);
+                            }
+                            if (_fieldInitStrKey.currentState != null) {
+                              _fieldInitStrKey.currentState!.didChange('');
+                            }
+                          }
+                        }
+                      }
+                      setState(() {});
+                    },
+                  ),
+                  if (_editedField.format.isNotEmpty)
+                    // Defined in field_format_edit.dart.
+                    FieldFormatDisplay(
+                      key: _fieldFormatKey,
+                      fieldType: _editedField.fieldType,
+                      initialFormat: _editedField.format,
+                      onSaved: (String? value) async {
+                        if (value != null && value != _editedField.format) {
+                          _editedField.format = value;
+                        }
+                      },
+                    ),
+                  if (_editedField is DateField || _editedField is TimeField)
+                    // Defined below.
+                    InitNowBoolFormField(
+                      key: _fieldInitBoolKey,
+                      initialValue:
+                          _editedField.initValue == 'now' ? true : false,
+                      heading: _editedField is DateField
+                          ? 'Initial Value to Current Date'
+                          : 'Initial Value to Current Time',
+                      onSaved: (bool? value) {
+                        if (value != null) {
+                          _editedField.initValue = value ? 'now' : '';
+                        }
+                      },
                     )
+                  else
+                    // Initial value for other fields.
+                    TextFormField(
+                      key: _fieldInitStrKey,
+                      decoration: InputDecoration(labelText: 'Initial Value'),
+                      initialValue: _editedField.initValue,
+                      validator: (String? value) {
+                        // Update field format before validating the init value.
+                        if (_editedField.format.isNotEmpty) {
+                          var value = _fieldFormatKey.currentState!.value!;
+                          if (value != null) _editedField.format = value;
+                        }
+                        return _editedField.validateMessage(value);
+                      },
+                      onSaved: (String? value) {
+                        if (value != null) {
+                          _editedField.initValue = value;
+                        }
+                      },
+                    ),
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Default Prefix'),
+                    initialValue: _editedField.prefix,
+                    onSaved: (String? value) {
+                      if (value != null) {
+                        _editedField.prefix = value;
+                      }
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Default Suffix'),
+                    initialValue: _editedField.suffix,
+                    onSaved: (String? value) {
+                      if (value != null) {
+                        _editedField.suffix = value;
+                      }
+                    },
+                  ),
                 ],
-                onSaved: (String? newType) {
-                  // Changes are made in onChanged.
-                },
-                onChanged: (String? newType) {
-                  if (newType != null && newType != _editedField.fieldType) {
-                    if (newType == widget.field.fieldType) {
-                      _editedField = Field.copy(widget.field);
-                      _isFieldTypeChanged = false;
-                    } else {
-                      _editedField = _editedField.copyToType(newType);
-                      _isFieldTypeChanged = true;
-                      if (_fieldFormatKey.currentState != null) {
-                        _fieldFormatKey.currentState!
-                            .didChange(_editedField.format);
-                      }
-                      if (_editedField.initValue.isNotEmpty) {
-                        _editedField.initValue = '';
-                        if (_fieldInitBoolKey.currentState != null) {
-                          _fieldInitBoolKey.currentState!.didChange(false);
-                        }
-                        if (_fieldInitStrKey.currentState != null) {
-                          _fieldInitStrKey.currentState!.didChange('');
-                        }
-                      }
-                    }
-                  }
-                  setState(() {});
-                },
               ),
-              if (_editedField.format.isNotEmpty)
-                // Defined in field_format_edit.dart.
-                FieldFormatDisplay(
-                  key: _fieldFormatKey,
-                  fieldType: _editedField.fieldType,
-                  initialFormat: _editedField.format,
-                  onSaved: (String? value) async {
-                    if (value != null && value != _editedField.format) {
-                      _editedField.format = value;
-                    }
-                  },
-                ),
-              if (_editedField is DateField || _editedField is TimeField)
-                // Defined below.
-                InitNowBoolFormField(
-                  key: _fieldInitBoolKey,
-                  initialValue: _editedField.initValue == 'now' ? true : false,
-                  heading: _editedField is DateField
-                      ? 'Initial Value to Current Date'
-                      : 'Initial Value to Current Time',
-                  onSaved: (bool? value) {
-                    if (value != null) {
-                      _editedField.initValue = value ? 'now' : '';
-                    }
-                  },
-                )
-              else
-                // Initial value for other fields.
-                TextFormField(
-                  key: _fieldInitStrKey,
-                  decoration: InputDecoration(labelText: 'Initial Value'),
-                  initialValue: _editedField.initValue,
-                  validator: (String? value) {
-                    // Update field format before validating the init value.
-                    if (_editedField.format.isNotEmpty) {
-                      var value = _fieldFormatKey.currentState!.value!;
-                      if (value != null) _editedField.format = value;
-                    }
-                    return _editedField.validateMessage(value);
-                  },
-                  onSaved: (String? value) {
-                    if (value != null) {
-                      _editedField.initValue = value;
-                    }
-                  },
-                ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Default Prefix'),
-                initialValue: _editedField.prefix,
-                onSaved: (String? value) {
-                  if (value != null) {
-                    _editedField.prefix = value;
-                  }
-                },
-              ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Default Suffix'),
-                initialValue: _editedField.suffix,
-                onSaved: (String? value) {
-                  if (value != null) {
-                    _editedField.suffix = value;
-                  }
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),
