@@ -40,6 +40,10 @@ enum MenuItems {
 /// File handling options include new, open, copy, add from folder, rename,
 /// and delete.
 class FileControl extends StatefulWidget {
+  final String? initialFilePath;
+
+  FileControl({super.key, this.initialFilePath});
+
   @override
   State<FileControl> createState() => _FileControlState();
 }
@@ -62,6 +66,46 @@ class _FileControlState extends State<FileControl> with WindowListener {
       prefs.setBool('uselocalfiles', true);
     }
     _updateFileList();
+    // Handle file name as a command line argument.
+    if (widget.initialFilePath != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _openInitialFile(widget.initialFilePath!);
+      });
+    }
+  }
+
+  /// Open a file given as a command line argument.
+  Future<void> _openInitialFile(String initialFilePath) async {
+    final newFileObj = IOFile.currentType(p.basename(initialFilePath));
+    final dir = p.dirname(initialFilePath);
+    if (dir.isEmpty ||
+        dir == '.' ||
+        p.equals(dir, prefs.getString('workdir')!)) {
+      _openTappedFile(newFileObj);
+    } else if (await File(initialFilePath).exists()) {
+      if (await newFileObj.exists) {
+        if (!(await askOverwriteOk(newFileObj.filename))) {
+          return;
+        }
+      }
+      try {
+        await newFileObj.copyFromPath(initialFilePath);
+      } on IOException {
+        await commonDialogs.okDialog(
+          context: context,
+          title: 'Error',
+          label: 'Could not write to ${newFileObj.fullPath}',
+          isDissmissable: false,
+        );
+      }
+      _openTappedFile(newFileObj);
+    } else {
+      await commonDialogs.okDialog(
+        context: context,
+        title: 'Error',
+        label: 'File ${newFileObj.fullPath} does not exist',
+      );
+    }
   }
 
   @override
@@ -88,7 +132,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
     }
   }
 
-  /// Verify that network preference ssettings are valid.
+  /// Verify that network preference settings are valid.
   bool _checkNetworkParams() {
     return (prefs.getString('netaddress') ?? '').isNotEmpty &&
         (prefs.getString('netuser') ?? '').isNotEmpty;

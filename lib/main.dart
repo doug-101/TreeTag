@@ -29,7 +29,7 @@ late final SharedPreferences prefs;
 /// This is initially false to avoid saving window geometry during setup.
 bool allowSaveWindowGeo = false;
 
-Future<void> main() async {
+Future<void> main(List<String> cmdLineArgs) async {
   LicenseRegistry.addLicense(
     () => Stream<LicenseEntry>.value(
       const LicenseEntryWithLineBreaks(
@@ -159,6 +159,7 @@ Future<void> main() async {
     }
     return false;
   };
+  String? initialPath = cmdLineArgs.isNotEmpty ? cmdLineArgs.first : null;
   runApp(
     MultiProvider(
       providers: [
@@ -183,6 +184,11 @@ Future<void> main() async {
                   switch (settings.name) {
                     case '/fileControl':
                       return MaterialPageRoute(builder: (context) {
+                        if (initialPath != null) {
+                          final tmpPath = initialPath;
+                          initialPath = null;
+                          return FileControl(initialFilePath: tmpPath);
+                        }
                         return FileControl();
                       });
                     case '/frameView':
