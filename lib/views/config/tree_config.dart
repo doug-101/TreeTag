@@ -223,7 +223,7 @@ class _TreeConfigState extends State<TreeConfig> {
   List<Widget> _treeRows(BuildContext context) {
     var model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.secondary);
+        TextStyle(color: Theme.of(context).colorScheme.primary);
     final items = <Widget>[];
     for (var root in model.rootNodes) {
       for (var leveledNode in storedNodeGenerator(root)) {
@@ -245,10 +245,8 @@ class _TreeConfigState extends State<TreeConfig> {
             padding:
                 EdgeInsets.only(left: 25 * leveledNode.level + 8.0, right: 8.0),
             child: Card(
-              color: node == selectedNode
-                  ? Theme.of(context).highlightColor
-                  : null,
               child: ListTile(
+                selected: node == selectedNode,
                 title: titleText,
                 onTap: () {
                   setState(() {

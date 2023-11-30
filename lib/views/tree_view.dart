@@ -12,14 +12,6 @@ import '../model/nodes.dart';
 import '../model/structure.dart';
 
 const emptyName = '[Empty Title]';
-const _closedIcon = Icon(Icons.arrow_right, size: 24.0);
-const _openIcon = Icon(Icons.arrow_drop_down, size: 24.0);
-const _leafIcon = Icon(Icons.circle, size: 8.0);
-const _activeClosedIcon =
-    Icon(Icons.arrow_right, size: 24.0, color: Colors.orange);
-const _activeOpenIcon =
-    Icon(Icons.arrow_drop_down, size: 24.0, color: Colors.orange);
-const _activeLeafIcon = Icon(Icons.circle, size: 8.0, color: Colors.orange);
 
 /// The main indented tree view.
 ///
@@ -94,13 +86,27 @@ class TreeView extends StatelessWidget {
             node.hasChildren
                 ? node.isOpen
                     ? isNodeSelected
-                        ? _activeOpenIcon
-                        : _openIcon
+                        ? Icon(
+                            Icons.arrow_drop_down,
+                            size: 24.0,
+                            color: Theme.of(context).colorScheme.secondary,
+                          )
+                        : Icon(Icons.arrow_drop_down, size: 24.0)
                     : isNodeSelected
-                        ? _activeClosedIcon
-                        : _closedIcon
+                        ? Icon(
+                            Icons.arrow_right,
+                            size: 24.0,
+                            color: Theme.of(context).colorScheme.secondary,
+                          )
+                        : Icon(Icons.arrow_right, size: 24.0)
                 : Padding(
-                    child: isNodeSelected ? _activeLeafIcon : _leafIcon,
+                    child: isNodeSelected
+                        ? Icon(
+                            Icons.circle,
+                            size: 8.0,
+                            color: Theme.of(context).colorScheme.secondary,
+                          )
+                        : Icon(Icons.circle, size: 8.0),
                     padding: EdgeInsets.only(left: 8.0, right: 8.0),
                   ),
             Expanded(

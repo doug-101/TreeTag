@@ -109,7 +109,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
   @override
   Widget build(BuildContext context) {
     final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.secondary);
+        TextStyle(color: Theme.of(context).colorScheme.primary);
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.fieldType} Field Format'),
@@ -266,7 +266,6 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                         Padding(
                           padding: EdgeInsets.all(2.0),
                           child: InputChip(
-                            backgroundColor: Colors.transparent,
                             shape: StadiumBorder(
                               side: BorderSide(
                                 color: Theme.of(context).colorScheme.primary,

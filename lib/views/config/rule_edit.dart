@@ -30,7 +30,7 @@ class _RuleEditState extends State<RuleEdit> {
   Widget build(BuildContext context) {
     final model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.secondary);
+        TextStyle(color: Theme.of(context).colorScheme.primary);
     if (widget.isNew && widget.node.ruleLine.isEmpty) {
       // A new rule is empty, so it goes directly to the LineEdit.
       // Use a microtask to delay the push until after the build.

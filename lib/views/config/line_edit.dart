@@ -34,7 +34,7 @@ class _LineEditState extends State<LineEdit> {
   Widget build(BuildContext context) {
     final model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.secondary);
+        TextStyle(color: Theme.of(context).colorScheme.primary);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -237,7 +237,6 @@ class _LineEditState extends State<LineEdit> {
                         Padding(
                           padding: const EdgeInsets.all(1.5),
                           child: InputChip(
-                            backgroundColor: Colors.transparent,
                             shape: StadiumBorder(
                               side: BorderSide(
                                 color: Theme.of(context).colorScheme.primary,

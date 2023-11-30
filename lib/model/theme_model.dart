@@ -24,20 +24,69 @@ class ThemeModel extends ChangeNotifier {
 
   static final ThemeData lightTheme = ThemeData(
     colorScheme: ColorScheme.light(
-      primary: Colors.teal[700]!,
-      secondary: Colors.teal[500]!,
-      onSurface: Colors.white,
+      // Primary is used for highlighted text and other accents.
+      primary: Colors.teal,
+      onPrimary: Colors.black,
+      // Secondary is used for the tree selection indicator.
+      secondary: Colors.orange,
+      // Tertiary is used for the drawer header.
+      tertiary: Colors.blueGrey.shade900,
+      onTertiary: Colors.teal.shade300,
+      // Surface is set the same as tiles.
+      surface: Colors.grey.shade50,
+      onSurface: Colors.black,
+      // Background is used under other items.
+      background: Colors.white,
+      onBackground: Colors.black,
     ),
-    iconTheme: IconThemeData(color: Colors.teal),
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.teal.shade700,
+      foregroundColor: Colors.white,
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: Colors.transparent,
+      selectedColor: Colors.blueGrey.shade100,
+    ),
+    listTileTheme: ListTileThemeData(
+      tileColor: Colors.grey.shade50,
+      textColor: Colors.black,
+      selectedTileColor: Colors.grey.shade400,
+      selectedColor: Colors.black,
+    ),
+    useMaterial3: true,
   );
 
   static final ThemeData darkTheme = ThemeData(
     colorScheme: ColorScheme.dark(
-      primary: Colors.teal[700]!,
-      secondary: Colors.teal[500]!,
-      //onPrimary: Colors.teal[200]!,
-      onSurface: Colors.teal[200]!,
+      // Primary is used for highlighted text and other accents.
+      primary: Colors.teal,
+      onPrimary: Colors.white,
+      // Secondary is used for the tree selection indicator.
+      secondary: Colors.orange,
+      // Tertiary is used for the drawer header.
+      tertiary: Colors.teal.shade700,
+      onTertiary: Colors.black,
+      // Surface is set the same as tiles.
+      surface: Colors.grey.shade900,
+      onSurface: Colors.white,
+      // Background is used under other items.
+      background: Colors.black,
+      onBackground: Colors.white70,
     ),
-    iconTheme: IconThemeData(color: Colors.teal),
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.white12,
+      foregroundColor: Colors.teal,
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: Colors.transparent,
+      selectedColor: Colors.blueGrey.shade700,
+    ),
+    listTileTheme: ListTileThemeData(
+      tileColor: Colors.grey.shade900,
+      textColor: Colors.white,
+      selectedTileColor: Colors.grey.shade700,
+      selectedColor: Colors.white,
+    ),
+    useMaterial3: true,
   );
 }

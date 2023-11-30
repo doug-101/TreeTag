@@ -141,12 +141,10 @@ class _FieldConfigState extends State<FieldConfig> {
                   children: <Widget>[
                     for (var field in model.fieldMap.values)
                       Card(
-                        color: field == selectedField
-                            ? Theme.of(context).highlightColor
-                            : null,
                         child: ListTile(
                           title: Text(field.name),
                           subtitle: Text(field.fieldType),
+                          selected: field == selectedField,
                           onTap: () {
                             setState(() {
                               if (field != selectedField) {

@@ -265,12 +265,12 @@ class _FileControlState extends State<FileControl> with WindowListener {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.tertiary,
               ),
               child: Text(
                 'TreeTag',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.onTertiary,
                   fontSize: 36,
                 ),
               ),
@@ -634,9 +634,6 @@ class _FileControlState extends State<FileControl> with WindowListener {
               children: <Widget>[
                 for (var fileObj in _fileList)
                   Card(
-                    color: (_selectedFiles.contains(fileObj))
-                        ? Theme.of(context).highlightColor
-                        : null,
                     child: InkWell(
                       onTap: () async {
                         setState(() {
@@ -654,6 +651,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                         _openTappedFile(fileObj);
                       },
                       child: ListTile(
+                        selected: _selectedFiles.contains(fileObj),
                         title: Text.rich(
                           // Show file extension less prominently.
                           TextSpan(

@@ -178,7 +178,7 @@ class _SearchViewState extends State<SearchView> {
               child: Container(
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.background,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Center(
@@ -309,7 +309,7 @@ class _SearchViewState extends State<SearchView> {
               for (var node in resultNodes)
                 Card(
                   color: selectedNodes.contains(node)
-                      ? Theme.of(context).highlightColor
+                      ? Theme.of(context).listTileTheme.selectedTileColor
                       : null,
                   child: GestureDetector(
                     onTap: () {

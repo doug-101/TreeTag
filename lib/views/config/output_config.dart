@@ -162,7 +162,9 @@ class _OutputConfigState extends State<OutputConfig> {
         });
       },
       child: Card(
-        color: line == selectedLine ? Theme.of(context).highlightColor : null,
+        color: line == selectedLine
+            ? Theme.of(context).listTileTheme.selectedTileColor
+            : null,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(
@@ -174,7 +176,7 @@ class _OutputConfigState extends State<OutputConfig> {
                 child: Text.rich(
                   TextSpan(
                     children: line.richLineSpans(TextStyle(
-                        color: Theme.of(context).colorScheme.secondary)),
+                        color: Theme.of(context).colorScheme.primary)),
                   ),
                   style: Theme.of(context).textTheme.subtitle1,
                 ),

@@ -66,12 +66,12 @@ class FrameView extends StatelessWidget {
                     children: <Widget>[
                       DrawerHeader(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Theme.of(context).colorScheme.tertiary,
                         ),
                         child: Text(
                           'TreeTag',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Theme.of(context).colorScheme.onTertiary,
                             fontSize: 36,
                           ),
                         ),
@@ -332,8 +332,9 @@ class FrameView extends StatelessWidget {
                               textTheme: TextTheme(
                                 bodyText2: TextStyle(
                                   fontSize: 20.0,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
+                                  color: Theme.of(context)
+                                      .appBarTheme
+                                      .foregroundColor,
                                 ),
                               ),
                             ),

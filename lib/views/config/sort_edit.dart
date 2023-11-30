@@ -151,10 +151,8 @@ class _SortEditState extends State<SortEdit> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: Card(
-                          color: key == selectedKey
-                              ? Theme.of(context).highlightColor
-                              : null,
                           child: ListTile(
+                            selected: key == selectedKey,
                             leading: Icon(key.isAscend
                                 ? Icons.arrow_drop_up
                                 : Icons.arrow_drop_down),
