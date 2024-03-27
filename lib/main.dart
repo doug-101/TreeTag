@@ -64,10 +64,19 @@ Future<void> main(List<String> cmdLineArgs) async {
       offsetX = prefs.getDouble('winposx');
       offsetY = prefs.getDouble('winposy');
     }
-    // Setting the size twice (early and later) to work around linux problems.
+    // Setting size, etc. twice (early & later) to work around linux problems.
+    if (Platform.isLinux &&
+        Platform.environment['XDG_SESSION_TYPE'] == 'wayland') {
+      // Avoid showing extra title bar under Wayland.
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+    }
     await windowManager.setSize(size);
     windowManager.waitUntilReadyToShow(null, () async {
       await windowManager.setTitle('TreeTag');
+      if (Platform.isLinux &&
+          Platform.environment['XDG_SESSION_TYPE'] == 'wayland') {
+        await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+      }
       await windowManager.setMinimumSize(Size(300, 180));
       await windowManager.setSize(size);
       if (offsetX != null && offsetY != null) {
