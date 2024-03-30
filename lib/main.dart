@@ -1,6 +1,6 @@
 // main.dart, the main app entry point file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -65,16 +65,13 @@ Future<void> main(List<String> cmdLineArgs) async {
       offsetY = prefs.getDouble('winposy');
     }
     // Setting size, etc. twice (early & later) to work around linux problems.
-    if (Platform.isLinux &&
-        Platform.environment['XDG_SESSION_TYPE'] == 'wayland') {
-      // Avoid showing extra title bar under Wayland.
+    if (!(prefs.getBool('showtitlebar') ?? true)) {
       await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
     }
     await windowManager.setSize(size);
     windowManager.waitUntilReadyToShow(null, () async {
       await windowManager.setTitle('TreeTag');
-      if (Platform.isLinux &&
-          Platform.environment['XDG_SESSION_TYPE'] == 'wayland') {
+      if (!(prefs.getBool('showtitlebar') ?? true)) {
         await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
       }
       await windowManager.setMinimumSize(Size(300, 180));

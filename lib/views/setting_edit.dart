@@ -1,12 +1,13 @@
 // setting_edit.dart, a view to edit the apps settings/preferences.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 import 'common_dialogs.dart';
 import '../main.dart' show prefs, allowSaveWindowGeo, saveWindowGeo;
 import '../model/io_file.dart';
@@ -127,15 +128,14 @@ class _SettingEditState extends State<SettingEdit> {
                             await okDialog(
                               context: context,
                               title: 'Missing Data',
-                              label:
-                                  'Network address & user name must be filled in',
+                              label: 'Network address & user name are required',
                             );
                             return;
                           }
                           final result =
                               await serverPassDialog(context: context);
                           if (result ?? false) {
-                            // Set the form value to avoid overwriting it on close.
+                            // Set the form value to avoid overwriting on close.
                             _passwordKey.currentState!
                                 .setValue(prefs.getString('netpassword'));
                             setState(() {});
@@ -206,6 +206,21 @@ class _SettingEditState extends State<SettingEdit> {
                           await prefs.setBool('savewindowgeo', value);
                           allowSaveWindowGeo = value;
                           if (allowSaveWindowGeo) saveWindowGeo();
+                        }
+                      },
+                    ),
+                  if (Platform.isLinux ||
+                      Platform.isWindows ||
+                      Platform.isMacOS)
+                    BoolFormField(
+                      initialValue: prefs.getBool('showtitlebar') ?? true,
+                      heading: 'Show the Window Title Bar',
+                      onSaved: (bool? value) async {
+                        if (value != null) {
+                          await prefs.setBool('showtitlebar', value);
+                          await windowManager.setTitleBarStyle(
+                            value ? TitleBarStyle.normal : TitleBarStyle.hidden,
+                          );
                         }
                       },
                     ),
