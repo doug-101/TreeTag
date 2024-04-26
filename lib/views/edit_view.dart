@@ -1,6 +1,6 @@
 // edit_view.dart, a view to edit data for an existing or a new node.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -14,7 +14,6 @@ import '../main.dart' show prefs;
 import '../model/field_format_tools.dart';
 import '../model/fields.dart';
 import '../model/nodes.dart';
-import '../model/structure.dart';
 import '../model/word_set_en.dart';
 
 enum EditMode { normal, newNode, nodeChildren }
@@ -44,7 +43,10 @@ class _EditViewState extends State<EditView> {
     nodeData = Map.of(widget.node.data);
   }
 
-  Future<bool> updateOnPop() async {
+  /// Prepare to close by validating and updating.
+  ///
+  /// Returns true if it's ok to close.
+  Future<bool> _handleClose() async {
     if (_formKey.currentState!.validate()) {
       // Allow user to discard an unchanged new node.
       if (!_isChanged && widget.editMode == EditMode.newNode) {
@@ -96,7 +98,13 @@ class _EditViewState extends State<EditView> {
       ),
       body: Form(
         key: _formKey,
-        onWillPop: updateOnPop,
+        canPop: false,
+        onPopInvoked: (bool didPop) async {
+          if (!didPop && await _handleClose()) {
+            // Pop manually (bypass canPop) if update is complete.
+            Navigator.of(context).pop();
+          }
+        },
         onChanged: () {
           _isChanged = true;
         },
@@ -319,7 +327,6 @@ class TextForm extends FormField<String> {
                             final text = state._textController.text
                                 .replaceRange(cursorPos, cursorPos, linkText);
                             state._textController.text = text;
-                            state._textController.notifyListeners();
                           }
                         }
                       },
@@ -569,7 +576,7 @@ class DateFormField extends FormField<DateTime> {
                   Padding(
                     padding: EdgeInsets.only(top: 10.0),
                     child: Text(heading ?? 'Date',
-                        style: Theme.of(state.context).textTheme.caption),
+                        style: Theme.of(state.context).textTheme.bodySmall),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 5.0),
@@ -577,7 +584,7 @@ class DateFormField extends FormField<DateTime> {
                       state.value != null
                           ? DateFormat(fieldFormat).format(state.value!)
                           : '',
-                      style: Theme.of(state.context).textTheme.subtitle1,
+                      style: Theme.of(state.context).textTheme.titleMedium,
                     ),
                   ),
                   Divider(thickness: 3.0),
@@ -631,7 +638,7 @@ class TimeFormField extends FormField<DateTime> {
                   Padding(
                     padding: EdgeInsets.only(top: 10.0),
                     child: Text(heading ?? 'Time',
-                        style: Theme.of(state.context).textTheme.caption),
+                        style: Theme.of(state.context).textTheme.bodySmall),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 5.0),
@@ -639,7 +646,7 @@ class TimeFormField extends FormField<DateTime> {
                       state.value != null
                           ? DateFormat(fieldFormat).format(state.value!)
                           : '',
-                      style: Theme.of(state.context).textTheme.subtitle1,
+                      style: Theme.of(state.context).textTheme.titleMedium,
                     ),
                   ),
                   Divider(

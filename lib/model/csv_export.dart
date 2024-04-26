@@ -1,11 +1,9 @@
 // csv_export.dart, translations to export tree data to a CSV table.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:csv/csv.dart';
-import 'fields.dart';
-import 'nodes.dart';
 import 'structure.dart';
 
 /// Main class for exports to CSV tables.

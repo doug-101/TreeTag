@@ -1,6 +1,6 @@
 // help_view.dart, shows a Markdown output of the README file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -44,14 +44,14 @@ class _HelpViewState extends State<HelpView> {
     final pagePos = _pageList.indexOf(_pageHistory.last);
     // Size placeholder for hidden icons, includes 8/side padding.
     final iconSize = (IconTheme.of(context).size ?? 24.0) + 16.0;
-    return WillPopScope(
-      onWillPop: () async {
-        if (_pageHistory.length > 1) {
+    return PopScope(
+      // Avoid pop due to back button until page history is empty.
+      canPop: _pageHistory.length <= 1,
+      onPopInvoked: (bool didPop) async {
+        if (!didPop) {
           _pageHistory.removeLast();
           _loadContent();
-          return false;
         }
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(

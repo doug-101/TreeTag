@@ -29,15 +29,6 @@ class _SettingEditState extends State<SettingEdit> {
   final _formKey = GlobalKey<FormState>();
   final _passwordKey = GlobalKey<FormFieldState>();
 
-  Future<bool> updateOnPop() async {
-    if (_cancelFlag) return true;
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      return true;
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,14 +40,24 @@ class _SettingEditState extends State<SettingEdit> {
             tooltip: 'Revert all changes',
             onPressed: () {
               _cancelFlag = true;
-              Navigator.pop(context, null);
+              Navigator.of(context).pop();
             },
           ),
         ],
       ),
       body: Form(
         key: _formKey,
-        onWillPop: updateOnPop,
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (!didPop) {
+            if (_cancelFlag) {
+              Navigator.of(context).pop();
+            } else if (_formKey.currentState!.validate()) {
+              _formKey.currentState!.save();
+              Navigator.of(context).pop();
+            }
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Center(
@@ -137,7 +138,7 @@ class _SettingEditState extends State<SettingEdit> {
                           if (result ?? false) {
                             // Set the form value to avoid overwriting on close.
                             _passwordKey.currentState!
-                                .setValue(prefs.getString('netpassword'));
+                                .didChange(prefs.getString('netpassword'));
                             setState(() {});
                           }
                         },
@@ -180,7 +181,7 @@ class _SettingEditState extends State<SettingEdit> {
                       if (value != null) {
                         await prefs.setBool('linespacing', value);
                         Provider.of<Structure>(context, listen: false)
-                            .notifyListeners();
+                            .updateViews();
                       }
                     },
                   ),
@@ -351,11 +352,11 @@ class PathFormField extends FormField<String> {
                       Padding(
                         padding: EdgeInsets.only(top: 10.0),
                         child: Text(heading ?? 'Selected Path',
-                            style: Theme.of(state.context).textTheme.caption),
+                            style: Theme.of(state.context).textTheme.bodySmall),
                       ),
                       Text(
                         state.value!,
-                        style: Theme.of(state.context).textTheme.subtitle1,
+                        style: Theme.of(state.context).textTheme.titleMedium,
                       ),
                     ],
                   ),

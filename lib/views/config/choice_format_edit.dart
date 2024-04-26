@@ -1,12 +1,11 @@
 // choice_format_edit.dart, a view to edit a choice field format entity.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
 import '../common_dialogs.dart' as commonDialogs;
 import '../../model/field_format_tools.dart';
-import '../../model/fields.dart';
 
 /// The Choice field format edit widget.
 ///
@@ -40,14 +39,17 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
       appBar: AppBar(
         title: Text('Choice Field Format Edit'),
       ),
-      body: WillPopScope(
-        onWillPop: () async {
-          var formatResult = combineChoiceFormat(segments);
-          Navigator.pop<String?>(
-            context,
-            isChanged ? formatResult : null,
-          );
-          return true;
+      body: PopScope(
+        // Avoid pop due to back button until a string can be returned.
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (!didPop) {
+            var formatResult = combineChoiceFormat(segments);
+            Navigator.pop<String?>(
+              context,
+              isChanged ? formatResult : null,
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(10.0),

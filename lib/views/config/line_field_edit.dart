@@ -1,11 +1,10 @@
 // line_field_edit.dart, a view to customize a field's details in a line.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
 import '../../model/fields.dart';
-import '../../model/structure.dart';
 import 'field_format_edit.dart';
 
 // The field edit view with a form for only format, prefix and suffix.
@@ -37,18 +36,6 @@ class _LineFieldEditState extends State<LineFieldEdit> {
   final _fieldPrefixKey = GlobalKey<FormFieldState<String>>();
   final _fieldSuffixKey = GlobalKey<FormFieldState<String>>();
 
-  Future<bool> updateOnPop() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      final isChanged = widget.origPrefix != widget.field.prefix ||
-          widget.origSuffix != widget.field.suffix ||
-          widget.origFormat != widget.field.format;
-      Navigator.pop(context, isChanged);
-      return true;
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +63,17 @@ class _LineFieldEditState extends State<LineFieldEdit> {
       ),
       body: Form(
         key: _formKey,
-        onWillPop: updateOnPop,
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (!didPop && _formKey.currentState!.validate()) {
+            // Pop manually (bypass canPop) if validated.
+            _formKey.currentState!.save();
+            final isChanged = widget.origPrefix != widget.field.prefix ||
+                widget.origSuffix != widget.field.suffix ||
+                widget.origFormat != widget.field.format;
+            Navigator.pop(context, isChanged);
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: ListView(

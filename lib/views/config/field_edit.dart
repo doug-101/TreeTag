@@ -1,6 +1,6 @@
 // field_edit.dart, a view to edit a field's details.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -46,7 +46,10 @@ class _FieldEditState extends State<FieldEdit> {
     _editedField = Field.copy(widget.field);
   }
 
-  Future<bool> updateOnPop() async {
+  /// Prepare to close by validating and updating.
+  ///
+  /// Returns true if it's ok to close.
+  Future<bool> _handleClose() async {
     if (_cancelNewFlag) return true;
     var removeChoices = false;
     if (_formKey.currentState!.validate()) {
@@ -117,7 +120,6 @@ class _FieldEditState extends State<FieldEdit> {
 
   @override
   Widget build(BuildContext context) {
-    final model = Provider.of<Structure>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text(_editedField.name + ' Field'),
@@ -157,7 +159,13 @@ class _FieldEditState extends State<FieldEdit> {
       ),
       body: Form(
         key: _formKey,
-        onWillPop: updateOnPop,
+        canPop: false,
+        onPopInvoked: (bool didPop) async {
+          if (!didPop && await _handleClose()) {
+            // Pop manually (bypass canPop) if update is complete.
+            Navigator.of(context).pop();
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Center(
@@ -269,7 +277,7 @@ class _FieldEditState extends State<FieldEdit> {
                       validator: (String? value) {
                         // Update field format before validating the init value.
                         if (_editedField.format.isNotEmpty) {
-                          var value = _fieldFormatKey.currentState!.value!;
+                          var value = _fieldFormatKey.currentState!.value;
                           if (value != null) _editedField.format = value;
                         }
                         return _editedField.validateMessage(value);

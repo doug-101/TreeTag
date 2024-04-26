@@ -1,12 +1,11 @@
 // csv_import.dart, translations to import leaf node data from CSV files.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:csv/csv.dart';
 import 'package:csv/csv_settings_autodetection.dart';
 import 'fields.dart';
-import 'io_file.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'structure.dart';

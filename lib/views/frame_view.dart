@@ -1,9 +1,8 @@
 // frame_view.dart, the main view's frame and controls.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'dart:convert' show json;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +17,6 @@ import 'help_view.dart';
 import 'search_view.dart';
 import 'setting_edit.dart';
 import 'tree_view.dart';
-import 'undo_view.dart';
 import '../main.dart' show prefs;
 import '../model/csv_export.dart';
 import '../model/io_file.dart';
@@ -330,7 +328,7 @@ class FrameView extends StatelessWidget {
                             data: detailViewTitle,
                             theme: ThemeData(
                               textTheme: TextTheme(
-                                bodyText2: TextStyle(
+                                bodyMedium: TextStyle(
                                   fontSize: 20.0,
                                   color: Theme.of(context)
                                       .appBarTheme
@@ -373,7 +371,7 @@ class FrameView extends StatelessWidget {
                   tooltip: 'Delete leaf node',
                   // Delete the shown [LeafNode].
                   onPressed: () {
-                    model.deleteNode(detailRootNode as LeafNode);
+                    model.deleteNode(detailRootNode);
                   },
                 ),
                 IconButton(
@@ -384,8 +382,7 @@ class FrameView extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            EditView(node: detailRootNode as LeafNode),
+                        builder: (context) => EditView(node: detailRootNode),
                       ),
                     );
                   },

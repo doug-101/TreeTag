@@ -1,12 +1,11 @@
 // treeline_import.dart, translations to import a node type from TreeLine files.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:html_unescape/html_unescape_small.dart';
 import 'field_format_tools.dart';
 import 'fields.dart';
-import 'io_file.dart';
 import 'nodes.dart';
 import 'parsed_line.dart';
 import 'structure.dart';

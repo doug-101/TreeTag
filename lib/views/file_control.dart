@@ -1,6 +1,6 @@
 // file_control.dart, a view showing options for opening a new or existing file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -13,7 +13,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'common_dialogs.dart' as commonDialogs;
-import 'frame_view.dart';
 import 'help_view.dart';
 import 'sample_control.dart';
 import 'setting_edit.dart';
@@ -659,7 +658,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                             children: <TextSpan>[
                               TextSpan(
                                 text: fileObj.extension,
-                                style: Theme.of(context).textTheme.caption,
+                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
                           ),

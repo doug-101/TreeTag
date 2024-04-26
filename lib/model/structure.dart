@@ -1,6 +1,6 @@
 // structure.dart, top level storage for the tree model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -45,9 +45,12 @@ class Structure extends ChangeNotifier {
   }
 
   /// Open an existng file using the JSON data in [fileObj].
-  Future<void> openFile(IOFile fileObj) async {
+  Future<void> openFile(IOFile fileObj, {doUpdate = false}) async {
     fileObject = fileObj;
     openFromData(await fileObj.readJson());
+    if (doUpdate) {
+      notifyListeners();
+    }
   }
 
   /// Open an existng file using the given JSON data.
@@ -244,8 +247,7 @@ class Structure extends ChangeNotifier {
     // Only stores the parent for leaves (other nodes have parent member).
     detailViewRecords.add((
       node: node,
-      parent:
-          node is LeafNode && parent is GroupNode ? parent as GroupNode : null,
+      parent: node is LeafNode && parent is GroupNode ? parent : null,
     ));
     notifyListeners();
   }
@@ -853,7 +855,6 @@ class Structure extends ChangeNotifier {
 
   /// Called from [TreeConfig] to add a new title node as a child.
   void addTitleChild(TitleNode parentNode, String newTitle) {
-    final undos = <Undo>[];
     undoList.add(
       UndoAddTreeNode(
         'Add title node: $newTitle',
@@ -1118,6 +1119,11 @@ class Structure extends ChangeNotifier {
     undoList.add(UndoParameters(
         'Set relative link option', useMarkdownOutput, useRelativeLinks));
     useRelativeLinks = setting;
+  }
+
+  /// Update the views only.
+  void updateViews() {
+    notifyListeners();
   }
 
   /// Update tree children, view states and save the file.

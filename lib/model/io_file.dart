@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart' show prefs;
 
 /// Interface definition for both local and network files.
@@ -125,7 +124,6 @@ class LocalFile extends IOFile {
   /// Writes the string file (for non-JSON files).
   ///
   /// Raises a [SaveException] on error, caught in main source file.
-  @override
   Future<void> writeString(String data) async {
     try {
       await File(fullPath).writeAsString(data);
@@ -163,7 +161,7 @@ class LocalFile extends IOFile {
   static Future<List<IOFile>> fileList() async {
     final fileList = <LocalFile>[];
     await for (var entity in Directory(prefs.getString('workdir')!).list()) {
-      if (entity != null && entity is File) {
+      if (entity is File) {
         var baseName = p.basename(entity.path);
         if (!(prefs.getBool('hidedotfiles') ?? true) ||
             !baseName.startsWith('.')) {

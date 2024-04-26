@@ -1,6 +1,6 @@
 // sort_edit.dart, a view to edit sorting rules containing fields.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class SortEdit extends StatefulWidget {
   final List<SortKey> sortKeys;
 
   /// The fields available if given, otherwise assumes all fields.
-  List<Field>? availFields;
+  final List<Field>? availFields;
 
   SortEdit({Key? key, required this.sortKeys, this.availFields})
       : super(key: key);
@@ -44,10 +44,13 @@ class _SortEditState extends State<SortEdit> {
         title:
             Text('${widget.availFields != null ? 'Rule' : 'Child'} Sort Edit'),
       ),
-      body: WillPopScope(
-        onWillPop: () async {
-          Navigator.pop(context, isChanged);
-          return true;
+      body: PopScope(
+        // Avoid pop due to back button until a bool can be returned.
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (!didPop) {
+            Navigator.pop(context, isChanged);
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(10.0),

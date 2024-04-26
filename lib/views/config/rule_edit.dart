@@ -1,6 +1,6 @@
 // rule_edit.dart, a view to edit a rule node's details.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -85,7 +85,7 @@ class _RuleEditState extends State<RuleEdit> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text('Rule Definition',
-                            style: Theme.of(context).textTheme.caption),
+                            style: Theme.of(context).textTheme.bodySmall),
                         Padding(
                           padding: EdgeInsets.symmetric(vertical: 10.0),
                           child: Text.rich(
@@ -93,7 +93,7 @@ class _RuleEditState extends State<RuleEdit> {
                               children: widget.node.ruleLine
                                   .richLineSpans(contrastStyle),
                             ),
-                            style: Theme.of(context).textTheme.subtitle1,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
                       ],
@@ -108,7 +108,7 @@ class _RuleEditState extends State<RuleEdit> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text('Group Sorting',
-                          style: Theme.of(context).textTheme.caption),
+                          style: Theme.of(context).textTheme.bodySmall),
                       Padding(
                         padding: EdgeInsets.symmetric(vertical: 10.0),
                         child: ToggleButtons(
@@ -177,7 +177,7 @@ class _RuleEditState extends State<RuleEdit> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text('Child Sorting',
-                            style: Theme.of(context).textTheme.caption),
+                            style: Theme.of(context).textTheme.bodySmall),
                         Padding(
                           padding: EdgeInsets.symmetric(vertical: 10.0),
                           child: ToggleButtons(

@@ -12,7 +12,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'model/io_file.dart';
-import 'model/nodes.dart';
 import 'model/structure.dart';
 import 'model/theme_model.dart';
 import 'views/common_dialogs.dart' as commonDialogs;
@@ -34,7 +33,7 @@ Future<void> main(List<String> cmdLineArgs) async {
     () => Stream<LicenseEntry>.value(
       const LicenseEntryWithLineBreaks(
         <String>['TreeTag'],
-        'TreeTag, Copyright (C) 2023 by Douglas W. Bell\n\n'
+        'TreeTag, Copyright (C) 2024 by Douglas W. Bell\n\n'
         'This program is free software; you can redistribute it and/or modify '
         'it under the terms of the GNU General Public License as published by '
         'the Free Software Foundation; either version 2 of the License, or '
@@ -136,8 +135,7 @@ Future<void> main(List<String> cmdLineArgs) async {
                   onPressed: () async {
                     Navigator.pop(context);
                     try {
-                      await model.openFile(model.fileObject);
-                      model.notifyListeners();
+                      await model.openFile(model.fileObject, doUpdate: true);
                     } on IOException catch (e) {
                       await commonDialogs.okDialog(
                         context: context,
@@ -219,6 +217,8 @@ Future<void> main(List<String> cmdLineArgs) async {
                       return MaterialPageRoute(builder: (context) {
                         return UndoView();
                       });
+                    default:
+                      return null;
                   }
                 },
               ),

@@ -1,17 +1,14 @@
 // sample_control.dart, a view listing and opening sample files.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show json;
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'common_dialogs.dart' as commonDialogs;
-import 'frame_view.dart';
-import '../main.dart' show prefs;
 import '../model/io_file.dart';
 import '../model/structure.dart';
 

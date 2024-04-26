@@ -1,6 +1,6 @@
 // line_edit.dart, a view to edit an output field line or a rule field line.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:ui' show PointerDeviceKind;
@@ -28,7 +28,6 @@ class LineEdit extends StatefulWidget {
 class _LineEditState extends State<LineEdit> {
   LineSegment? _selectedSegment;
   var _isChanged = false;
-  final _textEditKey = GlobalKey<FormFieldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -47,18 +46,21 @@ class _LineEditState extends State<LineEdit> {
           ),
         ],
       ),
-      body: WillPopScope(
-        onWillPop: () async {
-          if (widget.line.isEmpty) {
-            await commonDialogs.okDialog(
-              context: context,
-              title: 'Cannot be empty',
-              label: 'Must add a field or a text entry',
-            );
-            return false;
+      body: PopScope(
+        // Avoid pop due to back button until the value can be checked.
+        canPop: false,
+        onPopInvoked: (bool didPop) async {
+          if (!didPop) {
+            if (widget.line.isEmpty) {
+              await commonDialogs.okDialog(
+                context: context,
+                title: 'Cannot be empty',
+                label: 'Must add a field or a text entry',
+              );
+            } else {
+              Navigator.pop(context, _isChanged);
+            }
           }
-          Navigator.pop(context, _isChanged);
-          return true;
         },
         child: Padding(
           padding: const EdgeInsets.all(10.0),

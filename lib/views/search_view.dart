@@ -1,6 +1,6 @@
 // search_view.dart, a viww to do node searches and show results.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -153,8 +153,9 @@ class _SearchViewState extends State<SearchView> {
     final model = Provider.of<Structure>(context, listen: false);
     final fieldTitle =
         searchField != null ? '${searchField!.name} field' : 'all fields';
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (bool didPop) {
         if (selectedNodes.isNotEmpty) {
           final parent = model.openLeafParent(
             selectedNodes.last,
@@ -166,7 +167,6 @@ class _SearchViewState extends State<SearchView> {
             doClearFirst: true,
           );
         }
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(

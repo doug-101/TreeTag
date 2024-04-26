@@ -1,6 +1,6 @@
 // undos.dart, stores and executes undo operations.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:collection';
@@ -536,25 +536,22 @@ class UndoAddTreeNode extends Undo {
             nodePos, nodePos + replaceCount, node.storedChildren());
       }
     } else if (node is TitleNode) {
-      final titleNode = node as TitleNode;
       final parentTitle = parentNode as TitleNode;
-      if (titleNode.childRuleNode != null) {
-        parentTitle.replaceChildRule(titleNode.childRuleNode);
-        titleNode.replaceChildRule(null);
+      if (node.childRuleNode != null) {
+        parentTitle.replaceChildRule(node.childRuleNode);
+        node.replaceChildRule(null);
       }
       if (replaceCount == 0) {
-        parentTitle.removeChildTitleNode(titleNode);
+        parentTitle.removeChildTitleNode(node);
       } else {
-        parentTitle.replaceChildTitleNode(
-            titleNode, titleNode.storedChildren());
+        parentTitle.replaceChildTitleNode(node, node.storedChildren());
       }
     } else if (parentNode is TitleNode) {
       final ruleNode = node as RuleNode;
-      final parentTitle = parentNode as TitleNode;
       if (ruleNode.childRuleNode != null) {
-        parentTitle.replaceChildRule(ruleNode.childRuleNode);
+        parentNode.replaceChildRule(ruleNode.childRuleNode);
       } else {
-        parentTitle.replaceChildRule(null);
+        parentNode.replaceChildRule(null);
       }
     } else {
       final ruleNode = node as RuleNode;
@@ -609,7 +606,6 @@ class UndoDeleteTreeNode extends Undo {
       node.parent = null;
       (node as TitleNode).updateChildParentRefs();
     } else if (node is TitleNode) {
-      final titleNode = node as TitleNode;
       final parentTitle = parentNode as TitleNode;
       if (replaceCount > 0) {
         List.of(parentTitle.storedChildren())
@@ -618,11 +614,11 @@ class UndoDeleteTreeNode extends Undo {
           parentTitle.removeChildTitleNode(child as TitleNode);
         });
       }
-      parentTitle.addChildTitleNode(node as TitleNode, pos: nodePos);
-      titleNode.updateChildParentRefs();
+      parentTitle.addChildTitleNode(node, pos: nodePos);
+      node.updateChildParentRefs();
     } else if (parentNode is TitleNode) {
       final ruleNode = node as RuleNode;
-      (parentNode as TitleNode).replaceChildRule(ruleNode);
+      parentNode.replaceChildRule(ruleNode);
       if (ruleNode.childRuleNode != null) {
         ruleNode.childRuleNode!.parent = ruleNode;
       }

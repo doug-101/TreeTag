@@ -1,13 +1,12 @@
 // undo_view.dart, a view listing undo steps.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:provider/provider.dart';
 import '../model/structure.dart';
-import '../model/undos.dart';
 
 enum MenuItems { undo, cancelUndo, delete, cancelDelete }
 
@@ -51,8 +50,9 @@ class _UndoViewState extends State<UndoView> {
   @override
   Widget build(BuildContext context) {
     var model = Provider.of<Structure>(context, listen: false);
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (bool didPop) {
         if (undoToPos != null) {
           model.undoList.undoToPos(undoToPos!);
         }
@@ -60,7 +60,6 @@ class _UndoViewState extends State<UndoView> {
           model.undoList.removeRange(0, deleteToPos! + 1);
           model.saveFile();
         }
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(

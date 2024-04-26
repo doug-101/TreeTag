@@ -1,6 +1,6 @@
 // field_format_edit.dart, a display widget and an edit view for field formats.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:ui' show PointerDeviceKind;
@@ -9,7 +9,6 @@ import 'package:intl/intl.dart' show NumberFormat, DateFormat;
 import 'choice_format_edit.dart';
 import '../common_dialogs.dart' as commonDialogs;
 import '../../model/field_format_tools.dart';
-import '../../model/fields.dart';
 
 /// A form field widget used to display field formats.
 ///
@@ -49,13 +48,13 @@ class FieldFormatDisplay extends FormField<String> {
                     Padding(
                       padding: EdgeInsets.only(top: 10.0),
                       child: Text('$fieldType Field Format',
-                          style: Theme.of(state.context).textTheme.caption),
+                          style: Theme.of(state.context).textTheme.bodySmall),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 5.0),
                       child: Text(
                         _fieldFormatPreview(fieldType, state.value!),
-                        style: Theme.of(state.context).textTheme.subtitle1,
+                        style: Theme.of(state.context).textTheme.titleMedium,
                       ),
                     ),
                     Divider(
@@ -114,17 +113,19 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
       appBar: AppBar(
         title: Text('${widget.fieldType} Field Format'),
       ),
-      body: WillPopScope(
-        onWillPop: () async {
-          final formatResult = combineFieldFormat(segments, condense: true);
-          if (!_fieldFormatIsValid(widget.fieldType, formatResult)) {
-            return false;
+      body: PopScope(
+        // Avoid pop due to back button until a result can be returned.
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (!didPop) {
+            final formatResult = combineFieldFormat(segments, condense: true);
+            if (_fieldFormatIsValid(widget.fieldType, formatResult)) {
+              Navigator.pop<String?>(
+                context,
+                isChanged ? formatResult : null,
+              );
+            }
           }
-          Navigator.pop<String?>(
-            context,
-            isChanged ? formatResult : null,
-          );
-          return true;
         },
         child: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -299,7 +300,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
               Padding(
                 padding: EdgeInsets.only(top: 15.0),
                 child: Text('Format Sample',
-                    style: Theme.of(context).textTheme.caption),
+                    style: Theme.of(context).textTheme.bodySmall),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 5.0),
@@ -308,7 +309,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                     widget.fieldType,
                     combineFieldFormat(segments),
                   ),
-                  style: Theme.of(context).textTheme.subtitle1,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
               Spacer(flex: 8),
