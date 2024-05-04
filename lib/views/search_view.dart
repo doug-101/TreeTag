@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'common_dialogs.dart';
+import 'common_widgets.dart';
 import '../main.dart' show prefs;
 import '../model/fields.dart';
 import '../model/nodes.dart';
@@ -96,56 +97,93 @@ class _SearchViewState extends State<SearchView> {
     });
   }
 
-  /// Return a widget with the long node output with matches highlighted.
-  Widget longOutput(LeafNode node) {
-    final text = node.outputs().join('\n');
+  /// Return Match objects from a search of the given node.
+  List<Match> nodeMatches(LeafNode node) {
     var matches = <Match>[];
-    if (searchType == SearchType.phrase) {
-      matches =
-          node.allPatternMatches(_controller.text.toLowerCase(), searchField);
-    } else if (searchType == SearchType.keyword) {
-      for (var searchTerm in _controller.text.toLowerCase().split(' ')) {
-        if (searchTerm.isNotEmpty) {
-          matches.addAll(node.allPatternMatches(searchTerm, searchField));
+    switch (searchType) {
+      case SearchType.phrase:
+        matches =
+            node.allPatternMatches(_controller.text.toLowerCase(), searchField);
+      case SearchType.keyword:
+        for (var searchTerm in _controller.text.toLowerCase().split(' ')) {
+          if (searchTerm.isNotEmpty) {
+            matches.addAll(node.allPatternMatches(searchTerm, searchField));
+          }
         }
-      }
-      matches.sort((a, b) => a.start.compareTo(b.start));
-    } else {
-      // regExp search.Reg
-      matches = node.allPatternMatches(RegExp(_controller.text), searchField);
+        matches.sort((a, b) => a.start.compareTo(b.start));
+        // Remove overlapping matches to avoid highlight errors.
+        // Keep the longer of the overlapping matches.
+        for (var i = 0; i < matches.length - 1; i++) {
+          if (matches[i].end > matches[i + 1].start) {
+            if (matches[i].end - matches[i].start >=
+                matches[i + 1].end - matches[i + 1].start) {
+              matches.removeAt(i + 1);
+            } else {
+              matches.removeAt(i);
+            }
+          }
+        }
+      case _:
+        // regExp search.Reg
+        matches = node.allPatternMatches(RegExp(_controller.text), searchField);
     }
-    if (matches.isEmpty) return Text(text);
-    var delta = 0;
-    if (searchField != null) {
-      final nullableDelta = node.fieldOuputStart(searchField!);
-      if (nullableDelta != null) {
-        delta = nullableDelta;
-      } else {
-        return Text(text);
-      }
-    }
+    return matches;
+  }
+
+  /// Return offset to searchField start in output if applicable.
+  ///
+  /// Return 0 if no searchField was defined, null if output not found.
+  int? searchFieldDelta(LeafNode node) {
+    if (searchField == null) return 0;
+    return node.fieldOuputStart(searchField!);
+  }
+
+  /// Return a widget with the long node output with matches highlighted.
+  Widget longTextOutput(LeafNode node) {
+    final text = node.outputs().join('\n');
+    var matches = nodeMatches(node);
+    var delta = searchFieldDelta(node) ?? -1;
+    if (matches.isEmpty || delta < 0) return Text(text);
     final spans = <TextSpan>[];
     var nextStart = 0;
-    try {
-      for (var match in matches) {
-        if (match.start + delta != nextStart) {
-          spans.add(
-              TextSpan(text: text.substring(nextStart, match.start + delta)));
-        }
-        spans.add(TextSpan(
-          text: text.substring(match.start + delta, match.end + delta),
-          style: const TextStyle(color: Colors.red),
-        ));
-        nextStart = match.end + delta;
+    for (var match in matches) {
+      if (match.start + delta != nextStart) {
+        spans.add(
+            TextSpan(text: text.substring(nextStart, match.start + delta)));
       }
-      if (text.length > matches.last.end + delta) {
-        spans.add(TextSpan(text: text.substring(matches.last.end + delta)));
-      }
-    } on RangeError {
-      // Handle an error due to overlapping search results.
-      return Text(text);
+      spans.add(TextSpan(
+        text: text.substring(match.start + delta, match.end + delta),
+        style: const TextStyle(color: Colors.red),
+      ));
+      nextStart = match.end + delta;
+    }
+    if (text.length > matches.last.end + delta) {
+      spans.add(TextSpan(text: text.substring(matches.last.end + delta)));
     }
     return Text.rich(TextSpan(children: spans));
+  }
+
+  /// Return a widget with the long node output with matches highlighted.
+  Widget longMarkdownOutput(LeafNode node) {
+    var text = node.outputs().join('\n');
+    var matches = nodeMatches(node);
+    var delta = searchFieldDelta(node) ?? -1;
+    if (matches.isEmpty || delta < 0) return MarkdownWithLinks(data: text);
+    for (var match in matches) {
+      text = text.replaceRange(
+        match.start + delta,
+        match.start + delta,
+        ShowMatchSyntax.matchPrefix,
+      );
+      delta += 1;
+      text = text.replaceRange(
+        match.end + delta,
+        match.end + delta,
+        ShowMatchSyntax.matchSuffix,
+      );
+      delta += 1;
+    }
+    return MarkdownWithLinks(data: text, doShowMatches: true);
   }
 
   @override
@@ -311,7 +349,7 @@ class _SearchViewState extends State<SearchView> {
                   color: selectedNodes.contains(node)
                       ? Theme.of(context).listTileTheme.selectedTileColor
                       : null,
-                  child: GestureDetector(
+                  child: InkWell(
                     onTap: () {
                       setState(() {
                         if (selectedNodes.contains(node)) {
@@ -324,8 +362,12 @@ class _SearchViewState extends State<SearchView> {
                     child: Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: selectedNodes.contains(node)
-                          ? longOutput(node)
-                          : Text(node.title),
+                          ? model.useMarkdownOutput
+                              ? longMarkdownOutput(node)
+                              : longTextOutput(node)
+                          : model.useMarkdownOutput
+                              ? MarkdownWithLinks(data: node.title)
+                              : Text(node.title),
                     ),
                   ),
                 ),
