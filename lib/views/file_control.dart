@@ -485,24 +485,17 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       dialogTitle: 'Select Directory for Copy',
                     );
                     if (folder != null) {
-                      if (Platform.isLinux ||
-                          Platform.isWindows ||
-                          Platform.isMacOS ||
-                          await Permission.storage.request().isGranted) {
-                        for (var fileObj in _selectedFiles) {
-                          final newPath = p.join(folder, fileObj.filename);
-                          errorLabel = 'Could not write to $newPath';
-                          if (await File(newPath).exists()) {
-                            if (!(await askOverwriteOk(p.basename(newPath)))) {
-                              break;
-                            }
+                      // Removed await Permission.storage.request().isGranted
+                      // for Android - didn't work on Android 13+ (at least).
+                      for (var fileObj in _selectedFiles) {
+                        final newPath = p.join(folder, fileObj.filename);
+                        errorLabel = 'Could not write to $newPath';
+                        if (await File(newPath).exists()) {
+                          if (!(await askOverwriteOk(p.basename(newPath)))) {
+                            break;
                           }
-                          await fileObj.copyToPath(newPath);
                         }
-                      } else if (await Permission.storage
-                          .request()
-                          .isPermanentlyDenied) {
-                        await openAppSettings();
+                        await fileObj.copyToPath(newPath);
                       }
                     }
                     if (Platform.isAndroid || Platform.isIOS) {
