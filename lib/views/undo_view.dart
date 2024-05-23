@@ -14,6 +14,8 @@ enum MenuItems { undo, cancelUndo, delete, cancelDelete }
 ///
 /// Called from a menu in a [TreeView].
 class UndoView extends StatefulWidget {
+  const UndoView({super.key});
+
   @override
   State<UndoView> createState() => _UndoViewState();
 }
@@ -63,7 +65,7 @@ class _UndoViewState extends State<UndoView> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Undo List'),
+          title: const Text('Undo List'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(10),
@@ -128,25 +130,25 @@ class _UndoViewState extends State<UndoView> {
               itemBuilder: (context) => [
                 if (pos != undoToPos &&
                     (deleteToPos == null || pos > deleteToPos!))
-                  PopupMenuItem<MenuItems>(
-                    child: Text('Undo to here'),
+                  const PopupMenuItem<MenuItems>(
                     value: MenuItems.undo,
+                    child: Text('Undo to here'),
                   ),
                 if (pos == undoToPos)
-                  PopupMenuItem<MenuItems>(
-                    child: Text('Cancel undo'),
+                  const PopupMenuItem<MenuItems>(
                     value: MenuItems.cancelUndo,
+                    child: Text('Cancel undo'),
                   ),
                 if (pos != deleteToPos &&
                     (undoToPos == null || pos < undoToPos!))
-                  PopupMenuItem<MenuItems>(
-                    child: Text('Delete to here'),
+                  const PopupMenuItem<MenuItems>(
                     value: MenuItems.delete,
+                    child: Text('Delete to here'),
                   ),
                 if (pos == deleteToPos)
-                  PopupMenuItem<MenuItems>(
-                    child: Text('Cancel delete'),
+                  const PopupMenuItem<MenuItems>(
                     value: MenuItems.cancelDelete,
+                    child: Text('Cancel delete'),
                   ),
               ],
             ),

@@ -1,13 +1,13 @@
 // fields.dart, defines field types and operations in the model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
 import 'field_format_tools.dart';
 import 'nodes.dart';
 
-final fieldTypes = const [
+const fieldTypes = [
   'Text',
   'LongText',
   'Choice',
@@ -167,7 +167,9 @@ abstract class Field {
   void updateSettings(Field otherField) {
     if (name != otherField.name) {
       name = otherField.name;
-      for (var altField in _altFormatFields) altField.name = otherField.name;
+      for (var altField in _altFormatFields) {
+        altField.name = otherField.name;
+      }
     }
     format = otherField.format;
     initValue = otherField.initValue;
@@ -268,13 +270,13 @@ abstract class Field {
 
   bool get isAltFormatField => _altFormatNumber != null;
 
-  /// Return the fields from [fields] that have the same name.
+  /// Return the fields from [fields] that have the same name as this.
   ///
   /// Used to find regular fields as well as [_altFormatFields].
   List<Field> matchingFieldDescendents(List<Field> fields) {
     return [
       for (var field in fields)
-        if (field.name == this.name) field
+        if (field.name == name) field
     ];
   }
 
@@ -327,52 +329,40 @@ abstract class Field {
 /// A plain text field, the default type.
 class RegTextField extends Field {
   RegTextField({
-    required String name,
-    initValue = '',
-    prefix = '',
-    suffix = '',
+    required super.name,
+    super.initValue = '',
+    super.prefix = '',
+    super.suffix = '',
   }) : super(
-          name: name,
           fieldType: 'Text',
           format: '',
-          initValue: initValue,
-          prefix: prefix,
-          suffix: suffix,
         );
 }
 
 /// A plain text field that provides more lines in editors.
 class LongTextField extends Field {
   LongTextField({
-    required String name,
-    initValue = '',
-    prefix = '',
-    suffix = '',
+    required super.name,
+    super.initValue = '',
+    super.prefix = '',
+    super.suffix = '',
   }) : super(
-          name: name,
           fieldType: 'LongText',
           format: '',
-          initValue: initValue,
-          prefix: prefix,
-          suffix: suffix,
         );
 }
 
 /// A field for choosing between pre-defined options.
 class ChoiceField extends Field {
   ChoiceField({
-    required String name,
+    required super.name,
     format = '',
-    initValue = '',
-    prefix = '',
-    suffix = '',
+    super.initValue = '',
+    super.prefix = '',
+    super.suffix = '',
   }) : super(
-          name: name,
           fieldType: 'Choice',
           format: format.isNotEmpty ? format : '/1/2/3',
-          initValue: initValue,
-          prefix: prefix,
-          suffix: suffix,
         );
 
   @override
@@ -397,35 +387,27 @@ class AutoChoiceField extends Field {
   final options = <String>{};
 
   AutoChoiceField({
-    required String name,
-    initValue = '',
-    prefix = '',
-    suffix = '',
+    required super.name,
+    super.initValue = '',
+    super.prefix = '',
+    super.suffix = '',
   }) : super(
-          name: name,
           fieldType: 'AutoChoice',
           format: '',
-          initValue: initValue,
-          prefix: prefix,
-          suffix: suffix,
         );
 }
 
 /// A field that formats numbers and properly sorts them.
 class NumberField extends Field {
   NumberField({
-    required String name,
+    required super.name,
     format = '',
     initValue = '',
-    prefix = '',
-    suffix = '',
+    super.prefix = '',
+    super.suffix = '',
   }) : super(
-          name: name,
           fieldType: 'Number',
           format: format.isNotEmpty ? format : '#0.##',
-          initValue: initValue,
-          prefix: prefix,
-          suffix: suffix,
         );
 
   @override
@@ -442,8 +424,9 @@ class NumberField extends Field {
 
   @override
   String? validateMessage(String? text) {
-    if (text != null && text.isNotEmpty && num.tryParse(text) == null)
+    if (text != null && text.isNotEmpty && num.tryParse(text) == null) {
       return 'Not a valid number entry.';
+    }
     return null;
   }
 
@@ -458,19 +441,15 @@ class NumberField extends Field {
 /// A field that formats date values.
 class DateField extends Field {
   DateField({
-    required String name,
+    required super.name,
     format = '',
     // An [initValue] of 'now' is supported.
-    initValue = '',
-    prefix = '',
-    suffix = '',
+    super.initValue = '',
+    super.prefix = '',
+    super.suffix = '',
   }) : super(
-          name: name,
           fieldType: 'Date',
           format: format.isNotEmpty ? format : 'MMMM d, yyyy',
-          initValue: initValue,
-          prefix: prefix,
-          suffix: suffix,
         );
 
   DateTime _parseStored(String storedText) {
@@ -486,8 +465,9 @@ class DateField extends Field {
 
   @override
   String? initialValue() {
-    if (initValue == 'now')
+    if (initValue == 'now') {
       return DateFormat('yyyy-MM-dd').format(DateTime.now());
+    }
     return null;
   }
 
@@ -513,19 +493,15 @@ class DateField extends Field {
 /// A field that formats time of day values.
 class TimeField extends Field {
   TimeField({
-    required String name,
+    required super.name,
     format = '',
     // An [initValue] of 'now' is supported.
-    initValue = '',
-    prefix = '',
-    suffix = '',
+    super.initValue = '',
+    super.prefix = '',
+    super.suffix = '',
   }) : super(
-          name: name,
           fieldType: 'Time',
           format: format.isNotEmpty ? format : 'h:mm a',
-          initValue: initValue,
-          prefix: prefix,
-          suffix: suffix,
         );
 
   DateTime _parseStored(String storedText) {
@@ -541,8 +517,9 @@ class TimeField extends Field {
 
   @override
   String? initialValue() {
-    if (initValue == 'now')
+    if (initValue == 'now') {
       return DateFormat('HH:mm:ss.S').format(DateTime.now());
+    }
     return null;
   }
 

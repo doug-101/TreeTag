@@ -14,7 +14,7 @@ import 'package:window_manager/window_manager.dart';
 import 'model/io_file.dart';
 import 'model/structure.dart';
 import 'model/theme_model.dart';
-import 'views/common_dialogs.dart' as commonDialogs;
+import 'views/common_dialogs.dart' as common_dialogs;
 import 'views/detail_view.dart';
 import 'views/file_control.dart';
 import 'views/frame_view.dart';
@@ -53,7 +53,7 @@ Future<void> main(List<String> cmdLineArgs) async {
   prefs = await SharedPreferences.getInstance();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
-    var size = Size(800.0, 600.0);
+    var size = const Size(800.0, 600.0);
     double? offsetX, offsetY;
     if (prefs.getBool('savewindowgeo') ?? true) {
       size = Size(
@@ -73,7 +73,7 @@ Future<void> main(List<String> cmdLineArgs) async {
       if (!(prefs.getBool('showtitlebar') ?? true)) {
         await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
       }
-      await windowManager.setMinimumSize(Size(300, 180));
+      await windowManager.setMinimumSize(const Size(300, 180));
       await windowManager.setSize(size);
       if (offsetX != null && offsetY != null) {
         await windowManager.setPosition(Offset(offsetX, offsetY));
@@ -88,10 +88,8 @@ Future<void> main(List<String> cmdLineArgs) async {
       // Use "external" user-accessible location if possible.
       workDir = await getExternalStorageDirectory();
     }
-    if (workDir == null) {
-      // For failed external storage or for non-Android platforms.
-      workDir = await getApplicationDocumentsDirectory();
-    }
+    // For failed external storage or for non-Android platforms.
+    workDir ??= await getApplicationDocumentsDirectory();
     await prefs.setString('workdir', workDir.path);
   }
   // Use a global navigator key to get a BuildContext for an error dialog.
@@ -103,7 +101,7 @@ Future<void> main(List<String> cmdLineArgs) async {
         MaterialPageRoute(
           builder: (context) {
             return AlertDialog(
-              title: Text('Error'),
+              title: const Text('Error'),
               content:
                   Text('Failed to save file changes:\n${error.toString()}'),
               actions: <Widget>[
@@ -125,7 +123,7 @@ Future<void> main(List<String> cmdLineArgs) async {
           builder: (context) {
             final model = Provider.of<Structure>(context, listen: false);
             return AlertDialog(
-              title: Text('Warning'),
+              title: const Text('Warning'),
               content:
                   Text('This file appears to have been externally modified.'
                       '\n${error.toString()}'),
@@ -137,7 +135,8 @@ Future<void> main(List<String> cmdLineArgs) async {
                     try {
                       await model.openFile(model.fileObject, doUpdate: true);
                     } on IOException catch (e) {
-                      await commonDialogs.okDialog(
+                      if (!context.mounted) return;
+                      await common_dialogs.okDialog(
                         context: context,
                         title: 'Error',
                         label: 'Could not read file: '
@@ -193,7 +192,7 @@ Future<void> main(List<String> cmdLineArgs) async {
                           initialPath = null;
                           return FileControl(initialFilePath: tmpPath);
                         }
-                        return FileControl();
+                        return const FileControl();
                       });
                     case '/frameView':
                       final fileName = settings.arguments as String;
@@ -207,15 +206,15 @@ Future<void> main(List<String> cmdLineArgs) async {
                       });
                     case '/detailView':
                       return MaterialPageRoute(builder: (context) {
-                        return DetailView();
+                        return const DetailView();
                       });
                     case '/configView':
                       return MaterialPageRoute(builder: (context) {
-                        return ConfigView();
+                        return const ConfigView();
                       });
                     case '/undoView':
                       return MaterialPageRoute(builder: (context) {
-                        return UndoView();
+                        return const UndoView();
                       });
                     default:
                       return null;

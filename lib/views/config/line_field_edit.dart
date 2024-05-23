@@ -18,7 +18,7 @@ class LineFieldEdit extends StatefulWidget {
   late final String origPrefix;
   late final String origSuffix;
 
-  LineFieldEdit({Key? key, required this.field}) : super(key: key) {
+  LineFieldEdit({super.key, required this.field}) {
     origFormat = field.format;
     origPrefix = field.prefix;
     origSuffix = field.suffix;
@@ -40,7 +40,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.field.name + ' Line Field'),
+        title: Text('${widget.field.name} Line Field'),
         actions: <Widget>[
           // Reset back to the alt format's parent field.
           IconButton(
@@ -93,7 +93,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
                 ),
               TextFormField(
                 key: _fieldPrefixKey,
-                decoration: InputDecoration(labelText: 'Prefix'),
+                decoration: const InputDecoration(labelText: 'Prefix'),
                 initialValue: widget.field.prefix,
                 onSaved: (String? value) {
                   if (value != null) widget.field.prefix = value;
@@ -101,7 +101,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
               ),
               TextFormField(
                 key: _fieldSuffixKey,
-                decoration: InputDecoration(labelText: 'Suffix'),
+                decoration: const InputDecoration(labelText: 'Suffix'),
                 initialValue: widget.field.suffix,
                 onSaved: (String? value) {
                   if (value != null) widget.field.suffix = value;

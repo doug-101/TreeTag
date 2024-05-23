@@ -1,19 +1,19 @@
 // option_config.dart, a view to edit extra config options for this file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../common_dialogs.dart' as commonDialogs;
+import '../common_dialogs.dart' as common_dialogs;
 import '../../model/structure.dart';
 
 /// The extra config option widget.
 ///
 /// Lists options that don't belong elsewhere.
 class OptionConfig extends StatefulWidget {
-  OptionConfig({Key? key}) : super(key: key);
+  const OptionConfig({super.key});
 
   @override
   State<OptionConfig> createState() => _OptionConfigState();
@@ -46,11 +46,11 @@ class _OptionConfigState extends State<OptionConfig> {
                   onChanged: (bool value) async {
                     model.setUseRelativeLink(value);
                     if (!model.useMarkdownOutput) {
-                      await commonDialogs.okDialog(
+                      await common_dialogs.okDialog(
                         context: context,
                         title: 'Markdown Required',
-                        label:
-                            'Markdwon formatting must be enabled to use file links',
+                        label: 'Markdwon formatting must be enabled to use '
+                            'file links',
                       );
                     }
                     setState(() {});

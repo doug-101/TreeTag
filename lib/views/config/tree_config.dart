@@ -6,7 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'rule_edit.dart';
-import '../common_dialogs.dart' as commonDialogs;
+import '../common_dialogs.dart' as common_dialogs;
 import '../../model/nodes.dart';
 import '../../model/structure.dart';
 
@@ -19,6 +19,8 @@ enum DeleteMenuItems { nodeOnly, branch }
 /// Lists all of the stored nodes in a tree.
 /// One of the tabbed items on the [ConfigView].
 class TreeConfig extends StatefulWidget {
+  const TreeConfig({super.key});
+
   @override
   State<TreeConfig> createState() => _TreeConfigState();
 }
@@ -41,7 +43,7 @@ class _TreeConfigState extends State<TreeConfig> {
               onSelected: (result) async {
                 switch (result) {
                   case AddMenuItems.titleSibling:
-                    final name = await commonDialogs.textDialog(
+                    final name = await common_dialogs.textDialog(
                       context: context,
                       title: 'Title Name',
                       label: 'New title text',
@@ -52,7 +54,7 @@ class _TreeConfigState extends State<TreeConfig> {
                       });
                     }
                   case AddMenuItems.titleChild:
-                    final name = await commonDialogs.textDialog(
+                    final name = await common_dialogs.textDialog(
                       context: context,
                       title: 'Title Name',
                       label: 'New title text',
@@ -80,22 +82,22 @@ class _TreeConfigState extends State<TreeConfig> {
               },
               itemBuilder: (context) => [
                 PopupMenuItem(
-                  child: Text('Add Title Sibling'),
                   enabled: selectedNode != null && selectedNode! is TitleNode,
                   value: AddMenuItems.titleSibling,
+                  child: const Text('Add Title Sibling'),
                 ),
                 PopupMenuItem(
-                  child: Text('Add Title Child'),
                   enabled: selectedNode != null && selectedNode! is TitleNode,
                   value: AddMenuItems.titleChild,
+                  child: const Text('Add Title Child'),
                 ),
                 PopupMenuItem(
-                  child: Text('Add Group Rule Child'),
                   enabled: selectedNode != null &&
                       (!selectedNode!.hasChildren ||
                           selectedNode is RuleNode ||
                           (selectedNode as TitleNode).childRuleNode != null),
                   value: AddMenuItems.ruleChild,
+                  child: const Text('Add Group Rule Child'),
                 ),
               ],
             ),
@@ -108,7 +110,7 @@ class _TreeConfigState extends State<TreeConfig> {
                   : () async {
                       if (selectedNode! is TitleNode) {
                         final node = selectedNode! as TitleNode;
-                        final name = await commonDialogs.textDialog(
+                        final name = await common_dialogs.textDialog(
                           context: context,
                           initText: node.title,
                           title: 'Title Name',
@@ -154,7 +156,6 @@ class _TreeConfigState extends State<TreeConfig> {
               },
               itemBuilder: (context) => [
                 PopupMenuItem(
-                  child: Text('Delete Node Only'),
                   enabled: selectedNode != null &&
                       (!selectedNode!.hasChildren ||
                           selectedNode is RuleNode ||
@@ -165,14 +166,15 @@ class _TreeConfigState extends State<TreeConfig> {
                       (selectedNode?.parent != null ||
                           model.rootNodes.length > 1),
                   value: DeleteMenuItems.nodeOnly,
+                  child: const Text('Delete Node Only'),
                 ),
                 PopupMenuItem(
-                  child: Text('Delete Node with Children'),
                   enabled: selectedNode != null &&
                       selectedNode!.hasChildren &&
                       (selectedNode?.parent != null ||
                           model.rootNodes.length > 1),
                   value: DeleteMenuItems.branch,
+                  child: const Text('Delete Node with Children'),
                 ),
               ],
             ),

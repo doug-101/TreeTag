@@ -1,6 +1,6 @@
 // config_view.dart, a view to edit file configurations.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2022, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -15,6 +15,8 @@ import 'tree_config.dart';
 /// [OptionConfig].
 /// Called from a menu in the [TreeView].
 class ConfigView extends StatefulWidget {
+  const ConfigView({super.key});
+
   @override
   State<ConfigView> createState() => _ConfigViewState();
 }
@@ -23,10 +25,10 @@ class _ConfigViewState extends State<ConfigView> {
   int _selectedIndex = 0;
 
   static List<Widget> pages = [
-    FieldConfig(),
-    TreeConfig(),
-    OutputConfig(),
-    OptionConfig(),
+    const FieldConfig(),
+    const TreeConfig(),
+    const OutputConfig(),
+    const OptionConfig(),
   ];
 
   void _onItemTapped(int index) {
@@ -39,7 +41,7 @@ class _ConfigViewState extends State<ConfigView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('File Config'),
+        title: const Text('File Config'),
       ),
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

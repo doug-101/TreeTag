@@ -1,6 +1,6 @@
 // io_file.dart, classes for handling storage and network file operations.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:convert';
@@ -57,7 +57,7 @@ abstract class IOFile {
 
 /// A file that is in the working directory on the local drive.
 class LocalFile extends IOFile {
-  LocalFile(String filename) : super(filename);
+  LocalFile(super.filename);
 
   /// Allow comparisons and ordering.
   @override
@@ -177,7 +177,7 @@ class LocalFile extends IOFile {
 class NetworkFile extends IOFile {
   static String password = '';
 
-  NetworkFile(String filename) : super(filename);
+  NetworkFile(super.filename);
 
   /// Allow comparisons and ordering.
   @override
@@ -210,7 +210,7 @@ class NetworkFile extends IOFile {
   Future<int> get fileSize async {
     int? size;
     // Use filter on 'filesize' filter to avoid retrieving entire file.
-    final resp = await http.get(Uri.parse(recordPath + '?has_filesize=true'),
+    final resp = await http.get(Uri.parse('$recordPath?has_filesize=true'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
       final data = json.decode(resp.body)['data'];
@@ -226,7 +226,7 @@ class NetworkFile extends IOFile {
   Future<DateTime> get dataModTime async {
     int? seconds;
     // Use filter on 'modtime' filter to avoid retrieving entire file.
-    var resp = await http.get(Uri.parse(recordPath + '?has_modtime=true'),
+    var resp = await http.get(Uri.parse('$recordPath?has_modtime=true'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
       final data = json.decode(resp.body)['data'];
@@ -274,7 +274,7 @@ class NetworkFile extends IOFile {
   /// Reads the file and returns the JSON objects.
   @override
   Future<Map<String, dynamic>> readJson() async {
-    final resp = await http.get(Uri.parse(recordPath + '?has_modtime=false'),
+    final resp = await http.get(Uri.parse('$recordPath?has_modtime=false'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
       final data = json.decode(resp.body)['data'];
@@ -317,7 +317,7 @@ class NetworkFile extends IOFile {
   @override
   Future<void> copyToPath(String newPath) async {
     final data = await readJson();
-    final dataString = JsonEncoder.withIndent(' ').convert(data);
+    final dataString = const JsonEncoder.withIndent(' ').convert(data);
     await File(newPath).writeAsString(dataString);
   }
 
@@ -398,7 +398,9 @@ Future<bool> changeNetworkPassword(String newPass) async {
     final resp = await http.put(Uri.parse(accountPath),
         headers: _networkHeader(), body: '{"data": {"password": "$newPass"}}');
     if (resp.statusCode == 200) return true;
-  } on IOException {}
+  } on IOException {
+    // Ignore and return false.
+  }
   return false;
 }
 
@@ -406,7 +408,7 @@ Future<bool> changeNetworkPassword(String newPass) async {
 Map<String, String> _networkHeader() {
   final authStr = '${prefs.getString('netuser') ?? ''}:${NetworkFile.password}';
   return {
-    'authorization': 'Basic ' + base64.encode(utf8.encode(authStr)),
+    'authorization': 'Basic ${base64.encode(utf8.encode(authStr))}',
     'Content-Type': 'application/json',
   };
 }

@@ -1,6 +1,6 @@
 // detail_view.dart, a view showing node and child output.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -21,7 +21,7 @@ const emptyTitleName = '[Empty Title]';
 /// Shows details of a single node if it is a [LeafNode].
 /// Shows a node and children if it is a [TitleNode] or a [GroupNode].
 class DetailView extends StatelessWidget {
-  DetailView({super.key});
+  const DetailView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class DetailView extends StatelessWidget {
                   margin: innerMargin,
                   child: Text(
                       rootNode is LeafNode ? 'Node Deleted' : 'Group Removed',
-                      style: TextStyle(color: Colors.red)),
+                      style: const TextStyle(color: Colors.red)),
                 ),
               ),
             );
@@ -74,6 +74,7 @@ class DetailView extends StatelessWidget {
             for (var childNode in rootNode.childNodes()) {
               cards.add(
                 Card(
+                  margin: outerMargin,
                   child: InkWell(
                     // Add tapped child to view history and update this view.
                     onTap: () {
@@ -88,15 +89,14 @@ class DetailView extends StatelessWidget {
                               : emptyTitleName),
                     ),
                   ),
-                  margin: outerMargin,
                 ),
               );
             }
           }
         }
         return ListView(
-          children: cards,
           controller: ScrollController(),
+          children: cards,
         );
       },
     );

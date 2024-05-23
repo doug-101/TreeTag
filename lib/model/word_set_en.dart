@@ -1,4 +1,4 @@
-final wordSet = const <String>{
+const wordSet = <String>{
   'a',
   'aa',
   'aaa',

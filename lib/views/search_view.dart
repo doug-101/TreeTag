@@ -29,7 +29,7 @@ enum SearchType { phrase, keyword, regExp }
 class SearchView extends StatefulWidget {
   final Node? parentNode;
 
-  SearchView({super.key, required this.parentNode});
+  const SearchView({super.key, required this.parentNode});
 
   @override
   State<SearchView> createState() => _SearchViewState();
@@ -43,6 +43,7 @@ class _SearchViewState extends State<SearchView> {
   var searchType = SearchType.phrase;
   Field? searchField;
 
+  @override
   void initState() {
     super.initState();
     final parent = widget.parentNode;
@@ -294,6 +295,7 @@ class _SearchViewState extends State<SearchView> {
                             result.isSelectedOnly ? selectedNodes : resultNodes,
                         searchField: searchField,
                       );
+                      if (!context.mounted) return;
                       await okDialog(
                         context: context,
                         title: 'Nodes Replaced',
@@ -305,35 +307,35 @@ class _SearchViewState extends State<SearchView> {
               },
               itemBuilder: (context) => <PopupMenuEntry>[
                 if (searchType != SearchType.phrase)
-                  PopupMenuItem(
-                    child: Text('Phrase Search'),
+                  const PopupMenuItem(
                     value: MenuItems.phraseSearch,
+                    child: Text('Phrase Search'),
                   ),
                 if (searchType != SearchType.keyword)
-                  PopupMenuItem(
-                    child: Text('Keyword Search'),
+                  const PopupMenuItem(
                     value: MenuItems.keywordSearch,
+                    child: Text('Keyword Search'),
                   ),
                 if (searchType != SearchType.regExp)
-                  PopupMenuItem(
-                    child: Text('Regular Expression Search'),
+                  const PopupMenuItem(
                     value: MenuItems.regExpSearch,
+                    child: Text('Regular Expression Search'),
                   ),
-                PopupMenuDivider(),
-                PopupMenuItem(
-                  child: Text('Change Searched Field'),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
                   value: MenuItems.fieldChange,
+                  child: Text('Change Searched Field'),
                 ),
-                PopupMenuItem(
-                  child: Text('Search All Fields'),
+                const PopupMenuItem(
                   value: MenuItems.allFields,
+                  child: Text('Search All Fields'),
                 ),
                 if (searchType != SearchType.keyword &&
                     resultNodes.isNotEmpty) ...[
-                  PopupMenuDivider(),
-                  PopupMenuItem(
-                    child: Text('Replace Matches'),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
                     value: MenuItems.replace,
+                    child: Text('Replace Matches'),
                   ),
                 ],
               ],
@@ -399,7 +401,7 @@ Future<_ReplaceResult?> _replaceDialog({
     barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Replace Search Results'),
+        title: const Text('Replace Search Results'),
         // Use [StatefulBuilder] to provide a state.
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -408,7 +410,8 @@ Future<_ReplaceResult?> _replaceDialog({
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 TextField(
-                  decoration: InputDecoration(labelText: 'Replacement String'),
+                  decoration:
+                      const InputDecoration(labelText: 'Replacement String'),
                   autofocus: true,
                   onChanged: (value) {
                     replacementString = value;
@@ -421,14 +424,14 @@ Future<_ReplaceResult?> _replaceDialog({
                   },
                 ),
                 Padding(
-                  padding: EdgeInsets.only(top: 10.0),
+                  padding: const EdgeInsets.only(top: 10.0),
                   child: InkWell(
                     onTap: () {
                       setState(() => isSelectedOnly = !isSelectedOnly);
                     },
                     child: Row(
                       children: <Widget>[
-                        Expanded(
+                        const Expanded(
                           child: Text('Selected Nodes Only'),
                         ),
                         Switch(

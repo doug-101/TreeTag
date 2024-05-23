@@ -1,9 +1,9 @@
 // field_format_tools.dart, functions to work with field format strings.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-final numberFormatMap = const {
+const numberFormatMap = {
   '0': 'Required digit',
   '#': 'Optional digit',
   '.': 'Decimal separator',
@@ -12,7 +12,7 @@ final numberFormatMap = const {
   '+': 'Exponent sign',
 };
 
-final dateFormatMap = const {
+const dateFormatMap = {
   'yyyy': 'Year (4 digits)',
   'yy': 'Year (2 digits)',
   'MMMM': 'Month (full text)',
@@ -28,7 +28,7 @@ final dateFormatMap = const {
   'QQQ': 'Quarter (Q1, etc.)',
 };
 
-final timeFormatMap = const {
+const timeFormatMap = {
   'hh': 'Hour, 01-12 (2 digits)',
   'h': 'Hour, 1-12 (1 or 2 digits)',
   'HH': 'Hour, 00-23 (2 digits)',
@@ -46,7 +46,7 @@ class FormatSegment {
   String? formatCode;
   String? extraText;
 
-  FormatSegment({String? this.formatCode, String? this.extraText});
+  FormatSegment({this.formatCode, this.extraText});
 }
 
 /// Split a format, return segments with codes or extra text.
@@ -58,7 +58,7 @@ List<FormatSegment> parseFieldFormat(
   while (format.isNotEmpty) {
     if (format[0] == "'") {
       final endPos = format.indexOf("'", 1);
-      if (endPos < 0) throw FormatException('Expected closing quote');
+      if (endPos < 0) throw const FormatException('Expected closing quote');
       result.add(FormatSegment(
           extraText: format.substring(1, endPos).replaceAll("\x00", "'")));
       format = format.substring(endPos + 1);
@@ -81,7 +81,7 @@ List<FormatSegment> parseFieldFormat(
           );
           format = format.substring(matchLen);
         } else {
-          throw FormatException('Invalid format code');
+          throw const FormatException('Invalid format code');
         }
       }
     }
@@ -123,7 +123,7 @@ String combineFieldFormat(List<FormatSegment> parsedList,
       final text = segment.extraText!.replaceAll("'", "''");
       if (RegExp(r'\w').hasMatch(text)) {
         // Quotes required if alphabetic char are in text.
-        result.write("'" + text + "'");
+        result.write("'$text'");
       } else {
         result.write(text);
       }

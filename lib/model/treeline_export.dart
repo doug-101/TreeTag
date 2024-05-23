@@ -1,6 +1,6 @@
 // treeline_export.dart, translations to export a tree to a TreeLine file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:convert' show HtmlEscape, HtmlEscapeMode;
@@ -53,7 +53,7 @@ class TreeLineExport {
         for (var line in model.outputLines) line.getUnparsedLine()
       ],
     };
-    final uuid = Uuid();
+    const uuid = Uuid();
     final nodeIDs = <Node, String>{};
     for (var root in model.rootNodes) {
       for (var node in allNodeGenerator(root)) {
@@ -61,7 +61,7 @@ class TreeLineExport {
       }
     }
     final nodeData = <Map<String, dynamic>>[];
-    final htmlEscape = HtmlEscape(HtmlEscapeMode.attribute);
+    const htmlEscape = HtmlEscape(HtmlEscapeMode.attribute);
     for (var entry in nodeIDs.entries) {
       final node = entry.key;
       final uid = entry.value;
@@ -93,7 +93,7 @@ class TreeLineExport {
 
 /// Change the Date field formats to match the Python tags.
 String _adjustDateFormat(String origFormat) {
-  final replacements = const {
+  const replacements = {
     'yyyy': '%Y',
     'yy': '%y',
     'MMMM': '%B',
@@ -120,7 +120,7 @@ String _adjustDateFormat(String origFormat) {
 
 /// Change the Time field formats to match the Python tags.
 String _adjustTimeFormat(String origFormat) {
-  final replacements = const {
+  const replacements = {
     'hh': '%I',
     'h': '%-I',
     'HH': '%H',

@@ -14,6 +14,8 @@ import 'line_edit.dart';
 /// Lists the title line and the output lines.
 /// One of the tabbed items on the [ConfigView].
 class OutputConfig extends StatefulWidget {
+  const OutputConfig({super.key});
+
   @override
   State<OutputConfig> createState() => _OutputConfigState();
 }
@@ -137,7 +139,7 @@ class _OutputConfigState extends State<OutputConfig> {
                 child: ListView(
                   children: <Widget>[
                     _lineRow('Title Line', model.titleLine),
-                    Divider(),
+                    const Divider(),
                     for (var outLine in model.outputLines)
                       _lineRow('Output Line ${lineNum++}', outLine),
                   ],
@@ -172,7 +174,7 @@ class _OutputConfigState extends State<OutputConfig> {
             children: <Widget>[
               Text(heading, style: Theme.of(context).textTheme.bodySmall),
               Padding(
-                padding: EdgeInsets.only(top: 6.0),
+                padding: const EdgeInsets.only(top: 6.0),
                 child: Text.rich(
                   TextSpan(
                     children: line.richLineSpans(TextStyle(

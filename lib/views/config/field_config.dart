@@ -1,10 +1,10 @@
 // field_config.dart, a view to edit the field list configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
-import '../common_dialogs.dart' as commonDialogs;
+import '../common_dialogs.dart' as common_dialogs;
 import 'package:provider/provider.dart';
 import '../../model/fields.dart';
 import '../../model/structure.dart';
@@ -16,6 +16,8 @@ import 'field_edit.dart';
 /// One of the tabbed items on the [ConfigView].
 /// Uses the [FieldEdit] view on new fields and fields to be edited.
 class FieldConfig extends StatefulWidget {
+  const FieldConfig({super.key});
+
   @override
   State<FieldConfig> createState() => _FieldConfigState();
 }
@@ -76,20 +78,23 @@ class _FieldConfigState extends State<FieldConfig> {
                   ? null
                   : () async {
                       final errorText = <String>[];
-                      if (model.isFieldInTitle(selectedField!))
+                      if (model.isFieldInTitle(selectedField!)) {
                         errorText.add('in node titles');
-                      if (model.isFieldInOutput(selectedField!))
+                      }
+                      if (model.isFieldInOutput(selectedField!)) {
                         errorText.add('in node outputs');
-                      if (model.isFieldInGroup(selectedField!))
+                      }
+                      if (model.isFieldInGroup(selectedField!)) {
                         errorText.add('in node group rules');
+                      }
                       if (errorText.length > 1) {
-                        errorText.last = ' and ' + errorText.last;
+                        errorText.last = ' and ${errorText.last}';
                         if (errorText.length == 3) {
-                          errorText[0] = errorText[0] + ', ';
+                          errorText[0] = '${errorText[0]}, ';
                         }
                       }
                       if (errorText.isNotEmpty) {
-                        final ans = await commonDialogs.okCancelDialog(
+                        final ans = await common_dialogs.okCancelDialog(
                           context: context,
                           title: 'Confirm Delete',
                           label: 'This field is used ${errorText.join()}. '

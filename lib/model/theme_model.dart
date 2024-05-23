@@ -34,9 +34,6 @@ class ThemeModel extends ChangeNotifier {
       // Surface is set the same as tiles.
       surface: Colors.grey.shade50,
       onSurface: Colors.black,
-      // Background is used under other items.
-      background: Colors.white,
-      onBackground: Colors.black,
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.teal.shade700,
@@ -68,11 +65,8 @@ class ThemeModel extends ChangeNotifier {
       // Surface is set the same as tiles.
       surface: Colors.grey.shade900,
       onSurface: Colors.white,
-      // Background is used under other items.
-      background: Colors.black,
-      onBackground: Colors.white70,
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white12,
       foregroundColor: Colors.teal,
     ),

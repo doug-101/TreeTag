@@ -18,8 +18,7 @@ class RuleEdit extends StatefulWidget {
   final RuleNode node;
   final bool isNew;
 
-  RuleEdit({Key? key, required this.node, this.isNew = false})
-      : super(key: key);
+  const RuleEdit({super.key, required this.node, this.isNew = false});
 
   @override
   State<RuleEdit> createState() => _RuleEditState();
@@ -46,14 +45,14 @@ class _RuleEditState extends State<RuleEdit> {
           setState(() {
             model.addRuleChild(widget.node);
           });
-        } else {
+        } else if (context.mounted) {
           Navigator.pop(context);
         }
       });
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text('Group Node'),
+        title: const Text('Group Node'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -80,14 +79,14 @@ class _RuleEditState extends State<RuleEdit> {
                     }
                   },
                   child: Padding(
-                    padding: EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(10.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text('Rule Definition',
                             style: Theme.of(context).textTheme.bodySmall),
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
                           child: Text.rich(
                             TextSpan(
                               children: widget.node.ruleLine
@@ -100,31 +99,23 @@ class _RuleEditState extends State<RuleEdit> {
                     ),
                   ),
                 ),
-                Divider(),
+                const Divider(),
                 // The rule sorting controls.
                 Padding(
-                  padding: EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text('Group Sorting',
                           style: Theme.of(context).textTheme.bodySmall),
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 10.0),
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
                         child: ToggleButtons(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(10.0),
-                              child: Text('Default'),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(10.0),
-                              child: Text('Custom'),
-                            ),
-                          ],
                           borderWidth: 3.0,
-                          constraints:
-                              BoxConstraints(minWidth: 48.0, minHeight: 24.0),
+                          constraints: const BoxConstraints(
+                            minWidth: 48.0,
+                            minHeight: 24.0,
+                          ),
                           borderRadius: BorderRadius.circular(10.0),
                           isSelected: [
                             !widget.node.hasCustomSortFields,
@@ -161,6 +152,16 @@ class _RuleEditState extends State<RuleEdit> {
                               }
                             }
                           },
+                          children: const <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Text('Default'),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Text('Custom'),
+                            ),
+                          ],
                         ),
                       ),
                       // Show rule sort field names for reference.
@@ -168,32 +169,24 @@ class _RuleEditState extends State<RuleEdit> {
                     ],
                   ),
                 ),
-                Divider(),
+                const Divider(),
                 // The child sorting controls.
                 if (widget.node.childRuleNode == null)
                   Padding(
-                    padding: EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(10.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text('Child Sorting',
                             style: Theme.of(context).textTheme.bodySmall),
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
                           child: ToggleButtons(
-                            children: <Widget>[
-                              Padding(
-                                padding: EdgeInsets.all(10.0),
-                                child: Text('Default'),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.all(10.0),
-                                child: Text('Custom'),
-                              ),
-                            ],
                             borderWidth: 3.0,
-                            constraints:
-                                BoxConstraints(minWidth: 48.0, minHeight: 24.0),
+                            constraints: const BoxConstraints(
+                              minWidth: 48.0,
+                              minHeight: 24.0,
+                            ),
                             borderRadius: BorderRadius.circular(10.0),
                             isSelected: [
                               !widget.node.hasCustomChildSortFields,
@@ -228,6 +221,16 @@ class _RuleEditState extends State<RuleEdit> {
                                 }
                               }
                             },
+                            children: const <Widget>[
+                              Padding(
+                                padding: EdgeInsets.all(10.0),
+                                child: Text('Default'),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(10.0),
+                                child: Text('Custom'),
+                              ),
+                            ],
                           ),
                         ),
                         // Show child sort field names for reference.
@@ -235,7 +238,7 @@ class _RuleEditState extends State<RuleEdit> {
                       ],
                     ),
                   ),
-                if (widget.node.childRuleNode == null) Divider(),
+                if (widget.node.childRuleNode == null) const Divider(),
               ],
             ),
           ),

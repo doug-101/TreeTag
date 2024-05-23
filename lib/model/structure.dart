@@ -74,7 +74,7 @@ class Structure extends ChangeNotifier {
       leafNodes.add(LeafNode.fromJson(leaf, this));
     }
     if (fieldMap.isEmpty || rootNodes.isEmpty || outputLines.isEmpty) {
-      throw FormatException('Missing sections in file');
+      throw const FormatException('Missing sections in file');
     }
     if (jsonData['usemarkdown'] != null) useMarkdownOutput = true;
     if (jsonData['userelativelinks'] != null) useRelativeLinks = true;
@@ -158,8 +158,9 @@ class Structure extends ChangeNotifier {
             throw ExternalModException('Modified on $timeStr');
           }
         }
+      } on IOException {
         // Skip the modified check for new files or other file problems.
-      } on IOException {}
+      }
     }
     final packageInfo = await PackageInfo.fromPlatform();
     modTime = DateTime.now();
@@ -169,16 +170,16 @@ class Structure extends ChangeNotifier {
         'modtime': modTime.millisecondsSinceEpoch,
       },
     };
-    jsonData['template'] = await [for (var root in rootNodes) root.toJson()];
-    jsonData['fields'] =
-        await [for (var field in fieldMap.values) field.toJson()];
+    jsonData['template'] = [for (var root in rootNodes) root.toJson()];
+    jsonData['fields'] = [for (var field in fieldMap.values) field.toJson()];
     jsonData['titleline'] = titleLine.getUnparsedLine();
-    jsonData['outputlines'] =
-        await [for (var line in outputLines) line.getUnparsedLine()];
-    jsonData['leaves'] = await [for (var leaf in leafNodes) leaf.toJson()];
+    jsonData['outputlines'] = [
+      for (var line in outputLines) line.getUnparsedLine()
+    ];
+    jsonData['leaves'] = [for (var leaf in leafNodes) leaf.toJson()];
     if (useMarkdownOutput) jsonData['usemarkdown'] = true;
     if (useRelativeLinks) jsonData['userelativelinks'] = true;
-    jsonData['undos'] = await undoList.toJson();
+    jsonData['undos'] = undoList.toJson();
     await fileObject.writeJson(jsonData);
   }
 
@@ -205,7 +206,7 @@ class Structure extends ChangeNotifier {
 
   // Return the first immediate parent matching the given [LeafNode].
   Node? _parentOfMatch(List<Node> startNodes, LeafNode targetNode) {
-    GroupNode? previousParent = null;
+    GroupNode? previousParent;
     for (var rootNode in startNodes) {
       for (var node in allNodeGenerator(rootNode)) {
         if (node == targetNode) return previousParent;
@@ -315,7 +316,7 @@ class Structure extends ChangeNotifier {
       for (var field in fields) {
         var text = node.data[field.name];
         // Allow regexp searches to replace blank fields.
-        if (text == null) text = '';
+        text ??= '';
         // reversed to avoid mismatches due to varying replacement lengths.
         for (var match in pattern.allMatches(text).toList().reversed) {
           var newReplacement = replacement;
@@ -341,7 +342,7 @@ class Structure extends ChangeNotifier {
       }
       if (!nodeChanged) undos.removeLast();
     }
-    if (undos.length > 0) {
+    if (undos.isNotEmpty) {
       undoList.add(UndoBatch('Replace search matches', undos));
     }
     updateAll();
@@ -445,11 +446,12 @@ class Structure extends ChangeNotifier {
   ///
   /// Can also be called from [EditView] to remove an unwanted new node.
   void deleteNode(LeafNode node, {bool withUndo = true}) {
-    if (withUndo)
+    if (withUndo) {
       undoList.add(
         UndoDeleteLeafNode(
             'Delete leaf node: ${node.title}', leafNodes.indexOf(node), node),
       );
+    }
     leafNodes.remove(node);
     updateAllChildren();
     obsoleteNodes.add(node);
@@ -655,8 +657,9 @@ class Structure extends ChangeNotifier {
     }
     if (isFieldInTitle(field)) {
       undos.add(UndoEditOutputLine('', -1, titleLine.copy()));
-      for (var fld in field.matchingFieldDescendents(titleLine.fields()))
+      for (var fld in field.matchingFieldDescendents(titleLine.fields())) {
         titleLine.deleteField(fld, replacement: List.of(fieldMap.values)[0]);
+      }
     }
     if (isFieldInOutput(field)) {
       for (var line in outputLines.toList()) {
@@ -665,7 +668,9 @@ class Structure extends ChangeNotifier {
           int linePos = outputLines.indexOf(line);
           if (line.hasMultipleFields()) {
             undos.add(UndoEditOutputLine('', linePos, line.copy()));
-            for (var fld in fieldMatches) line.deleteField(fld);
+            for (var fld in fieldMatches) {
+              line.deleteField(fld);
+            }
           } else {
             undos.add(UndoRemoveOutputLine('', linePos, line));
             outputLines.remove(line);
@@ -683,8 +688,11 @@ class Structure extends ChangeNotifier {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
           final rule = item.node as RuleNode;
-          if (field.matchingFieldDescendents(rule.ruleLine.fields()).isNotEmpty)
+          if (field
+              .matchingFieldDescendents(rule.ruleLine.fields())
+              .isNotEmpty) {
             badRules.add(rule);
+          }
           if (rule.isFieldInChildSort(field)) {
             undos.add(UndoEditSortKeys(
               '',
@@ -766,8 +774,11 @@ class Structure extends ChangeNotifier {
       for (var item in storedNodeGenerator(root)) {
         if (item.node is RuleNode) {
           var rule = item.node as RuleNode;
-          if (field.matchingFieldDescendents(rule.ruleLine.fields()).isNotEmpty)
+          if (field
+              .matchingFieldDescendents(rule.ruleLine.fields())
+              .isNotEmpty) {
             return true;
+          }
         }
       }
     }
@@ -793,11 +804,15 @@ class Structure extends ChangeNotifier {
   void updateAltFormatFields() {
     final usedFields = <Field>{};
     usedFields.addAll(titleLine.fields());
-    for (var line in outputLines) usedFields.addAll(line.fields());
+    for (var line in outputLines) {
+      usedFields.addAll(line.fields());
+    }
     for (var root in rootNodes) {
-      for (var item in storedNodeGenerator(root))
-        if (item.node is RuleNode)
+      for (var item in storedNodeGenerator(root)) {
+        if (item.node is RuleNode) {
           usedFields.addAll((item.node as RuleNode).ruleLine.fields());
+        }
+      }
     }
     usedFields.retainWhere((field) => field.isAltFormatField);
     for (var field in fieldMap.values) {

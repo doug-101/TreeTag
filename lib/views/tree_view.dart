@@ -1,6 +1,6 @@
 // tree_view.dart, the main view showing indented tree data.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -36,8 +36,8 @@ class TreeView extends StatelessWidget {
           }
         }
         return ListView(
-          children: items,
           controller: ScrollController(),
+          children: items,
         );
       },
     );
@@ -91,23 +91,23 @@ class TreeView extends StatelessWidget {
                             size: 24.0,
                             color: Theme.of(context).colorScheme.secondary,
                           )
-                        : Icon(Icons.arrow_drop_down, size: 24.0)
+                        : const Icon(Icons.arrow_drop_down, size: 24.0)
                     : isNodeSelected
                         ? Icon(
                             Icons.arrow_right,
                             size: 24.0,
                             color: Theme.of(context).colorScheme.secondary,
                           )
-                        : Icon(Icons.arrow_right, size: 24.0)
+                        : const Icon(Icons.arrow_right, size: 24.0)
                 : Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: isNodeSelected
                         ? Icon(
                             Icons.circle,
                             size: 8.0,
                             color: Theme.of(context).colorScheme.secondary,
                           )
-                        : Icon(Icons.circle, size: 8.0),
-                    padding: EdgeInsets.only(left: 8.0, right: 8.0),
+                        : const Icon(Icons.circle, size: 8.0),
                   ),
             Expanded(
               child: model.useMarkdownOutput

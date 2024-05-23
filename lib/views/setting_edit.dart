@@ -16,7 +16,7 @@ import '../model/theme_model.dart';
 
 /// A user settings view.
 class SettingEdit extends StatefulWidget {
-  SettingEdit({super.key});
+  const SettingEdit({super.key});
 
   @override
   State<SettingEdit> createState() => _SettingEditState();
@@ -33,7 +33,7 @@ class _SettingEditState extends State<SettingEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings - TreeTag'),
+        title: const Text('Settings - TreeTag'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.close),
@@ -142,12 +142,12 @@ class _SettingEditState extends State<SettingEdit> {
                             setState(() {});
                           }
                         },
-                        child: Padding(
+                        child: const Padding(
                           padding: EdgeInsets.symmetric(vertical: 12.0),
                           child: Text('Change Password on Network Server'),
                         ),
                       ),
-                      Divider(
+                      const Divider(
                         thickness: 3.0,
                         height: 6.0,
                       ),
@@ -180,6 +180,7 @@ class _SettingEditState extends State<SettingEdit> {
                     onSaved: (bool? value) async {
                       if (value != null) {
                         await prefs.setBool('linespacing', value);
+                        if (!context.mounted) return;
                         Provider.of<Structure>(context, listen: false)
                             .updateViews();
                       }
@@ -191,6 +192,7 @@ class _SettingEditState extends State<SettingEdit> {
                     onSaved: (bool? value) async {
                       if (value != null) {
                         await prefs.setBool('darktheme', value);
+                        if (!context.mounted) return;
                         Provider.of<ThemeModel>(context, listen: false)
                             .updateTheme();
                       }
@@ -281,14 +283,11 @@ class _SettingEditState extends State<SettingEdit> {
 /// A [FormField] widget for boolean settings.
 class BoolFormField extends FormField<bool> {
   BoolFormField({
-    bool? initialValue,
+    super.initialValue,
     String? heading,
-    Key? key,
-    FormFieldSetter<bool>? onSaved,
+    super.key,
+    super.onSaved,
   }) : super(
-          onSaved: onSaved,
-          initialValue: initialValue,
-          key: key,
           builder: (FormFieldState<bool> state) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,7 +310,7 @@ class BoolFormField extends FormField<bool> {
                     ],
                   ),
                 ),
-                Divider(
+                const Divider(
                   thickness: 3.0,
                   height: 6.0,
                 ),
@@ -324,14 +323,11 @@ class BoolFormField extends FormField<bool> {
 /// A [FormField] widget for defining the working directory.
 class PathFormField extends FormField<String> {
   PathFormField({
-    String? initialValue,
+    super.initialValue,
     String? heading,
-    Key? key,
-    FormFieldSetter<String>? onSaved,
+    super.key,
+    super.onSaved,
   }) : super(
-          onSaved: onSaved,
-          initialValue: initialValue,
-          key: key,
           builder: (FormFieldState<String> state) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -350,7 +346,7 @@ class PathFormField extends FormField<String> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Padding(
-                        padding: EdgeInsets.only(top: 10.0),
+                        padding: const EdgeInsets.only(top: 10.0),
                         child: Text(heading ?? 'Selected Path',
                             style: Theme.of(state.context).textTheme.bodySmall),
                       ),
@@ -361,7 +357,7 @@ class PathFormField extends FormField<String> {
                     ],
                   ),
                 ),
-                Divider(
+                const Divider(
                   thickness: 3.0,
                   height: 9.0,
                 ),
@@ -384,7 +380,7 @@ Future<bool?> serverPassDialog({
     barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Server Password'),
+        title: const Text('Server Password'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -419,7 +415,7 @@ Future<bool?> serverPassDialog({
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('OK'),
+            child: const Text('OK'),
             onPressed: () async {
               final currentPass = currentTextKey.currentState!.value;
               final newPass = newTextKey.currentState!.value;
@@ -445,9 +441,11 @@ Future<bool?> serverPassDialog({
                   } else {
                     await prefs.setString('netpassword', '');
                   }
+                  if (!context.mounted) return;
                   Navigator.pop(context, true);
                 } else {
                   NetworkFile.password = prevPass;
+                  if (!context.mounted) return;
                   await okDialog(
                     context: context,
                     title: 'Passsword Change Error',
@@ -458,7 +456,7 @@ Future<bool?> serverPassDialog({
             },
           ),
           TextButton(
-            child: Text('CANCEL'),
+            child: const Text('CANCEL'),
             onPressed: () => Navigator.pop(context, false),
           ),
         ],

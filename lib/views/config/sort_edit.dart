@@ -19,8 +19,7 @@ class SortEdit extends StatefulWidget {
   /// The fields available if given, otherwise assumes all fields.
   final List<Field>? availFields;
 
-  SortEdit({Key? key, required this.sortKeys, this.availFields})
-      : super(key: key);
+  const SortEdit({super.key, required this.sortKeys, this.availFields});
 
   @override
   State<SortEdit> createState() => _SortEditState();
@@ -66,8 +65,9 @@ class _SortEditState extends State<SortEdit> {
                     enabled: usedFieldNames.length < availFieldNames.length,
                     onSelected: (fieldName) async {
                       var pos = widget.sortKeys.length;
-                      if (selectedKey != null)
+                      if (selectedKey != null) {
                         pos = widget.sortKeys.indexOf(selectedKey!);
+                      }
                       setState(() {
                         widget.sortKeys
                             .insert(pos, SortKey(model.fieldMap[fieldName]!));
@@ -78,8 +78,8 @@ class _SortEditState extends State<SortEdit> {
                       for (var fieldName in availFieldNames)
                         if (!usedFieldNames.contains(fieldName))
                           PopupMenuItem(
-                            child: Text('Add Field: $fieldName'),
                             value: fieldName,
+                            child: Text('Add Field: $fieldName'),
                           )
                     ],
                   ),

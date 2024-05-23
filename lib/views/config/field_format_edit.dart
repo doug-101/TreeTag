@@ -7,7 +7,7 @@ import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
 import 'choice_format_edit.dart';
-import '../common_dialogs.dart' as commonDialogs;
+import '../common_dialogs.dart' as common_dialogs;
 import '../../model/field_format_tools.dart';
 
 /// A form field widget used to display field formats.
@@ -17,12 +17,10 @@ class FieldFormatDisplay extends FormField<String> {
   FieldFormatDisplay({
     required String fieldType,
     required String initialFormat,
-    Key? key,
-    FormFieldSetter<String>? onSaved,
+    super.key,
+    super.onSaved,
   }) : super(
-            onSaved: onSaved,
             initialValue: initialFormat,
-            key: key,
             builder: (FormFieldState<String> state) {
               return InkWell(
                 onTap: () async {
@@ -46,18 +44,18 @@ class FieldFormatDisplay extends FormField<String> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Padding(
-                      padding: EdgeInsets.only(top: 10.0),
+                      padding: const EdgeInsets.only(top: 10.0),
                       child: Text('$fieldType Field Format',
                           style: Theme.of(state.context).textTheme.bodySmall),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 5.0),
+                      padding: const EdgeInsets.symmetric(vertical: 5.0),
                       child: Text(
                         _fieldFormatPreview(fieldType, state.value!),
                         style: Theme.of(state.context).textTheme.titleMedium,
                       ),
                     ),
-                    Divider(
+                    const Divider(
                       thickness: 3.0,
                     ),
                   ],
@@ -74,8 +72,8 @@ class FieldFormatEdit extends StatefulWidget {
   final String fieldType;
   final String initFormat;
 
-  FieldFormatEdit({Key? key, required this.fieldType, required this.initFormat})
-      : super(key: key);
+  const FieldFormatEdit(
+      {super.key, required this.fieldType, required this.initFormat});
 
   @override
   State<FieldFormatEdit> createState() => _FieldFormatEditState();
@@ -142,21 +140,23 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                       FormatSegment? newSegment;
                       if (result == 'add text') {
                         // Add a segemnt with extra text.
-                        final text = await commonDialogs.textDialog(
+                        final text = await common_dialogs.textDialog(
                           context: context,
                           title: 'Field Format',
                           label: 'Segment Text',
                         );
-                        if (text != null)
+                        if (text != null) {
                           newSegment = FormatSegment(extraText: text);
+                        }
                       } else {
                         // Add a segemnt with a format code.
                         newSegment = FormatSegment(formatCode: result);
                       }
                       if (newSegment != null) {
                         var pos = segments.length;
-                        if (selectedSegment != null)
+                        if (selectedSegment != null) {
                           pos = segments.indexOf(selectedSegment!);
+                        }
                         setState(() {
                           segments.insert(pos, newSegment!);
                           isChanged = true;
@@ -165,15 +165,16 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                     },
                     itemBuilder: (context) => <PopupMenuEntry<String>>[
                       if (widget.fieldType != 'Number')
-                        PopupMenuItem<String>(
-                          child: Text('Add Text'),
+                        const PopupMenuItem<String>(
                           value: 'add text',
+                          child: Text('Add Text'),
                         ),
-                      if (widget.fieldType != 'Number') PopupMenuDivider(),
+                      if (widget.fieldType != 'Number')
+                        const PopupMenuDivider(),
                       for (var code in formatMap.keys)
                         PopupMenuItem<String>(
-                          child: Text('Add: ${formatMap[code]}'),
                           value: code,
+                          child: Text('Add: ${formatMap[code]}'),
                         )
                     ],
                   ),
@@ -185,7 +186,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                         ? null
                         : () async {
                             // Edit a segment with extra text.
-                            final text = await commonDialogs.textDialog(
+                            final text = await common_dialogs.textDialog(
                               context: context,
                               initText: selectedSegment!.extraText!,
                               title: 'Field Format',
@@ -265,7 +266,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                     children: [
                       for (var segment in segments)
                         Padding(
-                          padding: EdgeInsets.all(2.0),
+                          padding: const EdgeInsets.all(2.0),
                           child: InputChip(
                             shape: StadiumBorder(
                               side: BorderSide(
@@ -298,12 +299,12 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 15.0),
+                padding: const EdgeInsets.only(top: 15.0),
                 child: Text('Format Sample',
                     style: Theme.of(context).textTheme.bodySmall),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 5.0),
+                padding: const EdgeInsets.only(top: 5.0),
                 child: Text(
                   _fieldFormatPreview(
                     widget.fieldType,
@@ -312,7 +313,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              Spacer(flex: 8),
+              const Spacer(flex: 8),
             ],
           ),
         ),
@@ -324,14 +325,16 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
 /// Show a preview of the current format.
 String _fieldFormatPreview(String fieldType, String fieldFormat) {
   try {
-    if (fieldType == 'Date' || fieldType == 'Time')
+    if (fieldType == 'Date' || fieldType == 'Time') {
       return DateFormat(fieldFormat).format(DateTime.now());
+    }
     if (fieldType == 'Number') {
       final result = NumberFormat(fieldFormat).format(12345.6789);
       return '$result  ($fieldFormat)';
     }
-    if (fieldType == 'Choice')
+    if (fieldType == 'Choice') {
       return splitChoiceFormat(fieldFormat).join(' | ');
+    }
   } on FormatException {
     return 'Invalid Format';
   }
@@ -341,8 +344,9 @@ String _fieldFormatPreview(String fieldType, String fieldFormat) {
 /// Return true of the format is valid.
 bool _fieldFormatIsValid(String fieldType, String fieldFormat) {
   try {
-    if (fieldType == 'Date' || fieldType == 'Time')
+    if (fieldType == 'Date' || fieldType == 'Time') {
       DateFormat(fieldFormat).format(DateTime.now());
+    }
     if (fieldType == 'Number') NumberFormat(fieldFormat).format(12345.6789);
   } on FormatException {
     return false;

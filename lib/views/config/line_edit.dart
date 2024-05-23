@@ -7,7 +7,7 @@ import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'line_field_edit.dart';
-import '../common_dialogs.dart' as commonDialogs;
+import '../common_dialogs.dart' as common_dialogs;
 import '../../model/parsed_line.dart';
 import '../../model/structure.dart';
 
@@ -18,8 +18,7 @@ class LineEdit extends StatefulWidget {
   final ParsedLine line;
   final String title;
 
-  LineEdit({Key? key, required this.line, this.title = 'Line Edit'})
-      : super(key: key);
+  const LineEdit({super.key, required this.line, this.title = 'Line Edit'});
 
   @override
   State<LineEdit> createState() => _LineEditState();
@@ -52,7 +51,7 @@ class _LineEditState extends State<LineEdit> {
         onPopInvoked: (bool didPop) async {
           if (!didPop) {
             if (widget.line.isEmpty) {
-              await commonDialogs.okDialog(
+              await common_dialogs.okDialog(
                 context: context,
                 title: 'Cannot be empty',
                 label: 'Must add a field or a text entry',
@@ -76,7 +75,7 @@ class _LineEditState extends State<LineEdit> {
                     onSelected: (result) async {
                       LineSegment? newSegment;
                       if (result == 'add text') {
-                        final text = await commonDialogs.textDialog(
+                        final text = await common_dialogs.textDialog(
                           context: context,
                           title: 'Title Name',
                           label: 'Segment Text',
@@ -84,8 +83,9 @@ class _LineEditState extends State<LineEdit> {
                         if (text != null) newSegment = LineSegment(text: text);
                       } else {
                         final field = model.fieldMap[result];
-                        if (field != null)
+                        if (field != null) {
                           newSegment = LineSegment(field: field);
+                        }
                       }
                       if (newSegment != null) {
                         var pos = widget.line.segments.length;
@@ -99,15 +99,15 @@ class _LineEditState extends State<LineEdit> {
                       }
                     },
                     itemBuilder: (context) => <PopupMenuEntry>[
-                      PopupMenuItem(
-                        child: Text('Add Text'),
+                      const PopupMenuItem(
                         value: 'add text',
+                        child: Text('Add Text'),
                       ),
-                      PopupMenuDivider(),
+                      const PopupMenuDivider(),
                       for (var fieldName in model.fieldMap.keys)
                         PopupMenuItem(
-                          child: Text('Add Field: $fieldName'),
                           value: fieldName,
+                          child: Text('Add Field: $fieldName'),
                         )
                     ],
                   ),
@@ -149,7 +149,7 @@ class _LineEditState extends State<LineEdit> {
                                     .removeAltFormatField(altField);
                               }
                             } else {
-                              final text = await commonDialogs.textDialog(
+                              final text = await common_dialogs.textDialog(
                                 context: context,
                                 initText: _selectedSegment!.text!,
                                 title: 'Title Name',
@@ -267,7 +267,7 @@ class _LineEditState extends State<LineEdit> {
                   ),
                 ),
               ),
-              Spacer(flex: 8),
+              const Spacer(flex: 8),
             ],
           ),
         ),

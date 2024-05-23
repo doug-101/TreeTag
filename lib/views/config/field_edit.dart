@@ -6,7 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'field_format_edit.dart';
-import '../common_dialogs.dart' as commonDialogs;
+import '../common_dialogs.dart' as common_dialogs;
 import '../../model/fields.dart';
 import '../../model/structure.dart';
 
@@ -18,8 +18,12 @@ class FieldEdit extends StatefulWidget {
   final bool isNew;
   final int? newPos;
 
-  FieldEdit({Key? key, required this.field, this.isNew = false, this.newPos})
-      : super(key: key);
+  const FieldEdit({
+    super.key,
+    required this.field,
+    this.isNew = false,
+    this.newPos,
+  });
 
   @override
   State<FieldEdit> createState() => _FieldEditState();
@@ -56,7 +60,7 @@ class _FieldEditState extends State<FieldEdit> {
       _formKey.currentState!.save();
       final model = Provider.of<Structure>(context, listen: false);
       if (widget.isNew) {
-        final doAddOutput = await commonDialogs.okCancelDialog(
+        final doAddOutput = await common_dialogs.okCancelDialog(
           context: context,
           title: 'Output Fields',
           label: 'Add an output line with the new field?',
@@ -70,7 +74,7 @@ class _FieldEditState extends State<FieldEdit> {
       if (_isFieldTypeChanged) {
         final numErrors = model.badFieldCount(_editedField);
         if (numErrors > 0) {
-          final doKeep = await commonDialogs.okCancelDialog(
+          final doKeep = await common_dialogs.okCancelDialog(
             context: context,
             title: 'Change Type for Data',
             label:
@@ -93,7 +97,8 @@ class _FieldEditState extends State<FieldEdit> {
         if (_editedField is ChoiceField) {
           final numErrors = model.badFieldCount(_editedField);
           if (numErrors > 0) {
-            final doKeep = await commonDialogs.okCancelDialog(
+            if (!mounted) return false;
+            final doKeep = await common_dialogs.okCancelDialog(
               context: context,
               title: 'Choice Data Mismatch',
               label: 'Choice field changes will cause $numErrors '
@@ -122,7 +127,7 @@ class _FieldEditState extends State<FieldEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_editedField.name + ' Field'),
+        title: Text('${_editedField.name} Field'),
         actions: widget.isNew
             ? <Widget>[
                 // Close control for new fields only.
@@ -163,7 +168,9 @@ class _FieldEditState extends State<FieldEdit> {
         onPopInvoked: (bool didPop) async {
           if (!didPop && await _handleClose()) {
             // Pop manually (bypass canPop) if update is complete.
-            Navigator.of(context).pop();
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
           }
         },
         child: Padding(
@@ -174,7 +181,7 @@ class _FieldEditState extends State<FieldEdit> {
               child: ListView(
                 children: <Widget>[
                   TextFormField(
-                    decoration: InputDecoration(labelText: 'Field Name'),
+                    decoration: const InputDecoration(labelText: 'Field Name'),
                     autofocus: widget.isNew,
                     initialValue: _editedField.name,
                     validator: (String? text) {
@@ -190,8 +197,9 @@ class _FieldEditState extends State<FieldEdit> {
                       final model =
                           Provider.of<Structure>(context, listen: false);
                       if (text != widget.field.name &&
-                          model.fieldMap.containsKey(text))
+                          model.fieldMap.containsKey(text)) {
                         return 'Duplicate field name';
+                      }
                       return null;
                     },
                     onSaved: (String? text) {
@@ -202,7 +210,7 @@ class _FieldEditState extends State<FieldEdit> {
                   ),
                   DropdownButtonFormField<String>(
                     key: _dropdownTypeKey,
-                    decoration: InputDecoration(labelText: 'Field Type'),
+                    decoration: const InputDecoration(labelText: 'Field Type'),
                     value: _editedField.fieldType,
                     items: [
                       for (var type in fieldTypes)
@@ -272,7 +280,8 @@ class _FieldEditState extends State<FieldEdit> {
                     // Initial value for other fields.
                     TextFormField(
                       key: _fieldInitStrKey,
-                      decoration: InputDecoration(labelText: 'Initial Value'),
+                      decoration:
+                          const InputDecoration(labelText: 'Initial Value'),
                       initialValue: _editedField.initValue,
                       validator: (String? value) {
                         // Update field format before validating the init value.
@@ -289,7 +298,8 @@ class _FieldEditState extends State<FieldEdit> {
                       },
                     ),
                   TextFormField(
-                    decoration: InputDecoration(labelText: 'Default Prefix'),
+                    decoration:
+                        const InputDecoration(labelText: 'Default Prefix'),
                     initialValue: _editedField.prefix,
                     onSaved: (String? value) {
                       if (value != null) {
@@ -298,7 +308,8 @@ class _FieldEditState extends State<FieldEdit> {
                     },
                   ),
                   TextFormField(
-                    decoration: InputDecoration(labelText: 'Default Suffix'),
+                    decoration:
+                        const InputDecoration(labelText: 'Default Suffix'),
                     initialValue: _editedField.suffix,
                     onSaved: (String? value) {
                       if (value != null) {
@@ -319,14 +330,11 @@ class _FieldEditState extends State<FieldEdit> {
 /// A [FormField] for setting the date and time init value to now.
 class InitNowBoolFormField extends FormField<bool> {
   InitNowBoolFormField({
-    bool? initialValue,
+    super.initialValue,
     String? heading,
-    Key? key,
-    FormFieldSetter<bool>? onSaved,
+    super.key,
+    super.onSaved,
   }) : super(
-          onSaved: onSaved,
-          initialValue: initialValue,
-          key: key,
           builder: (FormFieldState<bool> state) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +357,7 @@ class InitNowBoolFormField extends FormField<bool> {
                     ],
                   ),
                 ),
-                Divider(
+                const Divider(
                   thickness: 3.0,
                 ),
               ],

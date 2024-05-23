@@ -31,6 +31,6 @@ class CsvExport {
       }
       rows.add(row);
     }
-    return ListToCsvConverter().convert(rows);
+    return const ListToCsvConverter().convert(rows);
   }
 }

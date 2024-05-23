@@ -24,21 +24,27 @@ class UndoList extends ListBase<Undo> {
     addAll([for (var data in jsonData) Undo._fromJson(data)]);
   }
 
+  @override
   int get length => _innerList.length;
 
-  void set length(int length) {
+  @override
+  set length(int length) {
     _innerList.length = length;
   }
 
+  @override
   Undo operator [](int index) => _innerList[index];
 
+  @override
   void operator []=(int index, Undo value) {
     _innerList[index] = value;
   }
 
-  void add(Undo value) => _innerList.add(value);
+  @override
+  void add(Undo element) => _innerList.add(element);
 
-  void addAll(Iterable<Undo> all) => _innerList.addAll(all);
+  @override
+  void addAll(Iterable<Undo> iterable) => _innerList.addAll(iterable);
 
   /// Perform an undo from the list end to [pos].
   void undoToPos(int pos) {
@@ -121,7 +127,7 @@ abstract class Undo {
       case 'parameters':
         undo = UndoParameters._fromJson(jsonData);
       default:
-        throw FormatException('Stored undo data is corrupt');
+        throw const FormatException('Stored undo data is corrupt');
     }
     undo.timeStamp = DateTime.parse(jsonData['time']);
     return undo;
@@ -142,8 +148,9 @@ abstract class Undo {
   /// Return a modified title to specify a redo in place of an undo.
   String _toggleTitleRedo(String title) {
     if (title.isEmpty) return '';
-    if (title.startsWith('Redo '))
+    if (title.startsWith('Redo ')) {
       return title.replaceRange(0, 6, title[5].toUpperCase());
+    }
     return 'Redo ${title.replaceRange(0, 1, title[0].toLowerCase())}';
   }
 }

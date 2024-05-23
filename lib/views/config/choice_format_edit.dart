@@ -4,7 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
-import '../common_dialogs.dart' as commonDialogs;
+import '../common_dialogs.dart' as common_dialogs;
 import '../../model/field_format_tools.dart';
 
 /// The Choice field format edit widget.
@@ -13,7 +13,7 @@ import '../../model/field_format_tools.dart';
 class ChoiceFormatEdit extends StatefulWidget {
   final String initFormat;
 
-  ChoiceFormatEdit({Key? key, required this.initFormat}) : super(key: key);
+  const ChoiceFormatEdit({super.key, required this.initFormat});
 
   @override
   State<ChoiceFormatEdit> createState() => _ChoiceFormatEditState();
@@ -37,7 +37,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Choice Field Format Edit'),
+        title: const Text('Choice Field Format Edit'),
       ),
       body: PopScope(
         // Avoid pop due to back button until a string can be returned.
@@ -64,7 +64,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                     icon: const Icon(Icons.add_circle_outline),
                     tooltip: 'Add text item',
                     onPressed: () async {
-                      final text = await commonDialogs.textDialog(
+                      final text = await common_dialogs.textDialog(
                         context: context,
                         title: 'Choice Field Format',
                         label: 'Segment Text',
@@ -72,8 +72,9 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                       );
                       if (text != null && !segments.contains(text)) {
                         var pos = segments.length;
-                        if (selectedSegment != null)
+                        if (selectedSegment != null) {
                           pos = segments.indexOf(selectedSegment!);
+                        }
                         setState(() {
                           segments.insert(pos, text);
                           isChanged = true;
@@ -88,7 +89,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                     onPressed: (selectedSegment == null)
                         ? null
                         : () async {
-                            final text = await commonDialogs.textDialog(
+                            final text = await common_dialogs.textDialog(
                               context: context,
                               initText: selectedSegment,
                               title: 'Choice Field Format',
@@ -164,7 +165,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                       children: [
                         for (var segment in segments)
                           Padding(
-                            padding: EdgeInsets.all(2.0),
+                            padding: const EdgeInsets.all(2.0),
                             child: InputChip(
                               backgroundColor: Colors.transparent,
                               shape: StadiumBorder(

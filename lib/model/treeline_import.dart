@@ -91,7 +91,7 @@ class TreeLineImport {
 
 /// Change the Date and Time field formats to match the Dart tags.
 String _adjustDateTimeFormat(String origFormat) {
-  final replacements = const {
+  const replacements = {
     '%-d': 'd',
     '%d': 'dd',
     '%a': 'EEE',

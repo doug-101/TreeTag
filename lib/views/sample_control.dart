@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
-import 'common_dialogs.dart' as commonDialogs;
+import 'common_dialogs.dart' as common_dialogs;
 import '../model/io_file.dart';
 import '../model/structure.dart';
 
 /// Provides a sample listview that can open sample files.
 class SampleControl extends StatefulWidget {
+  const SampleControl({super.key});
+
   @override
   State<SampleControl> createState() => _SampleControlState();
 }
@@ -42,8 +44,9 @@ class _SampleControlState extends State<SampleControl> {
 
     final newFile = IOFile.currentType(p.basename(path));
     if (await newFile.exists) {
+      if (!mounted) return;
       // Handle a sample already in the working directory.
-      final ans = await commonDialogs.okCancelDialog(
+      final ans = await common_dialogs.okCancelDialog(
         context: context,
         title: 'Working File Exists',
         label: 'Working file ${newFile.filename} already exists.\n\n'
@@ -53,7 +56,8 @@ class _SampleControlState extends State<SampleControl> {
       try {
         await model.openFile(newFile);
       } on FormatException {
-        await commonDialogs.okDialog(
+        if (!mounted) return;
+        await common_dialogs.okDialog(
           context: context,
           title: 'Error',
           label: 'Could not open file: '
@@ -67,9 +71,11 @@ class _SampleControlState extends State<SampleControl> {
       model.openFromData(json.decode(data));
       model.fileObject = newFile;
     }
+    if (!mounted) return;
     Navigator.pushNamed(context, '/frameView',
             arguments: newFile.nameNoExtension)
         .then((value) async {
+      if (!mounted) return;
       Navigator.pop(context);
     });
   }

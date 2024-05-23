@@ -17,7 +17,7 @@ class MarkdownWithLinks extends StatelessWidget {
   final ThemeData? theme;
   final bool doShowMatches;
 
-  MarkdownWithLinks(
+  const MarkdownWithLinks(
       {super.key, required this.data, this.theme, this.doShowMatches = false});
 
   @override

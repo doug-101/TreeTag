@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:path/path.dart' as p;
-import 'common_dialogs.dart' as commonDialogs;
+import 'common_dialogs.dart' as common_dialogs;
 import '../main.dart' show prefs;
 import '../model/field_format_tools.dart';
 import '../model/fields.dart';
@@ -26,7 +26,11 @@ class EditView extends StatefulWidget {
   final LeafNode node;
   final EditMode editMode;
 
-  EditView({super.key, required this.node, this.editMode = EditMode.normal});
+  const EditView({
+    super.key,
+    required this.node,
+    this.editMode = EditMode.normal,
+  });
 
   @override
   State<EditView> createState() => _EditViewState();
@@ -38,6 +42,7 @@ class _EditViewState extends State<EditView> {
   // The [nodeData] is copied to allow undo creation before the edit is saved.
   late final Map<String, String> nodeData;
 
+  @override
   void initState() {
     super.initState();
     nodeData = Map.of(widget.node.data);
@@ -50,7 +55,7 @@ class _EditViewState extends State<EditView> {
     if (_formKey.currentState!.validate()) {
       // Allow user to discard an unchanged new node.
       if (!_isChanged && widget.editMode == EditMode.newNode) {
-        final toBeSaved = await commonDialogs.okCancelDialog(
+        final toBeSaved = await common_dialogs.okCancelDialog(
           context: context,
           title: 'Save Unchanged',
           label: 'Save unmodified new node?',
@@ -101,6 +106,7 @@ class _EditViewState extends State<EditView> {
         canPop: false,
         onPopInvoked: (bool didPop) async {
           if (!didPop && await _handleClose()) {
+            if (!context.mounted) return;
             // Pop manually (bypass canPop) if update is complete.
             Navigator.of(context).pop();
           }
@@ -271,20 +277,18 @@ class _EditViewState extends State<EditView> {
 /// An editor for a text field that works with forms.
 class TextForm extends FormField<String> {
   TextForm({
+    super.key,
     String? label,
     bool isFileLinkAvail = false,
     bool useRelativeLinks = false,
     int? minLines,
     int? maxLines,
-    String? initialValue,
-    FormFieldValidator<String>? validator,
-    FormFieldSetter<String>? onSaved,
+    super.initialValue,
+    super.validator,
+    super.onSaved,
   }) : super(
-          initialValue: initialValue,
-          validator: validator,
-          onSaved: onSaved,
           builder: (FormFieldState<String> origState) {
-            final state = origState as _TextFormState;
+            final state = origState as TextFormState;
             return TextField(
               decoration: InputDecoration(labelText: label),
               minLines: minLines,
@@ -294,7 +298,7 @@ class TextForm extends FormField<String> {
                   (prefs.getBool('enablespellcheck') ?? true)
                       ? SpellCheckConfiguration(
                           spellCheckService: state._spellChecker)
-                      : SpellCheckConfiguration.disabled(),
+                      : const SpellCheckConfiguration.disabled(),
               contextMenuBuilder: (context, editableTextState) {
                 final buttonItems = editableTextState.contextMenuButtonItems;
                 if (isFileLinkAvail && !editableTextState.copyEnabled) {
@@ -343,10 +347,10 @@ class TextForm extends FormField<String> {
         );
 
   @override
-  _TextFormState createState() => _TextFormState();
+  TextFormState createState() => TextFormState();
 }
 
-class _TextFormState extends FormFieldState<String> {
+class TextFormState extends FormFieldState<String> {
   final _textController = TextEditingController();
   final _spellChecker = (Platform.isAndroid || Platform.isIOS)
       ? DefaultSpellCheckService()
@@ -376,7 +380,7 @@ class _TextFormState extends FormFieldState<String> {
 
 /// Spell check service definition.
 class SpellChecker extends SpellCheckService {
-  static const sepChars = const {
+  static const sepChars = {
     ' ',
     '\n',
     '\r',
@@ -430,7 +434,9 @@ class SpellChecker extends SpellCheckService {
           if (!wordSet.contains(word)) {
             errorSpans.add(
               SuggestionSpan(
-                  TextRange(start: wordStart, end: textPos), <String>[]),
+                TextRange(start: wordStart, end: textPos),
+                const <String>[],
+              ),
             );
           }
           wordStart = -1;
@@ -440,7 +446,7 @@ class SpellChecker extends SpellCheckService {
       }
       textPos += char.length;
     }
-    return errorSpans.length > 0 ? errorSpans : null;
+    return errorSpans.isNotEmpty ? errorSpans : null;
   }
 }
 
@@ -449,15 +455,14 @@ class SpellChecker extends SpellCheckService {
 /// Combines a [TextField] with a popup menu.
 class AutoChoiceForm extends FormField<String> {
   AutoChoiceForm({
+    super.key,
     String? label,
-    String? initialValue,
+    super.initialValue,
     required Set<String> initialOptions,
-    FormFieldSetter<String>? onSaved,
+    super.onSaved,
   }) : super(
-          onSaved: onSaved,
-          initialValue: initialValue,
           builder: (FormFieldState<String> origState) {
-            final state = origState as _AutoChoiceFormState;
+            final state = origState as AutoChoiceFormState;
             return Column(
               children: <Widget>[
                 Row(
@@ -473,7 +478,7 @@ class AutoChoiceForm extends FormField<String> {
                             (prefs.getBool('enablespellcheck') ?? true)
                                 ? SpellCheckConfiguration(
                                     spellCheckService: state._spellChecker)
-                                : SpellCheckConfiguration.disabled(),
+                                : const SpellCheckConfiguration.disabled(),
                       ),
                     ),
                     PopupMenuButton<String>(
@@ -491,23 +496,23 @@ class AutoChoiceForm extends FormField<String> {
                         options.sort();
                         return [
                           for (var s in options)
-                            PopupMenuItem(child: Text(s), value: s)
+                            PopupMenuItem(value: s, child: Text(s))
                         ];
                       },
                     ),
                   ],
                 ),
-                Divider(thickness: 3.0),
+                const Divider(thickness: 3.0),
               ],
             );
           },
         );
 
   @override
-  _AutoChoiceFormState createState() => _AutoChoiceFormState();
+  AutoChoiceFormState createState() => AutoChoiceFormState();
 }
 
-class _AutoChoiceFormState extends FormFieldState<String> {
+class AutoChoiceFormState extends FormFieldState<String> {
   final _textController = TextEditingController();
   final _spellChecker = (Platform.isAndroid || Platform.isIOS)
       ? DefaultSpellCheckService()
@@ -538,13 +543,12 @@ class _AutoChoiceFormState extends FormFieldState<String> {
 /// Editor for a [DateField].
 class DateFormField extends FormField<DateTime> {
   DateFormField({
+    super.key,
     required String fieldFormat,
-    DateTime? initialValue,
+    super.initialValue,
     String? heading,
-    FormFieldSetter<DateTime>? onSaved,
+    super.onSaved,
   }) : super(
-          onSaved: onSaved,
-          initialValue: initialValue,
           builder: (FormFieldState<DateTime> state) {
             return InkWell(
               onTap: () async {
@@ -556,9 +560,9 @@ class DateFormField extends FormField<DateTime> {
                 );
                 if (newDate != null) {
                   state.didChange(newDate);
-                } else if (state.value != null) {
+                } else if (state.value != null && state.mounted) {
                   // Give option of removing the value after cancelling.
-                  final keepValue = await commonDialogs.okCancelDialog(
+                  final keepValue = await common_dialogs.okCancelDialog(
                     context: state.context,
                     title: 'Cancelled Date Entry',
                     label: 'Keep the previous date value?',
@@ -574,12 +578,12 @@ class DateFormField extends FormField<DateTime> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Padding(
-                    padding: EdgeInsets.only(top: 10.0),
+                    padding: const EdgeInsets.only(top: 10.0),
                     child: Text(heading ?? 'Date',
                         style: Theme.of(state.context).textTheme.bodySmall),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 5.0),
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
                     child: Text(
                       state.value != null
                           ? DateFormat(fieldFormat).format(state.value!)
@@ -587,7 +591,7 @@ class DateFormField extends FormField<DateTime> {
                       style: Theme.of(state.context).textTheme.titleMedium,
                     ),
                   ),
-                  Divider(thickness: 3.0),
+                  const Divider(thickness: 3.0),
                 ],
               ),
             );
@@ -598,13 +602,12 @@ class DateFormField extends FormField<DateTime> {
 /// Editor for a [TimeField].
 class TimeFormField extends FormField<DateTime> {
   TimeFormField({
+    super.key,
     required String fieldFormat,
-    DateTime? initialValue,
+    super.initialValue,
     String? heading,
-    FormFieldSetter<DateTime>? onSaved,
+    super.onSaved,
   }) : super(
-          onSaved: onSaved,
-          initialValue: initialValue,
           builder: (FormFieldState<DateTime> state) {
             return InkWell(
               onTap: () async {
@@ -618,9 +621,9 @@ class TimeFormField extends FormField<DateTime> {
                   state.didChange(
                     DateTime(1970, 1, 1, newTime.hour, newTime.minute),
                   );
-                } else if (state.value != null) {
+                } else if (state.value != null && state.mounted) {
                   // Give option of removing the value after cancelling.
-                  final keepValue = await commonDialogs.okCancelDialog(
+                  final keepValue = await common_dialogs.okCancelDialog(
                     context: state.context,
                     title: 'Cancelled Time Entry',
                     label: 'Keep the previous time value?',
@@ -636,12 +639,12 @@ class TimeFormField extends FormField<DateTime> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Padding(
-                    padding: EdgeInsets.only(top: 10.0),
+                    padding: const EdgeInsets.only(top: 10.0),
                     child: Text(heading ?? 'Time',
                         style: Theme.of(state.context).textTheme.bodySmall),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 5.0),
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
                     child: Text(
                       state.value != null
                           ? DateFormat(fieldFormat).format(state.value!)
@@ -649,7 +652,7 @@ class TimeFormField extends FormField<DateTime> {
                       style: Theme.of(state.context).textTheme.titleMedium,
                     ),
                   ),
-                  Divider(
+                  const Divider(
                     thickness: 3.0,
                   ),
                 ],

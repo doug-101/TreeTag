@@ -12,6 +12,8 @@ const pathPrefix = 'assets/help/';
 
 /// Provides a view with Markdown output of the README file.
 class HelpView extends StatefulWidget {
+  const HelpView({super.key});
+
   @override
   State<HelpView> createState() => _HelpViewState();
 }

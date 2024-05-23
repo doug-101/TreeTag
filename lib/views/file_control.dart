@@ -9,10 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:path/path.dart' as p;
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
-import 'common_dialogs.dart' as commonDialogs;
+import 'common_dialogs.dart' as common_dialogs;
 import 'help_view.dart';
 import 'sample_control.dart';
 import 'setting_edit.dart';
@@ -41,7 +40,7 @@ enum MenuItems {
 class FileControl extends StatefulWidget {
   final String? initialFilePath;
 
-  FileControl({super.key, this.initialFilePath});
+  const FileControl({super.key, this.initialFilePath});
 
   @override
   State<FileControl> createState() => _FileControlState();
@@ -90,7 +89,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
       try {
         await newFileObj.copyFromPath(initialFilePath);
       } on IOException {
-        await commonDialogs.okDialog(
+        if (!mounted) return;
+        await common_dialogs.okDialog(
           context: context,
           title: 'Error',
           label: 'Could not write to ${newFileObj.fullPath}',
@@ -99,7 +99,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
       }
       _openTappedFile(newFileObj);
     } else {
-      await commonDialogs.okDialog(
+      if (!mounted) return;
+      await common_dialogs.okDialog(
         context: context,
         title: 'Error',
         label: 'File ${newFileObj.fullPath} does not exist',
@@ -142,7 +143,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
     if (NetworkFile.password.isNotEmpty) return true;
     NetworkFile.password = prefs.getString('netpassword') ?? '';
     if (NetworkFile.password.isNotEmpty) return true;
-    final value = await commonDialogs.textDialog(
+    final value = await common_dialogs.textDialog(
       context: context,
       title: 'Password:',
       label: 'Enter network password',
@@ -166,7 +167,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
           : await NetworkFile.fileList();
     } on IOException catch (e) {
       _fileList = [];
-      await commonDialogs.okDialog(
+      if (!mounted) return;
+      await common_dialogs.okDialog(
         context: context,
         title: 'Error',
         label: 'Could not read from directory: \n$e',
@@ -184,6 +186,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
     final model = Provider.of<Structure>(context, listen: false);
     try {
       await model.openFile(fileObj);
+      if (!mounted) return;
       Navigator.pushNamed(context, '/frameView',
               arguments: fileObj.nameNoExtension)
           .then((value) async {
@@ -193,7 +196,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
       // If not TreeTag formt, try to import as a TreeLine file.
       try {
         final import = TreeLineImport(await fileObj.readJson());
-        final typeName = await commonDialogs.choiceDialog(
+        if (!mounted) return;
+        final typeName = await common_dialogs.choiceDialog(
           context: context,
           choices: import.formatNames(),
           title: 'TreeLine File Import\n\nChoose Node Type',
@@ -207,6 +211,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
           if (!(await model.fileObject.exists) ||
               await askOverwriteOk(fileWithExt)) {
             model.saveFile();
+            if (!mounted) return;
             Navigator.pushNamed(
               context,
               '/frameView',
@@ -219,7 +224,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
       } on FormatException {
         // If not TreeTag or TreeLine format, try a CSV import.
         try {
-          if (fileObj is! LocalFile) throw FormatException();
+          if (fileObj is! LocalFile) throw const FormatException();
           final import = CsvImport(await fileObj.readString());
           model.clearModel();
           import.convertCsv(model);
@@ -229,6 +234,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
           if (!(await model.fileObject.exists) ||
               await askOverwriteOk(fileWithExt)) {
             model.saveFile();
+            if (!mounted) return;
             Navigator.pushNamed(
               context,
               '/frameView',
@@ -238,7 +244,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
             });
           }
         } on FormatException {
-          await commonDialogs.okDialog(
+          if (!mounted) return;
+          await common_dialogs.okDialog(
             context: context,
             title: 'Error',
             label: 'Could not interpret file: ${fileObj.nameNoExtension}',
@@ -247,7 +254,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
         }
       }
     } on IOException catch (e) {
-      await commonDialogs.okDialog(
+      await common_dialogs.okDialog(
         context: context,
         title: 'Error',
         label: 'Could not read file: ${fileObj.nameNoExtension}\n$e',
@@ -301,7 +308,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 _updateFileList();
               },
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.lightbulb_outline),
               title: const Text('Sample Files'),
@@ -310,13 +317,13 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SampleControl(),
+                    builder: (context) => const SampleControl(),
                   ),
                 );
                 _updateFileList();
               },
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
@@ -325,13 +332,13 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SettingEdit(),
+                    builder: (context) => const SettingEdit(),
                   ),
                 );
                 _updateFileList();
               },
             ),
-            Divider(),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.help_outline),
               title: const Text('Help View'),
@@ -340,7 +347,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => HelpView(),
+                    builder: (context) => const HelpView(),
                   ),
                 );
               },
@@ -350,10 +357,10 @@ class _FileControlState extends State<FileControl> with WindowListener {
               title: const Text('About TreeTag'),
               onTap: () {
                 Navigator.pop(context);
-                commonDialogs.aboutDialog(context: context);
+                common_dialogs.aboutDialog(context: context);
               },
             ),
-            if (Platform.isLinux || Platform.isMacOS) Divider(),
+            if (Platform.isLinux || Platform.isMacOS) const Divider(),
             if (Platform.isLinux || Platform.isMacOS)
               ListTile(
                 leading: const Icon(Icons.highlight_off_outlined),
@@ -378,7 +385,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
               icon: const Icon(Icons.add_box),
               tooltip: 'New file',
               onPressed: () async {
-                final filename = await commonDialogs.filenameDialog(
+                final filename = await common_dialogs.filenameDialog(
                   context: context,
                   label: 'Name for the new file:',
                 );
@@ -387,9 +394,11 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       IOFile.currentType(_addExtensionIfNone(filename));
                   if (!(await fileObj.exists) ||
                       await askOverwriteOk(fileObj.filename)) {
+                    if (!context.mounted) return;
                     final model =
                         Provider.of<Structure>(context, listen: false);
                     model.newFile(fileObj);
+                    if (!context.mounted) return;
                     Navigator.pushNamed(context, '/frameView',
                             arguments: filename)
                         .then((value) async {
@@ -409,7 +418,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 final modTime = await fileObj.dataModTime;
                 final timeStr =
                     DateFormat('MMM d, yyyy, h:mm a').format(modTime);
-                commonDialogs.okDialog(
+                if (!context.mounted) return;
+                common_dialogs.okDialog(
                   context: context,
                   title: 'File Info - ${fileObj.nameNoExtension}',
                   label: 'Full Path: ${fileObj.fullPath}\n\n'
@@ -457,7 +467,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                     // Copy current file to another name.
                     final initName = _selectedFiles.first.nameNoExtension;
                     final origExt = _selectedFiles.first.extension;
-                    final answer = await commonDialogs.filenameDialog(
+                    final answer = await common_dialogs.filenameDialog(
                       context: context,
                       initName: initName,
                       label: 'Copy "$initName" to:',
@@ -529,7 +539,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                     // Give the current file a new name.
                     final initName = _selectedFiles.first.nameNoExtension;
                     final origExt = _selectedFiles.first.extension;
-                    final answer = await commonDialogs.filenameDialog(
+                    final answer = await common_dialogs.filenameDialog(
                       context: context,
                       initName: initName,
                       label: 'Rename "$initName" to:',
@@ -550,7 +560,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                     }
                   case MenuItems.delete:
                     // Delete the current file(s).
-                    final deleteOk = await commonDialogs.okCancelDialog(
+                    final deleteOk = await common_dialogs.okCancelDialog(
                       context: context,
                       title: 'Confirm Delete',
                       label: _selectedFiles.length == 1
@@ -568,8 +578,9 @@ class _FileControlState extends State<FileControl> with WindowListener {
                     }
                 }
               } on IOException catch (e) {
+                if (!context.mounted) return;
                 // Exception handling for all menu commands.
-                await commonDialogs.okDialog(
+                await common_dialogs.okDialog(
                   context: context,
                   title: 'Error',
                   label: '$errorLabel\n$e',
@@ -579,39 +590,39 @@ class _FileControlState extends State<FileControl> with WindowListener {
             },
             itemBuilder: (context) => [
               if (_selectedFiles.isEmpty)
-                PopupMenuItem(
-                  child: Text('Add from folder'),
+                const PopupMenuItem(
                   value: MenuItems.addFromFolder,
+                  child: Text('Add from folder'),
                 ),
               if (_selectedFiles.length == 1)
-                PopupMenuItem(
-                  child: Text('Create a copy'),
+                const PopupMenuItem(
                   value: MenuItems.copy,
+                  child: Text('Create a copy'),
                 ),
               if (_selectedFiles.isNotEmpty)
-                PopupMenuItem(
-                  child: Text('Copy to folder'),
+                const PopupMenuItem(
                   value: MenuItems.copyToFolder,
+                  child: Text('Copy to folder'),
                 ),
               if (_selectedFiles.isNotEmpty && _usingLocalFiles)
-                PopupMenuItem(
-                  child: Text('Upload to network'),
+                const PopupMenuItem(
                   value: MenuItems.uploadToNetwork,
+                  child: Text('Upload to network'),
                 ),
               if (_selectedFiles.isNotEmpty && !_usingLocalFiles)
-                PopupMenuItem(
-                  child: Text('Download to storage'),
+                const PopupMenuItem(
                   value: MenuItems.downloadToStorage,
+                  child: Text('Download to storage'),
                 ),
               if (_selectedFiles.length == 1)
-                PopupMenuItem(
-                  child: Text('Rename'),
+                const PopupMenuItem(
                   value: MenuItems.rename,
+                  child: Text('Rename'),
                 ),
               if (_selectedFiles.isNotEmpty)
-                PopupMenuItem(
-                  child: Text('Delete'),
+                const PopupMenuItem(
                   value: MenuItems.delete,
+                  child: Text('Delete'),
                 ),
             ],
           ),
@@ -669,7 +680,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
 
   /// Ask user to overwrite a filename and return result.
   Future<bool> askOverwriteOk(String filename) async {
-    final ans = await commonDialogs.okCancelDialog(
+    final ans = await common_dialogs.okCancelDialog(
       context: context,
       title: 'Confirm Overwrite',
       label: 'File $filename already exists.\n\nOverwrite it?',

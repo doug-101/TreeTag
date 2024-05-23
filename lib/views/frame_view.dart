@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
-import 'common_dialogs.dart' as commonDialogs;
+import 'common_dialogs.dart' as common_dialogs;
 import 'common_widgets.dart';
 import 'detail_view.dart';
 import 'edit_view.dart';
@@ -37,7 +37,7 @@ enum MenuItems { editChildren, deleteChildren }
 class FrameView extends StatelessWidget {
   final String fileRootName;
 
-  FrameView({super.key, required this.fileRootName});
+  const FrameView({super.key, required this.fileRootName});
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +90,7 @@ class FrameView extends StatelessWidget {
                           Navigator.pushNamed(context, '/undoView');
                         },
                       ),
-                      Divider(),
+                      const Divider(),
                       ListTile(
                         leading: const Icon(Icons.merge),
                         title: const Text('Merge Files'),
@@ -104,7 +104,8 @@ class FrameView extends StatelessWidget {
                                 ? await LocalFile.fileList()
                                 : await NetworkFile.fileList();
                           } on IOException catch (e) {
-                            await commonDialogs.okDialog(
+                            if (!context.mounted) return;
+                            await common_dialogs.okDialog(
                               context: context,
                               title: 'Error',
                               label: 'Could not read from directory: \n$e',
@@ -119,7 +120,8 @@ class FrameView extends StatelessWidget {
                                 f.filename
                           ];
                           filenames.sort();
-                          final fileName = await commonDialogs.choiceDialog(
+                          if (!context.mounted) return;
+                          final fileName = await common_dialogs.choiceDialog(
                             context: context,
                             choices: filenames,
                             title: 'Choose File to Merge',
@@ -129,7 +131,8 @@ class FrameView extends StatelessWidget {
                             try {
                               await model.mergeFile(fileObj);
                             } on FormatException {
-                              await commonDialogs.okDialog(
+                              if (!context.mounted) return;
+                              await common_dialogs.okDialog(
                                 context: context,
                                 title: 'Error',
                                 label: 'Could not interpret file: '
@@ -137,7 +140,8 @@ class FrameView extends StatelessWidget {
                                 isDissmissable: false,
                               );
                             } on IOException catch (e) {
-                              await commonDialogs.okDialog(
+                              if (!context.mounted) return;
+                              await common_dialogs.okDialog(
                                 context: context,
                                 title: 'Error',
                                 label: 'Could not read file: '
@@ -148,7 +152,7 @@ class FrameView extends StatelessWidget {
                           }
                         },
                       ),
-                      Divider(),
+                      const Divider(),
                       ListTile(
                         leading: const Icon(Icons.change_circle_outlined),
                         title: const Text('Export to TreeLine'),
@@ -156,9 +160,10 @@ class FrameView extends StatelessWidget {
                           Navigator.pop(context);
                           final exportData = TreeLineExport(model).jsonData();
                           final fileObj = IOFile.currentType(
-                              model.fileObject.nameNoExtension + '.trln');
+                              '${model.fileObject.nameNoExtension}.trln');
                           if (await fileObj.exists) {
-                            var ans = await commonDialogs.okCancelDialog(
+                            if (!context.mounted) return;
+                            var ans = await common_dialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
                               label: 'File ${fileObj.filename} already '
@@ -167,7 +172,8 @@ class FrameView extends StatelessWidget {
                             if (ans == null || !ans) return;
                           }
                           await fileObj.writeJson(exportData);
-                          await commonDialogs.okDialog(
+                          if (!context.mounted) return;
+                          await common_dialogs.okDialog(
                             context: context,
                             title: 'Export',
                             label: 'File ${fileObj.filename} was written.',
@@ -185,7 +191,7 @@ class FrameView extends StatelessWidget {
                             'Field text as output',
                             'Field text as stored',
                           ];
-                          final ans = await commonDialogs.choiceDialog(
+                          final ans = await common_dialogs.choiceDialog(
                             context: context,
                             title: 'CSV Export Options',
                             choices: options,
@@ -195,9 +201,10 @@ class FrameView extends StatelessWidget {
                           final exportData =
                               converter.csvString(useOutput: useOutput);
                           final fileObj = LocalFile(
-                              model.fileObject.nameNoExtension + '.csv');
+                              '${model.fileObject.nameNoExtension}.csv');
                           if (await fileObj.exists) {
-                            final ans = await commonDialogs.okCancelDialog(
+                            if (!context.mounted) return;
+                            final ans = await common_dialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
                               label: 'File ${fileObj.filename} already '
@@ -206,7 +213,8 @@ class FrameView extends StatelessWidget {
                             if (ans == null || !ans) return;
                           }
                           await fileObj.writeString(exportData);
-                          await commonDialogs.okDialog(
+                          if (!context.mounted) return;
+                          await common_dialogs.okDialog(
                             context: context,
                             title: 'Export',
                             label:
@@ -224,7 +232,7 @@ class FrameView extends StatelessWidget {
                             'Title lines only',
                             'All output lines',
                           ];
-                          final ans = await commonDialogs.choiceDialog(
+                          final ans = await common_dialogs.choiceDialog(
                             context: context,
                             title: 'Text Export Options',
                             choices: options,
@@ -235,9 +243,10 @@ class FrameView extends StatelessWidget {
                             includeOutput: includeOutput,
                           );
                           final fileObj = LocalFile(
-                              model.fileObject.nameNoExtension + '.txt');
+                              '${model.fileObject.nameNoExtension}.txt');
                           if (await fileObj.exists) {
-                            final ans = await commonDialogs.okCancelDialog(
+                            if (!context.mounted) return;
+                            final ans = await common_dialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
                               label: 'File ${fileObj.filename} already '
@@ -246,7 +255,8 @@ class FrameView extends StatelessWidget {
                             if (ans == null || !ans) return;
                           }
                           await fileObj.writeString(exportText);
-                          await commonDialogs.okDialog(
+                          if (!context.mounted) return;
+                          await common_dialogs.okDialog(
                             context: context,
                             title: 'Export',
                             label:
@@ -254,7 +264,7 @@ class FrameView extends StatelessWidget {
                           );
                         },
                       ),
-                      Divider(),
+                      const Divider(),
                       ListTile(
                         leading: const Icon(Icons.close),
                         title: const Text('Close File'),
@@ -263,7 +273,7 @@ class FrameView extends StatelessWidget {
                           Navigator.pop(context);
                         },
                       ),
-                      Divider(),
+                      const Divider(),
                       ListTile(
                         leading: const Icon(Icons.settings),
                         title: const Text('Settings'),
@@ -272,12 +282,12 @@ class FrameView extends StatelessWidget {
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => SettingEdit(),
+                              builder: (context) => const SettingEdit(),
                             ),
                           );
                         },
                       ),
-                      Divider(),
+                      const Divider(),
                       ListTile(
                         leading: const Icon(Icons.help_outline),
                         title: const Text('Help View'),
@@ -286,7 +296,7 @@ class FrameView extends StatelessWidget {
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => HelpView(),
+                              builder: (context) => const HelpView(),
                             ),
                           );
                         },
@@ -296,10 +306,10 @@ class FrameView extends StatelessWidget {
                         title: const Text('About TreeTag'),
                         onTap: () {
                           Navigator.pop(context);
-                          commonDialogs.aboutDialog(context: context);
+                          common_dialogs.aboutDialog(context: context);
                         },
                       ),
-                      if (Platform.isLinux || Platform.isMacOS) Divider(),
+                      if (Platform.isLinux || Platform.isMacOS) const Divider(),
                       if (Platform.isLinux || Platform.isMacOS)
                         ListTile(
                           leading: const Icon(Icons.highlight_off_outlined),
@@ -440,7 +450,7 @@ class FrameView extends StatelessWidget {
                         break;
                       case MenuItems.deleteChildren:
                         if (detailRootNode is TitleNode) {
-                          final ans = await commonDialogs.okCancelDialog(
+                          final ans = await common_dialogs.okCancelDialog(
                             context: context,
                             title: 'Confirm Delete',
                             label: 'Deleting from a title node deletes all '
@@ -453,13 +463,13 @@ class FrameView extends StatelessWidget {
                     }
                   },
                   itemBuilder: (context) => [
-                    PopupMenuItem(
-                      child: Text('Edit All Children'),
+                    const PopupMenuItem(
                       value: MenuItems.editChildren,
+                      child: Text('Edit All Children'),
                     ),
-                    PopupMenuItem(
-                      child: Text('Delete All Children'),
+                    const PopupMenuItem(
                       value: MenuItems.deleteChildren,
+                      child: Text('Delete All Children'),
                     ),
                   ],
                 ),
@@ -477,11 +487,11 @@ class FrameView extends StatelessWidget {
                   viewMode: SplitViewMode.Horizontal,
                   children: <Widget>[
                     TreeView(fileRootName: fileRootName),
-                    DetailView(),
+                    const DetailView(),
                   ],
                 )
               : hasDetailViewOnly
-                  ? DetailView()
+                  ? const DetailView()
                   : TreeView(fileRootName: fileRootName),
         );
       },
