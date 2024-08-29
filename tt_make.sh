@@ -2,7 +2,7 @@
 
 # tt_make.sh, a Linux build/install tool for TreeTag.
 # TreeTag, an information storage program with an automatic tree structure.
-# Copyright (c) 2023, Douglas W. Bell.
+# Copyright (c) 2024, Douglas W. Bell.
 # Free software, GPL v2 or later.
 
 depends_error () {
@@ -68,7 +68,7 @@ case "$1" in
         echo "Downloading Flutter..."
         flutter_site="https://storage.googleapis.com"
         flutter_path="/flutter_infra_release/releases/stable/linux/"
-        flutter_file="flutter_linux_3.22.3-stable.tar.xz"
+        flutter_file="flutter_linux_3.24.1-stable.tar.xz"
         curl -O $flutter_site$flutter_path$flutter_file \
             || misc_error "Error:  Could not download Flutter"
         echo
