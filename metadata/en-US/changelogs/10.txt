@@ -1,0 +1,12 @@
+May 26, 2023 - Release 0.6.0 (stable)
+
+New Features:
+- An option was added to select between light and dark visual themes.
+- Added a view scale setting for high-dpi displays.
+- Added a command to export the TreeTag tree to an indented text file.
+- Before saving a file, TreeTag checks for external modifications from
+  other sessions or over a network, giving options to load or overwrite
+  the file.
+
+Updates & Bug Fixes:
+- See the CHANGELOG.md file for the full list of changes.

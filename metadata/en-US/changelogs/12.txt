@@ -1,0 +1,12 @@
+August 27, 2023 - Release 0.7.0 (stable)
+
+New Features:
+- Created a new script for Linux installation. It uses the native
+  packaging system to install dependencies, builds TreeTag and
+  installs it.
+- On desktop systems, a new interface can easily add local file links
+  in Markdown text fields. Clicking on a link opens the default
+  application for that file type.
+
+Updates & Bug Fixes:
+- See the CHANGELOG.md file for the full list of changes.

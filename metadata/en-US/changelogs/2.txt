@@ -1,0 +1,4 @@
+April 23, 2022 - Release 0.0.2 (beta)
+
+Updates:
+- Updated build parameters to work with older Android devices.

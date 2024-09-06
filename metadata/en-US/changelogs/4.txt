@@ -1,0 +1,9 @@
+July 30, 2022 - Release 0.1.0 (beta)
+
+New Features:
+- Ported TreeTag to Linux and Windows desktops.
+- Added a two-pane view on wide screens.
+- Added sample files.
+
+Bug Fixes:
+- Many bug fixes.

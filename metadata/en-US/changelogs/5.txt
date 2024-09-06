@@ -1,0 +1,7 @@
+October 29, 2022 - Release 0.2.0 (beta)
+
+New Features:
+- Added a search function.
+- Added commands to edit or delete multiple child nodes
+  simultaneously.
+- Added the ability to select and copy text from the detail view.

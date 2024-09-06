@@ -1,0 +1,7 @@
+September 15, 2024 - Release 0.7.4 (stable)
+
+Updates:
+- Made several minor code cleanup changes.
+- Updated several versions of library code used for building TreeTag.
+- Converted to a newer style of Android plugin build settings.
+- Added metadata to support an F-Droid build.

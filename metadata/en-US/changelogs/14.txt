@@ -1,0 +1,5 @@
+November 30, 2023 - Release 0.7.2 (stable)
+
+Bug Fixes:
+- Fixed theme color visibility problems under the new Material 3
+  default settings.

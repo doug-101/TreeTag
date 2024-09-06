@@ -1,0 +1,4 @@
+May 9, 2022 - Release 0.0.3 (beta)
+
+New Features:
+- Added import and export to/from TreeLine files.

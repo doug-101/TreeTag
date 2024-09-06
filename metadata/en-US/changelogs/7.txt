@@ -1,0 +1,12 @@
+February 21, 2023 - Release 0.4.0 (beta)
+
+New Features:
+- Added a spell checker that shows misspelled English words with a red
+  underline by default.
+- Added functions to import and output node data as CSV files.
+- A new command merges node data from a second TreeTag file.
+- A new setting automatically removes undo operations stored in
+  TreeTag files that are older than a set number of days.
+
+Updates & Bug Fixes:
+- See the CHANGELOG.md file for the full list of changes.

@@ -1,0 +1,12 @@
+November 26, 2023 - Release 0.7.1 (stable)
+
+Updates:
+- A file path given in the command line will be opened at startup.
+- The maximum width of several views has been reduced.
+- The minimum size of the desktop window has been adjusted.
+- A warning was added to the Linux installer if the directory used for
+  the startup symlink is not in the PATH variable.
+
+Bug Fixes:
+- The Linux installer explicitly sets permissions for the installation
+  directory.

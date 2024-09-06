@@ -1,0 +1,6 @@
+January 14, 2023 - Release 0.3.0 (beta)
+
+New Features:
+- Added optional display of formatted text using Markdown text tags.
+- Added support for storing and retrieving files from a Kinto network
+  server.

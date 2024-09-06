@@ -1,0 +1,12 @@
+March 31, 2023 - Release 0.5.0 (stable)
+
+New Features:
+- Improved searching by adding options to search by phrase, keywords
+  or regular expressions.
+- Added highlighting of matched words to the search results.
+- Implemented a replace function for use on search results.
+- Added an option on desktop platforms to restore the window size and
+  position at startup.
+
+Updates & Bug Fixes:
+- See the CHANGELOG.md file for the full list of changes.
