@@ -64,7 +64,7 @@ class _LineFieldEditState extends State<LineFieldEdit> {
       body: Form(
         key: _formKey,
         canPop: false,
-        onPopInvoked: (bool didPop) {
+        onPopInvokedWithResult: (bool didPop, Object? result) {
           if (!didPop && _formKey.currentState!.validate()) {
             // Pop manually (bypass canPop) if validated.
             _formKey.currentState!.save();

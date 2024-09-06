@@ -46,10 +46,10 @@ class _HelpViewState extends State<HelpView> {
     final pagePos = _pageList.indexOf(_pageHistory.last);
     // Size placeholder for hidden icons, includes 8/side padding.
     final iconSize = (IconTheme.of(context).size ?? 24.0) + 16.0;
-    return PopScope(
+    return PopScope<Object?>(
       // Avoid pop due to back button until page history is empty.
       canPop: _pageHistory.length <= 1,
-      onPopInvoked: (bool didPop) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (!didPop) {
           _pageHistory.removeLast();
           _loadContent();

@@ -52,9 +52,9 @@ class _UndoViewState extends State<UndoView> {
   @override
   Widget build(BuildContext context) {
     var model = Provider.of<Structure>(context, listen: false);
-    return PopScope(
+    return PopScope<Object?>(
       canPop: true,
-      onPopInvoked: (bool didPop) {
+      onPopInvokedWithResult: (bool didPop, Object? result) {
         if (undoToPos != null) {
           model.undoList.undoToPos(undoToPos!);
         }

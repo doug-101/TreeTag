@@ -45,10 +45,10 @@ class _LineEditState extends State<LineEdit> {
           ),
         ],
       ),
-      body: PopScope(
+      body: PopScope<Object?>(
         // Avoid pop due to back button until the value can be checked.
         canPop: false,
-        onPopInvoked: (bool didPop) async {
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
           if (!didPop) {
             if (widget.line.isEmpty) {
               await common_dialogs.okDialog(

@@ -104,7 +104,7 @@ class _EditViewState extends State<EditView> {
       body: Form(
         key: _formKey,
         canPop: false,
-        onPopInvoked: (bool didPop) async {
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
           if (!didPop && await _handleClose()) {
             if (!context.mounted) return;
             // Pop manually (bypass canPop) if update is complete.

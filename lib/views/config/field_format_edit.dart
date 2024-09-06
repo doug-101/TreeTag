@@ -111,10 +111,10 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
       appBar: AppBar(
         title: Text('${widget.fieldType} Field Format'),
       ),
-      body: PopScope(
+      body: PopScope<String?>(
         // Avoid pop due to back button until a result can be returned.
         canPop: false,
-        onPopInvoked: (bool didPop) {
+        onPopInvokedWithResult: (bool didPop, String? result) {
           if (!didPop) {
             final formatResult = combineFieldFormat(segments, condense: true);
             if (_fieldFormatIsValid(widget.fieldType, formatResult)) {

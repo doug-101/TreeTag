@@ -192,9 +192,9 @@ class _SearchViewState extends State<SearchView> {
     final model = Provider.of<Structure>(context, listen: false);
     final fieldTitle =
         searchField != null ? '${searchField!.name} field' : 'all fields';
-    return PopScope(
+    return PopScope<Object?>(
       canPop: true,
-      onPopInvoked: (bool didPop) {
+      onPopInvokedWithResult: (bool didPop, Object? result) {
         if (selectedNodes.isNotEmpty) {
           final parent = model.openLeafParent(
             selectedNodes.last,

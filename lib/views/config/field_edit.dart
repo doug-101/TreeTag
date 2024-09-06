@@ -165,7 +165,7 @@ class _FieldEditState extends State<FieldEdit> {
       body: Form(
         key: _formKey,
         canPop: false,
-        onPopInvoked: (bool didPop) async {
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
           if (!didPop && await _handleClose()) {
             // Pop manually (bypass canPop) if update is complete.
             if (context.mounted) {

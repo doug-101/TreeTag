@@ -34,6 +34,7 @@ class _RuleEditState extends State<RuleEdit> {
       // A new rule is empty, so it goes directly to the LineEdit.
       // Use a microtask to delay the push until after the build.
       Future.microtask(() async {
+        if (!context.mounted) return;
         final isChanged = await Navigator.push(
           context,
           MaterialPageRoute(

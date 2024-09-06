@@ -39,10 +39,10 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
       appBar: AppBar(
         title: const Text('Choice Field Format Edit'),
       ),
-      body: PopScope(
+      body: PopScope<String?>(
         // Avoid pop due to back button until a string can be returned.
         canPop: false,
-        onPopInvoked: (bool didPop) {
+        onPopInvokedWithResult: (bool didPop, String? result) {
           if (!didPop) {
             var formatResult = combineChoiceFormat(segments);
             Navigator.pop<String?>(

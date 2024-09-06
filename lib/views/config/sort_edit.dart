@@ -43,10 +43,10 @@ class _SortEditState extends State<SortEdit> {
         title:
             Text('${widget.availFields != null ? 'Rule' : 'Child'} Sort Edit'),
       ),
-      body: PopScope(
+      body: PopScope<Object?>(
         // Avoid pop due to back button until a bool can be returned.
         canPop: false,
-        onPopInvoked: (bool didPop) {
+        onPopInvokedWithResult: (bool didPop, Object? result) {
           if (!didPop) {
             Navigator.pop(context, isChanged);
           }

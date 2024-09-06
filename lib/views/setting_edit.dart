@@ -48,7 +48,7 @@ class _SettingEditState extends State<SettingEdit> {
       body: Form(
         key: _formKey,
         canPop: false,
-        onPopInvoked: (bool didPop) {
+        onPopInvokedWithResult: (bool didPop, Object? result) {
           if (!didPop) {
             if (_cancelFlag) {
               Navigator.of(context).pop();
