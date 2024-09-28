@@ -5,9 +5,10 @@
 
 import 'package:csv/csv.dart';
 import 'package:csv/csv_settings_autodetection.dart';
+import 'display_node.dart';
 import 'fields.dart';
-import 'nodes.dart';
 import 'parsed_line.dart';
+import 'stored_node.dart';
 import 'structure.dart';
 
 /// Main class for CSV file imports.
@@ -48,15 +49,11 @@ class CsvImport {
       for (var i = 0; i < row.length; i++) {
         data[fieldList[i].name] = row[i];
       }
-      model.leafNodes.add(LeafNode(data: data, modelRef: model));
+      model.leafNodes.add(LeafNode(data: data));
     }
-    final root = TitleNode(title: 'Root', modelRef: model);
+    final root = TitleNode(title: 'Root');
     root.isOpen = true;
     model.rootNodes.add(root);
-    root.childRuleNode = RuleNode(
-      rule: 'All Nodes',
-      modelRef: model,
-      parent: root,
-    );
+    root.childRuleNode = RuleNode(rule: 'All Nodes', storedParent: root);
   }
 }

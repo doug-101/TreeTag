@@ -6,14 +6,16 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:path/path.dart' as p;
 import 'common_dialogs.dart' as common_dialogs;
 import '../main.dart' show prefs;
+import '../model/display_node.dart';
 import '../model/field_format_tools.dart';
 import '../model/fields.dart';
-import '../model/nodes.dart';
+import '../../model/structure.dart';
 import '../model/word_set_en.dart';
 
 enum EditMode { normal, newNode, nodeChildren }
@@ -53,6 +55,7 @@ class _EditViewState extends State<EditView> {
   /// Returns true if it's ok to close.
   Future<bool> _handleClose() async {
     if (_formKey.currentState!.validate()) {
+      final model = Provider.of<Structure>(context, listen: false);
       // Allow user to discard an unchanged new node.
       if (!_isChanged && widget.editMode == EditMode.newNode) {
         final toBeSaved = await common_dialogs.okCancelDialog(
@@ -63,16 +66,16 @@ class _EditViewState extends State<EditView> {
           falseButtonText: 'DISCARD',
         );
         if (toBeSaved != null && !toBeSaved) {
-          widget.node.modelRef.deleteNode(widget.node, withUndo: false);
+          model.deleteNode(widget.node, withUndo: false);
           return true;
         }
       }
       // Handle all updates.
       _formKey.currentState!.save();
       if (_isChanged && widget.editMode == EditMode.nodeChildren) {
-        widget.node.modelRef.editChildData(nodeData);
+        model.editChildData(nodeData);
       } else if (_isChanged || widget.editMode == EditMode.newNode) {
-        widget.node.modelRef.editNodeData(
+        model.editNodeData(
           widget.node,
           nodeData,
           newNode: widget.editMode == EditMode.newNode,
@@ -85,6 +88,7 @@ class _EditViewState extends State<EditView> {
 
   @override
   Widget build(BuildContext context) {
+    final model = Provider.of<Structure>(context, listen: false);
     var windowTitle = widget.node.title;
     if (windowTitle.contains('\u0000')) windowTitle = '[title varies]';
     return Scaffold(
@@ -121,7 +125,7 @@ class _EditViewState extends State<EditView> {
             padding: const EdgeInsets.all(10.0),
             child: Column(
               children: <Widget>[
-                for (var field in widget.node.modelRef.fieldMap.values)
+                for (var field in model.fieldMap.values)
                   _fieldEditor(widget.node, field),
               ],
             ),
@@ -133,6 +137,7 @@ class _EditViewState extends State<EditView> {
 
   /// Return the proper field editor based on field type.
   Widget _fieldEditor(LeafNode node, Field field) {
+    final model = Provider.of<Structure>(context, listen: false);
     var labelString = field.name;
     String? initString = node.data[field.name];
     if (widget.editMode == EditMode.nodeChildren && initString == '\u0000') {
@@ -145,9 +150,9 @@ class _EditViewState extends State<EditView> {
           label: labelString,
           minLines: 4,
           maxLines: 12,
-          isFileLinkAvail: node.modelRef.useMarkdownOutput &&
+          isFileLinkAvail: model.useMarkdownOutput &&
               !(Platform.isAndroid || Platform.isIOS),
-          useRelativeLinks: node.modelRef.useRelativeLinks,
+          useRelativeLinks: model.useRelativeLinks,
           initialValue: initString ?? '',
           validator: field.validateMessage,
           onSaved: (String? value) {
@@ -254,9 +259,9 @@ class _EditViewState extends State<EditView> {
         // Default return for a regular TextField
         return TextForm(
           label: labelString,
-          isFileLinkAvail: node.modelRef.useMarkdownOutput &&
+          isFileLinkAvail: model.useMarkdownOutput &&
               !(Platform.isAndroid || Platform.isIOS),
-          useRelativeLinks: node.modelRef.useRelativeLinks,
+          useRelativeLinks: model.useRelativeLinks,
           initialValue: initString ?? '',
           validator: field.validateMessage,
           onSaved: (String? value) {

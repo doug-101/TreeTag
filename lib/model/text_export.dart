@@ -3,7 +3,7 @@
 // Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'nodes.dart';
+import 'display_node.dart';
 import 'structure.dart';
 
 const emptyName = '[Empty Title]';

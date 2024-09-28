@@ -8,10 +8,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'display_node.dart';
 import 'fields.dart';
 import 'io_file.dart';
-import 'nodes.dart';
 import 'parsed_line.dart';
+import 'stored_node.dart';
 import 'undos.dart';
 
 /// Top-level storage for tree formats, nodes and undo operations.
@@ -19,14 +20,14 @@ import 'undos.dart';
 /// Includes methods for all operations that modify this model.
 /// [ChangeNotifier] is used to handle view state updates.
 class Structure extends ChangeNotifier {
-  final rootNodes = <Node>[];
+  final rootNodes = <TitleNode>[];
   final leafNodes = <LeafNode>[];
 
   /// The node series currently shown in the [DetailView].
-  final detailViewRecords = <({Node node, GroupNode? parent})>[];
+  final detailViewRecords = <({DisplayNode node, GroupNode? parent})>[];
 
   /// Rencently deleted nodes, used by [DetailView] to label old pages.
-  final obsoleteNodes = <Node>{};
+  final obsoleteNodes = <DisplayNode>{};
 
   final fieldMap = <String, Field>{};
   late ParsedLine titleLine;
@@ -42,6 +43,8 @@ class Structure extends ChangeNotifier {
   Structure() {
     titleLine = ParsedLine('', fieldMap);
     undoList = UndoList(this);
+    StoredNode.modelRef = this;
+    DisplayNode.modelRef = this;
   }
 
   /// Open an existng file using the JSON data in [fileObj].
@@ -63,7 +66,7 @@ class Structure extends ChangeNotifier {
       if (field is AutoChoiceField) autoChoiceFields.add(field);
     }
     for (var nodeData in jsonData['template'] ?? []) {
-      rootNodes.add(Node(nodeData, this));
+      rootNodes.add(StoredNode(nodeData) as TitleNode);
     }
     if (rootNodes.length == 1) rootNodes[0].isOpen = true;
     titleLine = ParsedLine(jsonData['titleline'] ?? '', fieldMap);
@@ -71,7 +74,7 @@ class Structure extends ChangeNotifier {
       outputLines.add(ParsedLine(lineString ?? '', fieldMap));
     }
     for (var leaf in jsonData['leaves'] ?? []) {
-      leafNodes.add(LeafNode.fromJson(leaf, this));
+      leafNodes.add(LeafNode.fromJson(leaf));
     }
     if (fieldMap.isEmpty || rootNodes.isEmpty || outputLines.isEmpty) {
       throw const FormatException('Missing sections in file');
@@ -104,20 +107,18 @@ class Structure extends ChangeNotifier {
     fieldMap[mainFieldName] = Field.createField(name: mainFieldName);
     const categoryFieldName = 'Category';
     fieldMap[categoryFieldName] = Field.createField(name: categoryFieldName);
-    final root = TitleNode(title: 'Root', modelRef: this);
+    final root = TitleNode(title: 'Root');
     root.isOpen = true;
     rootNodes.add(root);
     root.childRuleNode = RuleNode(
       rule: fieldMap[categoryFieldName]!.lineText(),
-      modelRef: this,
-      parent: root,
+      storedParent: root,
     );
     leafNodes.add(LeafNode(
       data: {
         mainFieldName: 'Sample Node',
         categoryFieldName: 'First Category',
       },
-      modelRef: this,
     ));
     titleLine = ParsedLine(fieldMap[mainFieldName]!.lineText(), fieldMap);
     outputLines.add(ParsedLine.fromSingleField(fieldMap[mainFieldName]!));
@@ -184,7 +185,7 @@ class Structure extends ChangeNotifier {
   }
 
   /// Opens or closes a node based on a tap in the [TreeView].
-  void toggleNodeOpen(Node node) {
+  void toggleNodeOpen(DisplayNode node) {
     node.isOpen = !node.isOpen;
     notifyListeners();
   }
@@ -193,7 +194,7 @@ class Structure extends ChangeNotifier {
   ///
   /// Starts from [startNode] if given, else starts from the [rootNodes].
   /// Called from [SearchView] and from the updateAllChildren member below.
-  Node? openLeafParent(LeafNode targetNode, {Node? startNode}) {
+  DisplayNode? openLeafParent(LeafNode targetNode, {DisplayNode? startNode}) {
     final startNodes = startNode != null ? [startNode] : rootNodes;
     final parentMatch = _parentOfMatch(startNodes, targetNode);
     var parent = parentMatch;
@@ -205,7 +206,10 @@ class Structure extends ChangeNotifier {
   }
 
   // Return the first immediate parent matching the given [LeafNode].
-  Node? _parentOfMatch(List<Node> startNodes, LeafNode targetNode) {
+  DisplayNode? _parentOfMatch(
+    List<DisplayNode> startNodes,
+    LeafNode targetNode,
+  ) {
     GroupNode? previousParent;
     for (var rootNode in startNodes) {
       for (var node in allNodeGenerator(rootNode)) {
@@ -219,13 +223,13 @@ class Structure extends ChangeNotifier {
   /// Expands or contracts a [LeafNode] at [parentNode] instance.
   ///
   /// This either shows or hides the full output.
-  void toggleNodeExpanded(LeafNode node, Node parentNode) {
+  void toggleNodeExpanded(LeafNode node, DisplayNode parentNode) {
     node.toggleExpanded(parentNode);
     notifyListeners();
   }
 
   /// Return the last node in [detailViewRecords] or null if none present.
-  Node? currentDetailViewNode() {
+  DisplayNode? currentDetailViewNode() {
     if (detailViewRecords.isNotEmpty) return detailViewRecords.last.node;
     return null;
   }
@@ -242,8 +246,8 @@ class Structure extends ChangeNotifier {
   }
 
   /// Add a child to [detailViewRecords] and do an update.
-  void addDetailViewRecord(Node node,
-      {Node? parent, bool doClearFirst = false}) {
+  void addDetailViewRecord(DisplayNode node,
+      {DisplayNode? parent, bool doClearFirst = false}) {
     if (doClearFirst) detailViewRecords.clear();
     // Only stores the parent for leaves (other nodes have parent member).
     detailViewRecords.add((
@@ -354,7 +358,7 @@ class Structure extends ChangeNotifier {
   /// Called from the [FrameView].
   /// Does not create undo objects or update views - that is done in
   /// [editNodeData()] after the user edits the new node.
-  LeafNode newNode({Node? copyFromNode}) {
+  LeafNode newNode({DisplayNode? copyFromNode}) {
     final data =
         Map<String, String>.of(copyFromNode?.data ?? <String, String>{});
     if (copyFromNode is GroupNode) {
@@ -363,7 +367,7 @@ class Structure extends ChangeNotifier {
         data.addAll(copyFromNode?.data ?? {});
       }
     }
-    final newNode = LeafNode(data: data, modelRef: this);
+    final newNode = LeafNode(data: data);
     for (var field in fieldMap.values) {
       if (data[field.name] == null) {
         final initValue = field.initialValue();
@@ -392,7 +396,7 @@ class Structure extends ChangeNotifier {
       final value = _commonData(field, rootNode.availableNodes);
       if (value != null) data[field.name] = value;
     }
-    return LeafNode(data: data, modelRef: this);
+    return LeafNode(data: data);
   }
 
   // Called from above to provide common data values.
@@ -706,16 +710,21 @@ class Structure extends ChangeNotifier {
       }
     }
     for (var ruleNode in badRules) {
-      undos.add(
-          UndoDeleteTreeNode('', storedNodeId(ruleNode.parent), 0, ruleNode));
+      undos.add(UndoDeleteTreeNode(
+        '',
+        storedNodeId(ruleNode.storedParent),
+        0,
+        ruleNode,
+      ));
       if (ruleNode.childRuleNode != null) {
         undos.add(UndoAddTreeNode('', storedNodeId(ruleNode), 0));
       }
-      if (ruleNode.parent != null) {
-        if (ruleNode.parent is RuleNode) {
-          (ruleNode.parent as RuleNode).childRuleNode = ruleNode.childRuleNode;
+      if (ruleNode.storedParent != null) {
+        if (ruleNode.storedParent is RuleNode) {
+          (ruleNode.storedParent as RuleNode).childRuleNode =
+              ruleNode.childRuleNode;
         } else {
-          (ruleNode.parent as TitleNode)
+          (ruleNode.storedParent as TitleNode)
               .replaceChildRule(ruleNode.childRuleNode);
         }
       } else {
@@ -824,42 +833,42 @@ class Structure extends ChangeNotifier {
     }
   }
 
-  String storedNodeId(Node? node) {
+  String storedNodeId(StoredNode? node) {
     if (node == null) return '';
     final posList = <int>[];
-    while (node!.parent != null) {
-      posList.insert(0, node.parent!.storedChildren().indexOf(node));
+    while (node!.storedParent != null) {
+      posList.insert(0, node.storedParent!.storedChildren().indexOf(node));
       assert(posList[0] != -1);
-      node = node.parent;
+      node = node.storedParent;
     }
-    posList.insert(0, rootNodes.indexOf(node));
+    posList.insert(0, rootNodes.indexOf(node as TitleNode));
     assert(posList[0] != -1);
     return posList.join('.');
   }
 
-  Node? storedNodeFromId(String id) {
+  StoredNode? storedNodeFromId(String id) {
     if (id.isEmpty) return null;
     final posList = [for (var i in id.split('.')) int.parse(i)];
-    var node = rootNodes[posList.removeAt(0)];
+    var node = rootNodes[posList.removeAt(0)] as StoredNode;
     while (posList.isNotEmpty) {
       node = node.storedChildren()[posList.removeAt(0)];
     }
     return node;
   }
 
-  int storedNodePos(Node node) {
-    final parent = node.parent;
+  int storedNodePos(StoredNode node) {
+    final parent = node.storedParent;
     if (parent != null) return parent.storedChildren().indexOf(node);
-    return rootNodes.indexOf(node);
+    return rootNodes.indexOf(node as TitleNode);
   }
 
   /// Called from [TreeConfig] to add a new title node as a sibling.
   void addTitleSibling(TitleNode siblingNode, String newTitle) {
-    final parent = siblingNode.parent;
+    final parent = siblingNode.storedParent as TitleNode?;
     final pos = storedNodePos(siblingNode) + 1;
     undoList.add(UndoAddTreeNode(
         'Add title node: $newTitle', storedNodeId(parent), pos));
-    final newNode = TitleNode(title: newTitle, modelRef: this, parent: parent);
+    final newNode = TitleNode(title: newTitle, parent: parent);
     if (parent != null) {
       (parent as TitleNode).addChildTitleNode(newNode, pos: pos);
     } else {
@@ -879,8 +888,7 @@ class Structure extends ChangeNotifier {
             : 0,
       ),
     );
-    final newNode =
-        TitleNode(title: newTitle, modelRef: this, parent: parentNode);
+    final newNode = TitleNode(title: newTitle, parent: parentNode);
     if (parentNode.childRuleNode != null) {
       newNode.replaceChildRule(parentNode.childRuleNode);
       parentNode.replaceChildRule(null);
@@ -899,22 +907,23 @@ class Structure extends ChangeNotifier {
 
   /// Called from [TreeConfig] to add a new rule node as a child.
   void addRuleChild(RuleNode newNode) {
+    if (newNode.storedParent == null) return;
     undoList.add(UndoAddTreeNode(
         'Add rule node: ${newNode.ruleLine.getUnparsedLine()}',
-        storedNodeId(newNode.parent),
+        storedNodeId(newNode.storedParent),
         0));
-    if (newNode.parent is TitleNode) {
-      final parent = newNode.parent as TitleNode;
+    if (newNode.storedParent is TitleNode) {
+      final parent = newNode.storedParent as TitleNode;
       if (parent.childRuleNode != null) {
         // Move any existing rule nodes lower in the structure.
         newNode.replaceChildRule(parent.childRuleNode);
       }
       parent.replaceChildRule(newNode);
     } else {
-      final parent = newNode.parent as RuleNode;
+      final parent = newNode.storedParent as RuleNode;
       if (parent.childRuleNode != null) {
         // Move any existing rule nodes lower in the structure.
-        newNode.replaceChildRule(parent.childRuleNode);
+        newNode.replaceChildRule(parent?.childRuleNode!);
       }
       parent.replaceChildRule(newNode);
     }
@@ -947,48 +956,55 @@ class Structure extends ChangeNotifier {
   }
 
   /// Called from [TreeConfig] to delete a title or rule node.
-  void deleteTreeNode(Node node, {bool keepChildren = false}) {
+  void deleteTreeNode(StoredNode node, {bool keepChildren = false}) {
     if (node is TitleNode) {
       undoList.add(UndoDeleteTreeNode(
         'Delete title node: ${node.title}',
-        storedNodeId(node.parent),
+        storedNodeId(node.storedParent),
         storedNodePos(node),
         node,
         replaceCount: keepChildren ? node.storedChildren().length : 0,
       ));
-      if (keepChildren && node.hasChildren && node.parent != null) {
-        final parentTitleNode = node.parent as TitleNode;
+      if (keepChildren && node.hasChildren && node.storedParent != null) {
+        final parentTitleNode = node.storedParent as TitleNode;
         if (node.childRuleNode == null) {
-          parentTitleNode.replaceChildTitleNode(node, node.storedChildren());
+          parentTitleNode.replaceChildTitleNode(
+            node,
+            node.storedChildren().cast<TitleNode>(),
+          );
         } else {
           parentTitleNode.removeChildTitleNode(node);
           parentTitleNode.replaceChildRule(node.childRuleNode);
         }
-      } else if (node.parent != null) {
-        (node.parent as TitleNode).removeChildTitleNode(node);
+      } else if (node.storedParent != null) {
+        (node.storedParent as TitleNode).removeChildTitleNode(node);
       } else if (keepChildren && node.hasChildren) {
         final pos = rootNodes.indexOf(node);
         node.storedChildren().forEach((newNode) {
-          newNode.parent = null;
+          newNode.storedParent = null;
         });
-        rootNodes.replaceRange(pos, pos + 1, node.storedChildren());
+        rootNodes.replaceRange(
+          pos,
+          pos + 1,
+          node.storedChildren().cast<TitleNode>(),
+        );
       } else {
         rootNodes.remove(node);
       }
     } else {
       undoList.add(UndoDeleteTreeNode(
         'Delete rule node: ${(node as RuleNode).ruleLine.getUnparsedLine()}',
-        storedNodeId(node.parent),
+        storedNodeId(node.storedParent),
         storedNodePos(node),
         node,
         replaceCount: keepChildren ? 1 : 0,
       ));
-      if (node.parent is TitleNode) {
+      if (node.storedParent is TitleNode) {
         // Deleting a RuleNode from a TitleNode.
-        (node.parent as TitleNode)
+        (node.storedParent as TitleNode)
             .replaceChildRule(keepChildren ? node.childRuleNode : null);
       } else {
-        final parentRule = node.parent as RuleNode;
+        final parentRule = node.storedParent as RuleNode;
         if (keepChildren && node.childRuleNode != null) {
           parentRule.replaceChildRule(node.childRuleNode);
         } else {
@@ -1002,20 +1018,22 @@ class Structure extends ChangeNotifier {
 
   /// Called from [TreeConfig] to move a title node up or down.
   void moveTitleNode(TitleNode node, {bool up = true}) {
-    final siblings =
-        node.parent != null ? node.parent!.storedChildren() : rootNodes;
+    final siblings = node.storedParent != null
+        ? node.storedParent!.storedChildren()
+        : rootNodes;
     var pos = siblings.indexOf(node);
-    undoList.add(UndoMoveTitleNode(
-        'Move title node: ${node.title}', storedNodeId(node.parent), pos, up));
+    undoList.add(UndoMoveTitleNode('Move title node: ${node.title}',
+        storedNodeId(node.storedParent), pos, up));
     siblings.removeAt(pos);
     siblings.insert(up ? --pos : ++pos, node);
     updateAll();
   }
 
-  bool canNodeMove(Node node, {bool up = true}) {
+  bool canNodeMove(StoredNode node, {bool up = true}) {
     if (node is! TitleNode) return false;
-    final siblings =
-        node.parent != null ? node.parent!.storedChildren() : rootNodes;
+    final siblings = node.storedParent != null
+        ? node.storedParent!.storedChildren()
+        : rootNodes;
     var pos = siblings.indexOf(node);
     if (up && pos > 0) return true;
     if (!up && pos < siblings.length - 1) return true;
@@ -1151,7 +1169,7 @@ class Structure extends ChangeNotifier {
   /// Update all of the tree children.
   void updateAllChildren({bool forceUpdate = true}) {
     obsoleteNodes.clear();
-    var viewAncestors = <Node>{};
+    var viewAncestors = <DisplayNode>{};
     // Find ancestors from detail views for update even if closed.
     for (var record in detailViewRecords) {
       var node = record.node;
@@ -1171,7 +1189,7 @@ class Structure extends ChangeNotifier {
       if (record.parent != null &&
           !record.parent!.matchingNodes.contains(record.node)) {
         // The parent at the new position should be opened.
-        Node ancestor = record.parent!;
+        DisplayNode ancestor = record.parent!;
         // Find the nearest [TitleNode] ancestor.
         while (ancestor.parent != null && ancestor is! TitleNode) {
           ancestor = ancestor.parent!;
@@ -1183,8 +1201,8 @@ class Structure extends ChangeNotifier {
 }
 
 /// Update the children of a given [node].
-void updateChildren(Node node,
-    {bool forceUpdate = true, Set<Node> extraUpdates = const {}}) {
+void updateChildren(DisplayNode node,
+    {bool forceUpdate = true, Set<DisplayNode> extraUpdates = const {}}) {
   if (node.isOpen || extraUpdates.contains(node)) {
     if (node.isStale) {
       forceUpdate = true;
@@ -1200,8 +1218,8 @@ void updateChildren(Node node,
 }
 
 /// Generate nodes for all of the nodes in the branch.
-Iterable<Node> allNodeGenerator(Node node,
-    {Node? parent, bool forceUpdate = false}) sync* {
+Iterable<DisplayNode> allNodeGenerator(DisplayNode node,
+    {DisplayNode? parent, bool forceUpdate = false}) sync* {
   yield node;
   if (node.isStale) {
     forceUpdate = true;
@@ -1212,13 +1230,13 @@ Iterable<Node> allNodeGenerator(Node node,
   }
 }
 
-/// Used to store a node with its ident level in the tree.
+/// Used to store a display node with its ident level in the tree.
 class LeveledNode {
-  final Node node;
+  final DisplayNode node;
   final int level;
 
   /// [parent] stores group parents of leaf instances.
-  final Node? parent;
+  final DisplayNode? parent;
 
   LeveledNode(this.node, this.level, {this.parent});
 }
@@ -1227,9 +1245,9 @@ class LeveledNode {
 ///
 /// Defaults to only including nodes with open parents.
 Iterable<LeveledNode> leveledNodeGenerator(
-  Node node, {
+  DisplayNode node, {
   int level = 0,
-  Node? parent,
+  DisplayNode? parent,
   bool openOnly = true,
   bool forceUpdate = false,
 }) sync* {
@@ -1253,9 +1271,18 @@ Iterable<LeveledNode> leveledNodeGenerator(
   }
 }
 
+/// Used to store a display node with its ident level in the tree.
+class LeveledStoredNode {
+  final StoredNode node;
+  final int level;
+
+  LeveledStoredNode(this.node, this.level);
+}
+
 /// Generate [LeveledNodes] for all of the stored nodes.
-Iterable<LeveledNode> storedNodeGenerator(Node node, {int level = 0}) sync* {
-  yield LeveledNode(node, level);
+Iterable<LeveledStoredNode> storedNodeGenerator(StoredNode node,
+    {int level = 0}) sync* {
+  yield LeveledStoredNode(node, level);
   for (var child in node.storedChildren()) {
     yield* storedNodeGenerator(child, level: level + 1);
   }

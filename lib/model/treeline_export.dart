@@ -5,8 +5,8 @@
 
 import 'dart:convert' show HtmlEscape, HtmlEscapeMode;
 import 'package:uuid/uuid.dart';
+import 'display_node.dart';
 import 'field_format_tools.dart';
-import 'nodes.dart';
 import 'structure.dart';
 
 /// Main class for exports to TreeLine files.
@@ -54,7 +54,7 @@ class TreeLineExport {
       ],
     };
     const uuid = Uuid();
-    final nodeIDs = <Node, String>{};
+    final nodeIDs = <DisplayNode, String>{};
     for (var root in model.rootNodes) {
       for (var node in allNodeGenerator(root)) {
         nodeIDs.putIfAbsent(node, () => uuid.v1().replaceAll('-', ''));

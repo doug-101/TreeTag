@@ -5,7 +5,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../model/nodes.dart';
+import '../../model/display_node.dart';
+import '../../model/stored_node.dart';
 import '../../model/structure.dart';
 import 'line_edit.dart';
 import 'sort_edit.dart';

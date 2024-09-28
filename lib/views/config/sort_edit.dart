@@ -6,7 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../model/fields.dart';
-import '../../model/nodes.dart';
+import '../../model/display_node.dart';
 import '../../model/structure.dart';
 
 /// The sort edit view.

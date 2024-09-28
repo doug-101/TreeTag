@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'common_widgets.dart';
 import '../main.dart' show prefs;
-import '../model/nodes.dart';
+import '../model/display_node.dart';
 import '../model/structure.dart';
 
 const emptyName = '[Empty Title]';

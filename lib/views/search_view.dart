@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 import 'common_dialogs.dart';
 import 'common_widgets.dart';
 import '../main.dart' show prefs;
+import '../model/display_node.dart';
 import '../model/fields.dart';
-import '../model/nodes.dart';
 import '../model/structure.dart';
 
 enum MenuItems {
@@ -27,7 +27,7 @@ enum SearchType { phrase, keyword, regExp }
 ///
 /// Called from the [FrameView].
 class SearchView extends StatefulWidget {
-  final Node? parentNode;
+  final DisplayNode? parentNode;
 
   const SearchView({super.key, required this.parentNode});
 

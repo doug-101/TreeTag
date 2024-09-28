@@ -4,10 +4,11 @@
 // Free software, GPL v2 or later.
 
 import 'package:html_unescape/html_unescape_small.dart';
+import 'display_node.dart';
 import 'field_format_tools.dart';
 import 'fields.dart';
-import 'nodes.dart';
 import 'parsed_line.dart';
+import 'stored_node.dart';
 import 'structure.dart';
 
 /// Main class for TreeLine file imports.
@@ -52,7 +53,7 @@ class TreeLineImport {
     final unescape = HtmlUnescape();
     for (var nodeInfo in jsonData['nodes']) {
       if (nodeInfo['format'] == typeName && nodeInfo['data'] != null) {
-        final leafNode = LeafNode(data: nodeInfo['data'], modelRef: model);
+        final leafNode = LeafNode(data: nodeInfo['data']);
         model.leafNodes.add(leafNode);
         for (var field in model.fieldMap.values) {
           if (leafNode.data[field.name] != null) {
@@ -78,13 +79,12 @@ class TreeLineImport {
         }
       }
     }
-    final root = TitleNode(title: 'Root', modelRef: model);
+    final root = TitleNode(title: 'Root');
     root.isOpen = true;
     model.rootNodes.add(root);
     root.childRuleNode = RuleNode(
       rule: 'All Nodes',
-      modelRef: model,
-      parent: root,
+      storedParent: root,
     );
   }
 }

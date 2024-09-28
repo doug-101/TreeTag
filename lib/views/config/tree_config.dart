@@ -1,13 +1,13 @@
 // tree_config.dart, a view to edit the tree structure configuration.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'rule_edit.dart';
 import '../common_dialogs.dart' as common_dialogs;
-import '../../model/nodes.dart';
+import '../../model/stored_node.dart';
 import '../../model/structure.dart';
 
 enum AddMenuItems { titleSibling, titleChild, ruleChild }
@@ -26,7 +26,7 @@ class TreeConfig extends StatefulWidget {
 }
 
 class _TreeConfigState extends State<TreeConfig> {
-  Node? selectedNode;
+  StoredNode? selectedNode;
 
   @override
   Widget build(BuildContext context) {
@@ -65,11 +65,8 @@ class _TreeConfigState extends State<TreeConfig> {
                       });
                     }
                   case AddMenuItems.ruleChild:
-                    final newRule = RuleNode(
-                      rule: '',
-                      modelRef: model,
-                      parent: selectedNode!,
-                    );
+                    final newRule =
+                        RuleNode(rule: '', storedParent: selectedNode!);
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -93,8 +90,8 @@ class _TreeConfigState extends State<TreeConfig> {
                 ),
                 PopupMenuItem(
                   enabled: selectedNode != null &&
-                      (!selectedNode!.hasChildren ||
-                          selectedNode is RuleNode ||
+                      (selectedNode is RuleNode ||
+                          !(selectedNode as TitleNode).hasChildren ||
                           (selectedNode as TitleNode).childRuleNode != null),
                   value: AddMenuItems.ruleChild,
                   child: const Text('Add Group Rule Child'),
@@ -143,7 +140,7 @@ class _TreeConfigState extends State<TreeConfig> {
                     setState(() {
                       model.deleteTreeNode(
                         selectedNode!,
-                        keepChildren: selectedNode!.hasChildren,
+                        keepChildren: selectedNode!.storedChildren().length > 0,
                       );
                       selectedNode = null;
                     });
@@ -157,21 +154,22 @@ class _TreeConfigState extends State<TreeConfig> {
               itemBuilder: (context) => [
                 PopupMenuItem(
                   enabled: selectedNode != null &&
-                      (!selectedNode!.hasChildren ||
-                          selectedNode is RuleNode ||
-                          (selectedNode as TitleNode).childRuleNode == null ||
-                          (selectedNode?.parent != null &&
-                              selectedNode!.parent!.storedChildren().length ==
-                                  1)) &&
-                      (selectedNode?.parent != null ||
-                          model.rootNodes.length > 1),
+                      (selectedNode is RuleNode ||
+                          ((selectedNode?.storedParent != null ||
+                                  model.rootNodes.length > 1) &&
+                              (!(selectedNode as TitleNode).hasChildren ||
+                                  (selectedNode?.storedParent != null &&
+                                      selectedNode!.storedParent!
+                                              .storedChildren()
+                                              .length ==
+                                          1)))),
                   value: DeleteMenuItems.nodeOnly,
                   child: const Text('Delete Node Only'),
                 ),
                 PopupMenuItem(
                   enabled: selectedNode != null &&
-                      selectedNode!.hasChildren &&
-                      (selectedNode?.parent != null ||
+                      selectedNode!.storedChildren().length > 0 &&
+                      (selectedNode?.storedParent != null ||
                           model.rootNodes.length > 1),
                   value: DeleteMenuItems.branch,
                   child: const Text('Delete Node with Children'),
@@ -221,7 +219,7 @@ class _TreeConfigState extends State<TreeConfig> {
     );
   }
 
-  /// Returns a list of indented tree node cards,
+  /// Returns a list of indented tree node cards.
   List<Widget> _treeRows(BuildContext context) {
     var model = Provider.of<Structure>(context, listen: false);
     final contrastStyle =
@@ -240,7 +238,7 @@ class _TreeConfigState extends State<TreeConfig> {
           }
           titleText = Text.rich(TextSpan(children: ruleTitleSpans));
         } else {
-          titleText = Text(node.title);
+          titleText = Text((node as TitleNode).title);
         }
         items.add(
           Padding(

@@ -4,8 +4,8 @@
 // Free software, GPL v2 or later.
 
 import 'package:intl/intl.dart' show NumberFormat, DateFormat;
+import 'display_node.dart';
 import 'field_format_tools.dart';
-import 'nodes.dart';
 
 const fieldTypes = [
   'Text',
@@ -231,7 +231,7 @@ abstract class Field {
   /// Return -1, 0 or 1 compare values for field data.
   ///
   /// Overridden by other field types with more specific sorting keys.
-  int compareNodes(Node firstNode, Node secondNode) {
+  int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
     final firstValue = firstNode.data[name]?.toLowerCase() ?? '';
     final secondValue = secondNode.data[name]?.toLowerCase() ?? '';
     return firstValue.compareTo(secondValue);
@@ -431,7 +431,7 @@ class NumberField extends Field {
   }
 
   @override
-  int compareNodes(Node firstNode, Node secondNode) {
+  int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
     final firstValue = num.parse(firstNode.data[name] ?? '0');
     final secondValue = num.parse(secondNode.data[name] ?? '0');
     return firstValue.compareTo(secondValue);
@@ -483,7 +483,7 @@ class DateField extends Field {
   }
 
   @override
-  int compareNodes(Node firstNode, Node secondNode) {
+  int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
     final firstValue = _parseStored(firstNode.data[name] ?? '0001-01-01');
     final secondValue = _parseStored(secondNode.data[name] ?? '0001-01-01');
     return firstValue.compareTo(secondValue);
@@ -535,7 +535,7 @@ class TimeField extends Field {
   }
 
   @override
-  int compareNodes(Node firstNode, Node secondNode) {
+  int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
     final firstValue = _parseStored(firstNode.data[name] ?? '00:00:00.000');
     final secondValue = _parseStored(secondNode.data[name] ?? '00:00:00.000');
     return firstValue.compareTo(secondValue);

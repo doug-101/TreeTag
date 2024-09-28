@@ -4,10 +4,11 @@
 // Free software, GPL v2 or later.
 
 import 'dart:collection';
+import 'display_node.dart';
 import 'fields.dart';
 import '../main.dart' show prefs;
-import 'nodes.dart';
 import 'parsed_line.dart';
+import 'stored_node.dart';
 import 'structure.dart';
 
 /// Storage of an undo list with undo operations.
@@ -259,7 +260,7 @@ class UndoDeleteLeafNode extends Undo {
 
   @override
   Undo undo(Structure modelRef) {
-    final node = LeafNode.fromJson(nodeData, modelRef);
+    final node = LeafNode.fromJson(nodeData);
     final redo =
         UndoAddLeafNode(_toggleTitleRedo(title), nodePos, isRedo: !isRedo);
     modelRef.leafNodes.insert(nodePos, node);
@@ -537,10 +538,13 @@ class UndoAddTreeNode extends Undo {
         modelRef.rootNodes.removeAt(nodePos);
       } else {
         node.storedChildren().forEach((newNode) {
-          newNode.parent = null;
+          newNode.storedParent = null;
         });
         modelRef.rootNodes.replaceRange(
-            nodePos, nodePos + replaceCount, node.storedChildren());
+          nodePos,
+          nodePos + replaceCount,
+          node.storedChildren().cast<TitleNode>(),
+        );
       }
     } else if (node is TitleNode) {
       final parentTitle = parentNode as TitleNode;
@@ -551,7 +555,10 @@ class UndoAddTreeNode extends Undo {
       if (replaceCount == 0) {
         parentTitle.removeChildTitleNode(node);
       } else {
-        parentTitle.replaceChildTitleNode(node, node.storedChildren());
+        parentTitle.replaceChildTitleNode(
+          node as TitleNode,
+          node.storedChildren().cast<TitleNode>(),
+        );
       }
     } else if (parentNode is TitleNode) {
       final ruleNode = node as RuleNode;
@@ -590,7 +597,7 @@ class UndoDeleteTreeNode extends Undo {
   final Map<String, dynamic> nodeData;
   final int replaceCount;
 
-  UndoDeleteTreeNode(String title, this.parentId, this.nodePos, Node node,
+  UndoDeleteTreeNode(String title, this.parentId, this.nodePos, StoredNode node,
       {this.replaceCount = 0, bool isRedo = false})
       : nodeData = node.toJson(),
         super(title, 'deletetreenode', isRedo);
@@ -606,11 +613,15 @@ class UndoDeleteTreeNode extends Undo {
   Undo undo(Structure modelRef) {
     final redo = UndoAddTreeNode(_toggleTitleRedo(title), parentId, nodePos,
         replaceCount: replaceCount, isRedo: !isRedo);
-    final node = Node(nodeData, modelRef);
+    final node = StoredNode(nodeData);
     final parentNode = modelRef.storedNodeFromId(parentId);
     if (parentNode == null) {
-      modelRef.rootNodes.replaceRange(nodePos, nodePos + replaceCount, [node]);
-      node.parent = null;
+      modelRef.rootNodes.replaceRange(
+        nodePos,
+        nodePos + replaceCount,
+        [node as TitleNode],
+      );
+      node.storedParent = null;
       (node as TitleNode).updateChildParentRefs();
     } else if (node is TitleNode) {
       final parentTitle = parentNode as TitleNode;
@@ -627,13 +638,13 @@ class UndoDeleteTreeNode extends Undo {
       final ruleNode = node as RuleNode;
       parentNode.replaceChildRule(ruleNode);
       if (ruleNode.childRuleNode != null) {
-        ruleNode.childRuleNode!.parent = ruleNode;
+        ruleNode.childRuleNode!.storedParent = ruleNode;
       }
     } else {
       final ruleNode = node as RuleNode;
       (parentNode as RuleNode).replaceChildRule(ruleNode);
       if (ruleNode.childRuleNode != null) {
-        ruleNode.childRuleNode!.parent = ruleNode;
+        ruleNode.childRuleNode!.storedParent = ruleNode;
       }
     }
     modelRef.updateAltFormatFields();

@@ -1,11 +1,11 @@
 // parsed_line.dart, a class to parse and output lines with field content.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2023, Douglas W. Bell.
+// Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
+import 'display_node.dart';
 import 'fields.dart';
-import 'nodes.dart';
 
 /// A single line of output, broken into fields and static text.
 class ParsedLine {
