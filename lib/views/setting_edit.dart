@@ -287,6 +287,7 @@ class BoolFormField extends FormField<bool> {
     String? heading,
     super.key,
     super.onSaved,
+    void Function(bool)? onChange,
   }) : super(
           builder: (FormFieldState<bool> state) {
             return Column(
@@ -295,6 +296,7 @@ class BoolFormField extends FormField<bool> {
                 InkWell(
                   onTap: () {
                     state.didChange(!state.value!);
+                    if (onChange != null) onChange(state.value!);
                   },
                   child: Row(
                     children: <Widget>[
@@ -305,6 +307,7 @@ class BoolFormField extends FormField<bool> {
                         value: state.value!,
                         onChanged: (bool value) {
                           state.didChange(!state.value!);
+                          if (onChange != null) onChange(value);
                         },
                       ),
                     ],

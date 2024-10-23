@@ -67,9 +67,9 @@ class TreeLineExport {
       final uid = entry.value;
       Map<String, String> data;
       if (node is LeafNode) {
-        data = Map.of(node.data);
+        data = {};
         for (var fieldName in textFields) {
-          var value = data[fieldName];
+          var value = node.data[fieldName]?.join(', ');
           if (value != null) data[fieldName] = htmlEscape.convert(value);
         }
       } else {

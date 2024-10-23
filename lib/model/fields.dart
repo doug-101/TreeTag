@@ -25,12 +25,18 @@ abstract class Field {
   String initValue;
   String prefix;
   String suffix;
+  String separator;
 
   /// Similar sub-fields with different formatting.
   /// Used in specific rules or output lines.
   var _altFormatFields = <Field>[];
   int? _altFormatNumber;
   Field? altFormatParent;
+
+  /// A true setting allows multiple values to be stored.
+  ///
+  /// Only one field with multiple values can be used in a single line or rule.
+  var allowMultiples = false;
 
   Field({
     required this.name,
@@ -39,6 +45,7 @@ abstract class Field {
     this.initValue = '',
     this.prefix = '',
     this.suffix = '',
+    this.separator = ', ',
   });
 
   // Create a subtype based on the given [fieldType].
@@ -51,6 +58,7 @@ abstract class Field {
     initValue = '',
     prefix = '',
     suffix = '',
+    separator = ', ',
   }) {
     Field newField;
     switch (fieldType) {
@@ -60,6 +68,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
       case 'LongText':
         newField = LongTextField(
@@ -67,6 +76,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
       case 'Choice':
         newField = ChoiceField(
@@ -75,6 +85,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
       case 'AutoChoice':
         newField = AutoChoiceField(
@@ -82,6 +93,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
       case 'Number':
         newField = NumberField(
@@ -90,6 +102,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
       case 'Date':
         newField = DateField(
@@ -106,6 +119,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
       default:
         newField = RegTextField(
@@ -113,6 +127,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
     }
     return newField;
@@ -126,6 +141,7 @@ abstract class Field {
       initValue: jsonData['initvalue'] ?? '',
       prefix: jsonData['prefix'] ?? '',
       suffix: jsonData['suffix'] ?? '',
+      separator: jsonData['separator'] ?? ', ',
     );
     var i = 0;
     while (List.of(jsonData.keys).any((var key) => key.endsWith(':$i'))) {
@@ -136,12 +152,14 @@ abstract class Field {
         initValue: newField.initValue,
         prefix: jsonData['prefix:$i'] ?? '',
         suffix: jsonData['suffix:$i'] ?? '',
+        separator: jsonData['separator:$i'] ?? ', ',
       );
       altField._altFormatNumber = i;
       altField.altFormatParent = newField;
       newField._altFormatFields.add(altField);
       i++;
     }
+    newField.allowMultiples = jsonData['allow_multiples'] ?? false;
     return newField;
   }
 
@@ -156,10 +174,12 @@ abstract class Field {
       initValue: origField.initValue,
       prefix: origField.prefix,
       suffix: origField.suffix,
+      separator: origField.separator,
     );
     newField._altFormatFields = origField._altFormatFields;
     newField._altFormatNumber = origField._altFormatNumber;
     newField.altFormatParent = origField.altFormatParent;
+    newField.allowMultiples = origField.allowMultiples;
     return newField;
   }
 
@@ -175,6 +195,8 @@ abstract class Field {
     initValue = otherField.initValue;
     prefix = otherField.prefix;
     suffix = otherField.suffix;
+    separator = otherField.separator;
+    allowMultiples = otherField.allowMultiples;
   }
 
   /// Make fields equal if they have the same settings.
@@ -188,19 +210,22 @@ abstract class Field {
         format == otherField.format &&
         initValue == otherField.initValue &&
         prefix == otherField.prefix &&
-        suffix == otherField.suffix;
+        suffix == otherField.suffix &&
+        separator == otherField.separator &&
+        allowMultiples == otherField.allowMultiples;
   }
 
   /// Make fields equal if they have the same settings.
   @override
-  int get hashCode =>
-      Object.hash(name, fieldType, format, initValue, prefix, suffix);
+  int get hashCode => Object.hash(name, fieldType, format, initValue, prefix,
+      suffix, separator, allowMultiples);
 
-  /// Return text used in node titles and output lines.
-  String outputText(LeafNode node) {
-    final storedText = node.data[name] ?? '';
-    if (storedText.isEmpty) return '';
-    return _formatOutput(storedText);
+  /// Return a list of all text available for node titles and output lines.
+  List<String> allOutputText(LeafNode node) {
+    return [
+      for (var storedText in node.data[name] ?? [''])
+        storedText.isNotEmpty ? _formatOutput(storedText) : '',
+    ];
   }
 
   /// Return formatted text, including [prefix] and [suffix].
@@ -232,8 +257,8 @@ abstract class Field {
   ///
   /// Overridden by other field types with more specific sorting keys.
   int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = firstNode.data[name]?.toLowerCase() ?? '';
-    final secondValue = secondNode.data[name]?.toLowerCase() ?? '';
+    final firstValue = firstNode.data[name]?[0]?.toLowerCase() ?? '';
+    final secondValue = secondNode.data[name]?[0]?.toLowerCase() ?? '';
     return firstValue.compareTo(secondValue);
   }
 
@@ -243,13 +268,18 @@ abstract class Field {
     if (initValue.isNotEmpty) result['initvalue'] = initValue;
     if (prefix.isNotEmpty) result['prefix'] = prefix;
     if (suffix.isNotEmpty) result['suffix'] = suffix;
+    if (separator != ', ') result['separator'] = separator;
     var i = 0;
     for (var altField in _altFormatFields) {
       if (altField.format.isNotEmpty) result['format:$i'] = altField.format;
       if (altField.prefix.isNotEmpty) result['prefix:$i'] = altField.prefix;
       if (altField.suffix.isNotEmpty) result['suffix:$i'] = altField.suffix;
+      if (altField.separator != ', ') {
+        result['separator:$i'] = altField.separator;
+      }
       i++;
     }
+    if (allowMultiples) result['allow_multiples'] = true;
     return result;
   }
 
@@ -260,6 +290,7 @@ abstract class Field {
       fieldType: newFieldType,
       prefix: prefix,
       suffix: suffix,
+      separator: separator,
     );
   }
 
@@ -283,12 +314,14 @@ abstract class Field {
   /// Create a new [_altFormatFields] based on this parent field's settings.
   Field createAltFormatField() {
     final altField = Field.createField(
-        name: name,
-        fieldType: fieldType,
-        format: format,
-        initValue: initValue,
-        prefix: prefix,
-        suffix: suffix);
+      name: name,
+      fieldType: fieldType,
+      format: format,
+      initValue: initValue,
+      prefix: prefix,
+      suffix: suffix,
+      separator: separator,
+    );
     altField._altFormatNumber = _altFormatFields.length;
     altField.altFormatParent = this;
     _altFormatFields.add(altField);
@@ -333,6 +366,7 @@ class RegTextField extends Field {
     super.initValue = '',
     super.prefix = '',
     super.suffix = '',
+    super.separator = ', ',
   }) : super(
           fieldType: 'Text',
           format: '',
@@ -346,6 +380,7 @@ class LongTextField extends Field {
     super.initValue = '',
     super.prefix = '',
     super.suffix = '',
+    super.separator = ', ',
   }) : super(
           fieldType: 'LongText',
           format: '',
@@ -360,6 +395,7 @@ class ChoiceField extends Field {
     super.initValue = '',
     super.prefix = '',
     super.suffix = '',
+    super.separator = ', ',
   }) : super(
           fieldType: 'Choice',
           format: format.isNotEmpty ? format : '/1/2/3',
@@ -367,7 +403,7 @@ class ChoiceField extends Field {
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    final storedText = node.data[name] ?? '';
+    final storedText = node.data[name]?[0] ?? '';
     return storedText.isEmpty || splitChoiceFormat(format).contains(storedText);
   }
 
@@ -391,6 +427,7 @@ class AutoChoiceField extends Field {
     super.initValue = '',
     super.prefix = '',
     super.suffix = '',
+    super.separator = ', ',
   }) : super(
           fieldType: 'AutoChoice',
           format: '',
@@ -405,6 +442,7 @@ class NumberField extends Field {
     initValue = '',
     super.prefix = '',
     super.suffix = '',
+    super.separator = ', ',
   }) : super(
           fieldType: 'Number',
           format: format.isNotEmpty ? format : '#0.##',
@@ -418,7 +456,7 @@ class NumberField extends Field {
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    final storedText = node.data[name] ?? '';
+    final storedText = node.data[name]?[0] ?? '';
     return storedText.isEmpty || num.tryParse(storedText) != null;
   }
 
@@ -432,8 +470,8 @@ class NumberField extends Field {
 
   @override
   int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = num.parse(firstNode.data[name] ?? '0');
-    final secondValue = num.parse(secondNode.data[name] ?? '0');
+    final firstValue = num.parse(firstNode.data[name]?[0] ?? '0');
+    final secondValue = num.parse(secondNode.data[name]?[0] ?? '0');
     return firstValue.compareTo(secondValue);
   }
 }
@@ -447,6 +485,7 @@ class DateField extends Field {
     super.initValue = '',
     super.prefix = '',
     super.suffix = '',
+    super.separator = ', ',
   }) : super(
           fieldType: 'Date',
           format: format.isNotEmpty ? format : 'MMMM d, yyyy',
@@ -473,7 +512,7 @@ class DateField extends Field {
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    final storedText = node.data[name] ?? '';
+    final storedText = node.data[name]?[0] ?? '';
     try {
       if (storedText.isNotEmpty) DateFormat('yyyy-MM-dd').parse(storedText);
     } on FormatException {
@@ -484,8 +523,8 @@ class DateField extends Field {
 
   @override
   int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = _parseStored(firstNode.data[name] ?? '0001-01-01');
-    final secondValue = _parseStored(secondNode.data[name] ?? '0001-01-01');
+    final firstValue = _parseStored(firstNode.data[name]?[0] ?? '0001-01-01');
+    final secondValue = _parseStored(secondNode.data[name]?[0] ?? '0001-01-01');
     return firstValue.compareTo(secondValue);
   }
 }
@@ -499,6 +538,7 @@ class TimeField extends Field {
     super.initValue = '',
     super.prefix = '',
     super.suffix = '',
+    super.separator = ', ',
   }) : super(
           fieldType: 'Time',
           format: format.isNotEmpty ? format : 'h:mm a',
@@ -525,7 +565,7 @@ class TimeField extends Field {
 
   @override
   bool isStoredTextValid(LeafNode node) {
-    final storedText = node.data[name] ?? '';
+    final storedText = node.data[name]?[0] ?? '';
     try {
       if (storedText.isNotEmpty) DateFormat('HH:mm:ss.S').parse(storedText);
     } on FormatException {
@@ -536,8 +576,9 @@ class TimeField extends Field {
 
   @override
   int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = _parseStored(firstNode.data[name] ?? '00:00:00.000');
-    final secondValue = _parseStored(secondNode.data[name] ?? '00:00:00.000');
+    final firstValue = _parseStored(firstNode.data[name]?[0] ?? '00:00:00.000');
+    final secondValue =
+        _parseStored(secondNode.data[name]?[0] ?? '00:00:00.000');
     return firstValue.compareTo(secondValue);
   }
 }

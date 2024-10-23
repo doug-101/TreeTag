@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'field_format_edit.dart';
 import '../common_dialogs.dart' as common_dialogs;
+import '../setting_edit.dart' show BoolFormField;
 import '../../model/fields.dart';
 import '../../model/structure.dart';
 
@@ -38,16 +39,23 @@ class _FieldEditState extends State<FieldEdit> {
   /// A flag showing that the view was closed while editing a new field.
   var _cancelNewFlag = false;
 
+  /// A widget list avoids changes when the multiple separator is added.
+  final _formWidgetList = <Widget>[];
+  Widget? _separator;
+  late bool _hasSeparator;
+
   final _formKey = GlobalKey<FormState>();
   final _dropdownTypeKey = GlobalKey<FormFieldState<String>>();
   final _fieldFormatKey = GlobalKey<FormFieldState<String>>();
   final _fieldInitBoolKey = GlobalKey<FormFieldState<bool>>();
   final _fieldInitStrKey = GlobalKey<FormFieldState<String>>();
+  final _fieldAllowMultipleKey = GlobalKey<FormFieldState<bool>>();
 
   @override
   void initState() {
     super.initState();
     _editedField = Field.copy(widget.field);
+    _hasSeparator = _editedField.allowMultiples;
   }
 
   /// Prepare to close by validating and updating.
@@ -56,6 +64,7 @@ class _FieldEditState extends State<FieldEdit> {
   Future<bool> _handleClose() async {
     if (_cancelNewFlag) return true;
     var removeChoices = false;
+    var removeMultiples = false;
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final model = Provider.of<Structure>(context, listen: false);
@@ -79,8 +88,8 @@ class _FieldEditState extends State<FieldEdit> {
             title: 'Change Type for Data',
             label:
                 'Field type change will cause $numErrors nodes to lose data.',
-            trueButtonText: 'KEEP CHANGES',
-            falseButtonText: 'DISCARD CHANGES',
+            trueButtonText: 'KEEP CHANGE',
+            falseButtonText: 'REVERT CHANGE',
           );
           if (doKeep != null && !doKeep) {
             _editedField = _editedField.copyToType(widget.field.fieldType);
@@ -104,7 +113,7 @@ class _FieldEditState extends State<FieldEdit> {
               label: 'Choice field changes will cause $numErrors '
                   'nodes to lose data.',
               trueButtonText: 'KEEP CHANGES',
-              falseButtonText: 'DISCARD CHANGES',
+              falseButtonText: 'REVERT CHANGES',
             );
             if (doKeep != null && doKeep) {
               removeChoices = true;
@@ -113,9 +122,31 @@ class _FieldEditState extends State<FieldEdit> {
             }
           }
         }
+        if (widget.field.allowMultiples &&
+            !_editedField.allowMultiples &&
+            model.fieldHasMultiples(widget.field)) {
+          if (!mounted) return false;
+          final doKeep = await common_dialogs.okCancelDialog(
+            context: context,
+            title: 'Disabling Multiple Entries',
+            label: 'Some leaf nodes have multiple data entries that '
+                'will be discarded.',
+            trueButtonText: 'KEEP CHANGE',
+            falseButtonText: 'REVERT CHANGE',
+          );
+          if (doKeep != null && doKeep) {
+            removeMultiples = true;
+          } else {
+            _editedField.allowMultiples = true;
+          }
+        }
         if (_editedField != widget.field) {
-          model.editField(widget.field, _editedField,
-              removeChoices: removeChoices);
+          model.editField(
+            widget.field,
+            _editedField,
+            removeChoices: removeChoices,
+            removeMultiples: removeMultiples,
+          );
         }
       }
       return true;
@@ -125,6 +156,193 @@ class _FieldEditState extends State<FieldEdit> {
 
   @override
   Widget build(BuildContext context) {
+    final model = Provider.of<Structure>(context, listen: false);
+    if (_formWidgetList.isEmpty) {
+      _formWidgetList.addAll(
+        [
+          TextFormField(
+            key: UniqueKey(),
+            decoration: const InputDecoration(labelText: 'Field Name'),
+            autofocus: widget.isNew,
+            initialValue: _editedField.name,
+            validator: (String? text) {
+              if (text == null) return null;
+              if (text.isEmpty) return 'Cannot be empty';
+              final badCharMatches = RegExp(r'\W').allMatches(text);
+              if (badCharMatches.isNotEmpty) {
+                final badChars = [
+                  for (var match in badCharMatches) match.group(0)
+                ];
+                return 'Illegal characters: "${badChars.join()}"';
+              }
+              final model = Provider.of<Structure>(context, listen: false);
+              if (text != widget.field.name &&
+                  model.fieldMap.containsKey(text)) {
+                return 'Duplicate field name';
+              }
+              return null;
+            },
+            onSaved: (String? text) {
+              if (text != null) {
+                _editedField.name = text;
+              }
+            },
+          ),
+          DropdownButtonFormField<String>(
+            key: _dropdownTypeKey,
+            decoration: const InputDecoration(labelText: 'Field Type'),
+            value: _editedField.fieldType,
+            items: [
+              for (var type in fieldTypes)
+                DropdownMenuItem<String>(
+                  value: type,
+                  child: Text(type),
+                )
+            ],
+            onSaved: (String? newType) {
+              // Changes are made in onChanged.
+            },
+            onChanged: (String? newType) {
+              if (newType != null && newType != _editedField.fieldType) {
+                if (newType == widget.field.fieldType) {
+                  _editedField = Field.copy(widget.field);
+                  _isFieldTypeChanged = false;
+                } else {
+                  _editedField = _editedField.copyToType(newType);
+                  _isFieldTypeChanged = true;
+                  if (_fieldFormatKey.currentState != null) {
+                    _fieldFormatKey.currentState!
+                        .didChange(_editedField.format);
+                  }
+                  if (_editedField.initValue.isNotEmpty) {
+                    _editedField.initValue = '';
+                    if (_fieldInitBoolKey.currentState != null) {
+                      _fieldInitBoolKey.currentState!.didChange(false);
+                    }
+                    if (_fieldInitStrKey.currentState != null) {
+                      _fieldInitStrKey.currentState!.didChange('');
+                    }
+                  }
+                }
+              }
+              setState(() {});
+            },
+          ),
+          if (_editedField.format.isNotEmpty)
+            // Defined in field_format_edit.dart.
+            FieldFormatDisplay(
+              key: _fieldFormatKey,
+              fieldType: _editedField.fieldType,
+              initialFormat: _editedField.format,
+              onSaved: (String? value) async {
+                if (value != null && value != _editedField.format) {
+                  _editedField.format = value;
+                }
+              },
+            ),
+          if (_editedField is DateField || _editedField is TimeField)
+            // Defined below.
+            InitNowBoolFormField(
+              key: _fieldInitBoolKey,
+              initialValue: _editedField.initValue == 'now' ? true : false,
+              heading: _editedField is DateField
+                  ? 'Initial Value to Current Date'
+                  : 'Initial Value to Current Time',
+              onSaved: (bool? value) {
+                if (value != null) {
+                  _editedField.initValue = value ? 'now' : '';
+                }
+              },
+            )
+          else
+            // Initial value for other fields.
+            TextFormField(
+              key: _fieldInitStrKey,
+              decoration: const InputDecoration(labelText: 'Initial Value'),
+              initialValue: _editedField.initValue,
+              validator: (String? value) {
+                // Update field format before validating the init value.
+                if (_editedField.format.isNotEmpty) {
+                  var value = _fieldFormatKey.currentState!.value;
+                  if (value != null) _editedField.format = value;
+                }
+                return _editedField.validateMessage(value);
+              },
+              onSaved: (String? value) {
+                if (value != null) {
+                  _editedField.initValue = value;
+                }
+              },
+            ),
+          TextFormField(
+            key: UniqueKey(),
+            decoration: const InputDecoration(labelText: 'Default Prefix'),
+            initialValue: _editedField.prefix,
+            onSaved: (String? value) {
+              if (value != null) {
+                _editedField.prefix = value;
+              }
+            },
+          ),
+          TextFormField(
+            key: UniqueKey(),
+            decoration: const InputDecoration(labelText: 'Default Suffix'),
+            initialValue: _editedField.suffix,
+            onSaved: (String? value) {
+              if (value != null) {
+                _editedField.suffix = value;
+              }
+            },
+          ),
+          BoolFormField(
+            key: _fieldAllowMultipleKey,
+            initialValue: _editedField.allowMultiples,
+            heading: 'Allow Multiple Entries',
+            onSaved: (bool? value) async {
+              if (value != null) {
+                _editedField.allowMultiples = value;
+              }
+            },
+            onChange: (bool? value) async {
+              if (value != null) {
+                if (value == true) {
+                  final sameRuleFields =
+                      model.multipleFieldsInSameLine(_editedField);
+                  if (sameRuleFields.isNotEmpty) {
+                    await common_dialogs.okDialog(
+                      context: context,
+                      title: 'Multiple Fields in Lines',
+                      label: 'This field cannot be set to multiple entries, '
+                          'since it is in the same rule or output line as the '
+                          '${sameRuleFields.map((f) => f.name).join(' & ')}'
+                          '${sameRuleFields.length > 1 ? " fields." : " field."}',
+                    );
+                    setState(() {
+                      _fieldAllowMultipleKey.currentState!.didChange(false);
+                      _hasSeparator = false;
+                    });
+                    return;
+                  }
+                }
+                setState(() {
+                  _hasSeparator = value;
+                });
+              }
+            },
+          ),
+        ],
+      );
+      _separator = TextFormField(
+        key: UniqueKey(),
+        decoration: const InputDecoration(labelText: 'Field Separator'),
+        initialValue: _editedField.separator.replaceAll('\n', '\\n'),
+        onSaved: (String? value) {
+          if (value != null) {
+            _editedField.separator = value.replaceAll('\\n', '\n');
+          }
+        },
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('${_editedField.name} Field'),
@@ -180,143 +398,8 @@ class _FieldEditState extends State<FieldEdit> {
               width: 350.0,
               child: ListView(
                 children: <Widget>[
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'Field Name'),
-                    autofocus: widget.isNew,
-                    initialValue: _editedField.name,
-                    validator: (String? text) {
-                      if (text == null) return null;
-                      if (text.isEmpty) return 'Cannot be empty';
-                      final badCharMatches = RegExp(r'\W').allMatches(text);
-                      if (badCharMatches.isNotEmpty) {
-                        final badChars = [
-                          for (var match in badCharMatches) match.group(0)
-                        ];
-                        return 'Illegal characters: "${badChars.join()}"';
-                      }
-                      final model =
-                          Provider.of<Structure>(context, listen: false);
-                      if (text != widget.field.name &&
-                          model.fieldMap.containsKey(text)) {
-                        return 'Duplicate field name';
-                      }
-                      return null;
-                    },
-                    onSaved: (String? text) {
-                      if (text != null) {
-                        _editedField.name = text;
-                      }
-                    },
-                  ),
-                  DropdownButtonFormField<String>(
-                    key: _dropdownTypeKey,
-                    decoration: const InputDecoration(labelText: 'Field Type'),
-                    value: _editedField.fieldType,
-                    items: [
-                      for (var type in fieldTypes)
-                        DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        )
-                    ],
-                    onSaved: (String? newType) {
-                      // Changes are made in onChanged.
-                    },
-                    onChanged: (String? newType) {
-                      if (newType != null &&
-                          newType != _editedField.fieldType) {
-                        if (newType == widget.field.fieldType) {
-                          _editedField = Field.copy(widget.field);
-                          _isFieldTypeChanged = false;
-                        } else {
-                          _editedField = _editedField.copyToType(newType);
-                          _isFieldTypeChanged = true;
-                          if (_fieldFormatKey.currentState != null) {
-                            _fieldFormatKey.currentState!
-                                .didChange(_editedField.format);
-                          }
-                          if (_editedField.initValue.isNotEmpty) {
-                            _editedField.initValue = '';
-                            if (_fieldInitBoolKey.currentState != null) {
-                              _fieldInitBoolKey.currentState!.didChange(false);
-                            }
-                            if (_fieldInitStrKey.currentState != null) {
-                              _fieldInitStrKey.currentState!.didChange('');
-                            }
-                          }
-                        }
-                      }
-                      setState(() {});
-                    },
-                  ),
-                  if (_editedField.format.isNotEmpty)
-                    // Defined in field_format_edit.dart.
-                    FieldFormatDisplay(
-                      key: _fieldFormatKey,
-                      fieldType: _editedField.fieldType,
-                      initialFormat: _editedField.format,
-                      onSaved: (String? value) async {
-                        if (value != null && value != _editedField.format) {
-                          _editedField.format = value;
-                        }
-                      },
-                    ),
-                  if (_editedField is DateField || _editedField is TimeField)
-                    // Defined below.
-                    InitNowBoolFormField(
-                      key: _fieldInitBoolKey,
-                      initialValue:
-                          _editedField.initValue == 'now' ? true : false,
-                      heading: _editedField is DateField
-                          ? 'Initial Value to Current Date'
-                          : 'Initial Value to Current Time',
-                      onSaved: (bool? value) {
-                        if (value != null) {
-                          _editedField.initValue = value ? 'now' : '';
-                        }
-                      },
-                    )
-                  else
-                    // Initial value for other fields.
-                    TextFormField(
-                      key: _fieldInitStrKey,
-                      decoration:
-                          const InputDecoration(labelText: 'Initial Value'),
-                      initialValue: _editedField.initValue,
-                      validator: (String? value) {
-                        // Update field format before validating the init value.
-                        if (_editedField.format.isNotEmpty) {
-                          var value = _fieldFormatKey.currentState!.value;
-                          if (value != null) _editedField.format = value;
-                        }
-                        return _editedField.validateMessage(value);
-                      },
-                      onSaved: (String? value) {
-                        if (value != null) {
-                          _editedField.initValue = value;
-                        }
-                      },
-                    ),
-                  TextFormField(
-                    decoration:
-                        const InputDecoration(labelText: 'Default Prefix'),
-                    initialValue: _editedField.prefix,
-                    onSaved: (String? value) {
-                      if (value != null) {
-                        _editedField.prefix = value;
-                      }
-                    },
-                  ),
-                  TextFormField(
-                    decoration:
-                        const InputDecoration(labelText: 'Default Suffix'),
-                    initialValue: _editedField.suffix,
-                    onSaved: (String? value) {
-                      if (value != null) {
-                        _editedField.suffix = value;
-                      }
-                    },
-                  ),
+                  ..._formWidgetList,
+                  if (_hasSeparator && _separator != null) _separator!,
                 ],
               ),
             ),

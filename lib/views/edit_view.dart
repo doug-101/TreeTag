@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'dart:io';
+import 'dart:math' show max;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -40,9 +41,10 @@ class EditView extends StatefulWidget {
 
 class _EditViewState extends State<EditView> {
   final _formKey = GlobalKey<FormState>();
+  var _rowWidgetList = <TableRow>[];
   var _isChanged = false;
   // The [nodeData] is copied to allow undo creation before the edit is saved.
-  late final Map<String, String> nodeData;
+  late final Map<String, List<String>> nodeData;
 
   @override
   void initState() {
@@ -72,6 +74,21 @@ class _EditViewState extends State<EditView> {
       }
       // Handle all updates.
       _formKey.currentState!.save();
+      for (var field in model.fieldMap.values) {
+        var dataList = nodeData[field.name];
+        if (dataList != null) {
+          dataList.removeWhere((data) => data.isEmpty);
+          if (dataList.isNotEmpty) {
+            if (dataList.length > 1) {
+              // Sort entries in an ascending direction for consistency.
+              dataList.sort();
+            }
+            nodeData[field.name] = dataList;
+          } else {
+            nodeData.remove(field.name);
+          }
+        }
+      }
       if (_isChanged && widget.editMode == EditMode.nodeChildren) {
         model.editChildData(nodeData);
       } else if (_isChanged || widget.editMode == EditMode.newNode) {
@@ -89,6 +106,15 @@ class _EditViewState extends State<EditView> {
   @override
   Widget build(BuildContext context) {
     final model = Provider.of<Structure>(context, listen: false);
+    if (_rowWidgetList.isEmpty) {
+      _rowWidgetList = [
+        for (var field in model.fieldMap.values)
+          for (var dataPos = 0;
+              dataPos < max(nodeData[field.name]?.length ?? 1, 1);
+              dataPos++)
+            _tableRow(field, dataPos),
+      ];
+    }
     var windowTitle = widget.node.title;
     if (windowTitle.contains('\u0000')) windowTitle = '[title varies]';
     return Scaffold(
@@ -123,11 +149,13 @@ class _EditViewState extends State<EditView> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: <Widget>[
-                for (var field in model.fieldMap.values)
-                  _fieldEditor(widget.node, field),
-              ],
+            child: Table(
+              columnWidths: <int, TableColumnWidth>{
+                0: FlexColumnWidth(),
+                1: FixedColumnWidth(model.areMultiplesAllowed ? 20 : 0),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: _rowWidgetList,
             ),
           ),
         ),
@@ -135,18 +163,69 @@ class _EditViewState extends State<EditView> {
     );
   }
 
+  /// Return a table row with a field editor.
+  TableRow _tableRow(Field field, int dataPos) {
+    return TableRow(
+      children: <Widget>[
+        _fieldEditor(field, dataPos),
+        InkWell(
+          onTap: () {
+            if (field.allowMultiples &&
+                (nodeData[field.name]?.isNotEmpty ?? true)) {
+              if (nodeData[field.name] == null) {
+                nodeData[field.name] = ['', ''];
+              } else {
+                nodeData[field.name]!.add('');
+              }
+              setState(() {
+                _rowWidgetList.insert(
+                  _rowPosition(field.name),
+                  _tableRow(field, dataPos + 1),
+                );
+              });
+            }
+          },
+          child: Text(
+            field.allowMultiples && (nodeData[field.name]?.isNotEmpty ?? true)
+                ? '+'
+                : '',
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Return the number the last row with the given field.
+  int _rowPosition(String fieldName) {
+    final model = Provider.of<Structure>(context, listen: false);
+    var wasFound = false;
+    var count = 0;
+    for (var field in model.fieldMap.values) {
+      if (field.name == fieldName) {
+        wasFound = true;
+      } else if (wasFound) {
+        return count - 1;
+      }
+      count += max(nodeData[fieldName]?.length ?? 1, 1);
+    }
+    return count - 1;
+  }
+
   /// Return the proper field editor based on field type.
-  Widget _fieldEditor(LeafNode node, Field field) {
+  Widget _fieldEditor(Field field, int dataPos) {
     final model = Provider.of<Structure>(context, listen: false);
     var labelString = field.name;
-    String? initString = node.data[field.name];
-    if (widget.editMode == EditMode.nodeChildren && initString == '\u0000') {
+    String? initString = nodeData[field.name]?[dataPos];
+    if (widget.editMode == EditMode.nodeChildren &&
+        (nodeData[field.name]?.isEmpty ?? false)) {
       labelString = '$labelString [varies]';
       initString = null;
     }
     switch (field) {
       case LongTextField _:
         return TextForm(
+          key: UniqueKey(),
           label: labelString,
           minLines: 4,
           maxLines: 12,
@@ -157,17 +236,18 @@ class _EditViewState extends State<EditView> {
           validator: field.validateMessage,
           onSaved: (String? value) {
             if (value != null && value.isNotEmpty) {
-              nodeData[field.name] = value;
+              _setFieldData(nodeData, field.name, value, dataPos);
             } else if (widget.editMode == EditMode.nodeChildren &&
-                node.data[field.name] == '\u0000') {
-              nodeData[field.name] = '\u0000';
+                (nodeData[field.name]?.isEmpty ?? false)) {
+              nodeData[field.name] = [];
             } else {
-              nodeData.remove(field.name);
+              _setFieldData(nodeData, field.name, '', dataPos);
             }
           },
         );
       case ChoiceField _:
         return DropdownButtonFormField<String>(
+          key: UniqueKey(),
           items: [
             for (var str in splitChoiceFormat(field.format))
               DropdownMenuItem<String>(
@@ -182,82 +262,97 @@ class _EditViewState extends State<EditView> {
           onSaved: (String? value) {
             if (value != null) {
               if (value.isNotEmpty) {
-                nodeData[field.name] = value;
+                _setFieldData(nodeData, field.name, value, dataPos);
               } else if (widget.editMode == EditMode.nodeChildren &&
-                  node.data[field.name] == '\u0000') {
-                nodeData[field.name] = '\u0000';
+                  (nodeData[field.name]?.isEmpty ?? false)) {
+                nodeData[field.name] = [];
               } else {
-                nodeData.remove(field.name);
+                _setFieldData(nodeData, field.name, '', dataPos);
               }
             }
           },
         );
       case AutoChoiceField _:
         return AutoChoiceForm(
+          key: UniqueKey(),
           label: labelString,
           initialValue: initString ?? '',
           initialOptions: field.options,
           onSaved: (String? value) {
             if (value != null && value.isNotEmpty) {
-              nodeData[field.name] = value;
+              _setFieldData(nodeData, field.name, value, dataPos);
               field.options.add(value);
             } else if (widget.editMode == EditMode.nodeChildren &&
-                node.data[field.name] == '\u0000') {
-              nodeData[field.name] = '\u0000';
+                (nodeData[field.name]?.isEmpty ?? false)) {
+              nodeData[field.name] = [];
             } else {
-              nodeData.remove(field.name);
+              _setFieldData(nodeData, field.name, '', dataPos);
             }
           },
         );
       case NumberField _:
         return TextFormField(
+          key: UniqueKey(),
           decoration: InputDecoration(labelText: labelString),
           initialValue: initString ?? '',
           validator: field.validateMessage,
           onSaved: (String? value) {
             if (value != null && value.isNotEmpty) {
-              nodeData[field.name] = num.parse(value).toString();
+              _setFieldData(nodeData, field.name, value, dataPos);
             } else if (widget.editMode == EditMode.nodeChildren &&
-                node.data[field.name] == '\u0000') {
-              nodeData[field.name] = '\u0000';
+                (nodeData[field.name]?.isEmpty ?? false)) {
+              nodeData[field.name] = [];
             } else {
-              nodeData.remove(field.name);
+              _setFieldData(nodeData, field.name, '', dataPos);
             }
           },
         );
       case DateField _:
         var storedDateFormat = DateFormat('yyyy-MM-dd');
         return DateFormField(
+          key: UniqueKey(),
           fieldFormat: field.format,
           initialValue:
               initString != null ? storedDateFormat.parse(initString) : null,
           heading: labelString,
           onSaved: (DateTime? value) async {
             if (value != null) {
-              nodeData[field.name] = storedDateFormat.format(value);
+              _setFieldData(
+                nodeData,
+                field.name,
+                storedDateFormat.format(value),
+                dataPos,
+              );
             } else {
-              nodeData.remove(field.name);
+              _setFieldData(nodeData, field.name, '', dataPos);
             }
           },
         );
       case TimeField _:
         var storedTimeFormat = DateFormat('HH:mm:ss.S');
         return TimeFormField(
+          key: UniqueKey(),
           fieldFormat: field.format,
           initialValue:
               initString != null ? storedTimeFormat.parse(initString) : null,
           heading: labelString,
           onSaved: (DateTime? value) {
             if (value != null) {
-              nodeData[field.name] = storedTimeFormat.format(value);
+              _setFieldData(
+                nodeData,
+                field.name,
+                storedTimeFormat.format(value),
+                dataPos,
+              );
             } else {
-              nodeData.remove(field.name);
+              _setFieldData(nodeData, field.name, '', dataPos);
             }
           },
         );
       default:
         // Default return for a regular TextField
         return TextForm(
+          key: UniqueKey(),
           label: labelString,
           isFileLinkAvail: model.useMarkdownOutput &&
               !(Platform.isAndroid || Platform.isIOS),
@@ -266,17 +361,30 @@ class _EditViewState extends State<EditView> {
           validator: field.validateMessage,
           onSaved: (String? value) {
             if (value != null && value.isNotEmpty) {
-              nodeData[field.name] = value;
+              _setFieldData(nodeData, field.name, value, dataPos);
             } else if (widget.editMode == EditMode.nodeChildren &&
-                node.data[field.name] == '\u0000') {
-              nodeData[field.name] = '\u0000';
+                (nodeData[field.name]?.isEmpty ?? false)) {
+              nodeData[field.name] = [];
             } else {
-              nodeData.remove(field.name);
+              _setFieldData(nodeData, field.name, '', dataPos);
             }
           },
         );
     }
   }
+}
+
+/// Sets node data at a given position, expanding the list if necessary.
+void _setFieldData(
+  Map<String, List<String>> nodeData,
+  String fieldName,
+  String data, [
+  int dataPos = 0,
+]) {
+  var dataList = nodeData[fieldName] ?? <String>[];
+  while (dataList.length < dataPos + 1) dataList.add('');
+  dataList[dataPos] = data;
+  nodeData[fieldName] = dataList;
 }
 
 /// An editor for a text field that works with forms.

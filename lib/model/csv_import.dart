@@ -45,9 +45,9 @@ class CsvImport {
     rows.removeAt(0);
     for (var row in rows) {
       if (row.length > fieldList.length) throw const FormatException();
-      final data = <String, String>{};
+      final data = <String, List<String>>{};
       for (var i = 0; i < row.length; i++) {
-        data[fieldList[i].name] = row[i];
+        data[fieldList[i].name] = [row[i]];
       }
       model.leafNodes.add(LeafNode(data: data));
     }

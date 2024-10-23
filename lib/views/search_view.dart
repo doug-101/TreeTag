@@ -142,8 +142,8 @@ class _SearchViewState extends State<SearchView> {
   /// Return a widget with the long node output with matches highlighted.
   Widget longTextOutput(LeafNode node) {
     final text = node.outputs().join('\n');
-    var matches = nodeMatches(node);
-    var delta = searchFieldDelta(node) ?? -1;
+    final matches = nodeMatches(node);
+    final delta = searchFieldDelta(node) ?? -1;
     if (matches.isEmpty || delta < 0) return Text(text);
     final spans = <TextSpan>[];
     var nextStart = 0;

@@ -47,7 +47,7 @@ class TitleNode implements StoredNode, DisplayNode {
   @override
   var isStale = false;
   @override
-  var data = <String, String>{};
+  var data = <String, List<String>>{};
 
   // Keep storedParent and parent consistent.
   StoredNode? _storedParent;
@@ -264,12 +264,19 @@ class RuleNode implements StoredNode {
     return hasCustomChange;
   }
 
-  /// Set [childSortFields] to default of all fields if not custom.
+  /// Set [childSortFields] to default of all fields not in rules if not custom.
   void setDefaultChildSortFields() {
     if (!hasCustomChildSortFields) {
       childSortFields = [
         for (var field in StoredNode.modelRef.fieldMap.values) SortKey(field)
       ];
+      StoredNode parent = this;
+      while (parent is RuleNode) {
+        for (var field in parent.ruleLine.fields()) {
+          childSortFields.removeWhere((key) => key.keyField == field);
+        }
+        parent = parent.storedParent!;
+      }
     }
   }
 
@@ -303,9 +310,13 @@ class RuleNode implements StoredNode {
       [DisplayNode? parentRef]) {
     final nodeData = <String, List<LeafNode>>{};
     for (var node in availableNodes) {
-      nodeData.update(
-          ruleLine.formattedLine(node), (List<LeafNode> list) => list + [node],
-          ifAbsent: () => [node]);
+      for (var line in ruleLine.formattedLineList(node)) {
+        nodeData.update(
+          line,
+          (List<LeafNode> list) => list + [node],
+          ifAbsent: () => [node],
+        );
+      }
     }
     final oldGroups = <String, GroupNode>{};
     if (parentRef is GroupNode) {

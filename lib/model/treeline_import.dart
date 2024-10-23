@@ -53,25 +53,33 @@ class TreeLineImport {
     final unescape = HtmlUnescape();
     for (var nodeInfo in jsonData['nodes']) {
       if (nodeInfo['format'] == typeName && nodeInfo['data'] != null) {
-        final leafNode = LeafNode(data: nodeInfo['data']);
+        final data = <String, List<String>>{};
+        for (var key in nodeInfo['data'].keys) {
+          data[key] = [nodeInfo['data'][key]];
+        }
+        final leafNode = LeafNode(data: data);
         model.leafNodes.add(leafNode);
         for (var field in model.fieldMap.values) {
           if (leafNode.data[field.name] != null) {
             if (field is AutoChoiceField) {
-              field.options.add(leafNode.data[field.name]!);
+              field.options.add(leafNode.data[field.name]![0]);
             } else if (boolFieldNames.contains(field.name)) {
               if ({'true', 'yes'}
-                  .contains(leafNode.data[field.name]!.toLowerCase())) {
-                leafNode.data[field.name] = splitChoiceFormat(field.format)[0];
+                  .contains(leafNode.data[field.name]![0].toLowerCase())) {
+                leafNode.data[field.name] = [
+                  splitChoiceFormat(field.format)[0]
+                ];
               } else {
-                leafNode.data[field.name] = splitChoiceFormat(field.format)[1];
+                leafNode.data[field.name] = [
+                  splitChoiceFormat(field.format)[1]
+                ];
               }
             } else if (textFieldNames.contains(field.name)) {
-              var text = leafNode.data[field.name]!;
+              var text = leafNode.data[field.name]![0];
               text = text.replaceAll(lineEndExp, '\n');
               text = text.replaceAll(htmlTagExp, '');
               text = unescape.convert(text);
-              leafNode.data[field.name] = text;
+              leafNode.data[field.name] = [text];
             } else if (!field.isStoredTextValid(leafNode)) {
               leafNode.data.remove(field.name);
             }

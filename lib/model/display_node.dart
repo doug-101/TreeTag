@@ -31,7 +31,7 @@ abstract class DisplayNode {
   List<LeafNode> get availableNodes;
 
   /// Needed for grup node sorting and for leaf nodes (not title nodes).
-  Map<String, String> get data;
+  Map<String, List<String>> get data;
 
   List<DisplayNode> childNodes({bool forceUpdate});
 }
@@ -54,7 +54,7 @@ class GroupNode implements DisplayNode {
   @override
   List<LeafNode> get availableNodes => matchingNodes;
   @override
-  var data = <String, String>{};
+  var data = <String, List<String>>{};
   RuleNode ruleRef;
   var matchingNodes = <LeafNode>[];
   final _childGroups = <GroupNode>[];
@@ -112,15 +112,19 @@ class LeafNode implements DisplayNode {
   @override
   var availableNodes = <LeafNode>[];
   @override
-  late Map<String, String> data;
+  late Map<String, List<String>> data;
 
   /// Stores group parents for leaf instances with expanded output.
   final _expandedParents = <DisplayNode>{};
 
   LeafNode({required this.data});
 
-  LeafNode.fromJson(Map<String, dynamic> jsonData) {
-    data = jsonData.cast<String, String>();
+  LeafNode.fromJson(Map<String, dynamic> jsonData, {oldFormat = false}) {
+    if (!oldFormat) {
+      data = jsonData.map((key, value) => MapEntry(key, value.cast<String>()));
+    } else {
+      data = jsonData.map((key, value) => MapEntry(key, [value as String]));
+    }
   }
 
   @override
@@ -153,7 +157,7 @@ class LeafNode implements DisplayNode {
   bool isSearchMatch(List<String> searchTerms, Field? searchField) {
     final text = searchField == null
         ? outputs().join('\n').toLowerCase()
-        : searchField.outputText(this).toLowerCase();
+        : searchField.allOutputText(this).join('\n').toLowerCase();
     for (var term in searchTerms) {
       if (!text.contains(term)) return false;
     }
@@ -164,7 +168,7 @@ class LeafNode implements DisplayNode {
   bool isRegExpMatch(RegExp exp, Field? searchField) {
     final text = searchField == null
         ? outputs().join('\n')
-        : searchField.outputText(this);
+        : searchField.allOutputText(this).join('\n');
     return exp.hasMatch(text);
   }
 
@@ -172,7 +176,7 @@ class LeafNode implements DisplayNode {
   List<Match> allPatternMatches(Pattern pattern, Field? searchField) {
     var text = searchField == null
         ? outputs().join('\n')
-        : searchField.outputText(this);
+        : searchField.allOutputText(this).join(searchField.separator);
     if (pattern is String) text = text.toLowerCase();
     return pattern.allMatches(text).toList();
   }
@@ -183,17 +187,23 @@ class LeafNode implements DisplayNode {
   int? fieldOuputStart(Field field) {
     int pos = 0;
     for (var line in DisplayNode.modelRef.outputLines) {
-      var fieldsBlank = true;
-      int linePos = 0;
-      for (var segment in line.segments) {
-        if (segment.field == field) return pos + linePos;
-        var text = segment.output(this);
-        if (text.isNotEmpty && segment.hasField) fieldsBlank = false;
-        linePos += text.length;
-      }
-      if (!fieldsBlank || !(line.segments.any((s) => s.hasField))) {
-        // Adding and extra one for the linefeed character.
-        pos += linePos + 1;
+      if (line.fields().contains(field)) {
+        // Assume that the field searched for is never blank and skipped.
+        for (var segment in line.segments) {
+          if (segment.field == field) {
+            return pos;
+          }
+          if (segment.field == null ||
+              segment.field!.separator.contains('\n')) {
+            pos += segment.allOutput(this)[0].length;
+          } else {
+            pos +=
+                segment.allOutput(this).join(segment.field!.separator).length;
+          }
+        }
+      } else {
+        // Add full line length and 1 for return if prior to search field.
+        pos += line.formattedLine(this).length + 1;
       }
     }
     return null;

@@ -63,10 +63,20 @@ class ParsedLine {
 
   /// Return this line filled in with data fields from [node].
   String formattedLine(LeafNode node) {
+    if (fields().any((f) => f.allowMultiples)) {
+      final multiField = fields().singleWhere((f) => f.allowMultiples);
+      if (multiField.separator.contains('\n')) {
+        // With the multiple line separator, the output contains full lines.
+        return formattedLineList(node).join(multiField.separator);
+      }
+    }
     final result = StringBuffer();
     var fieldsBlank = true;
     for (var segment in segments) {
-      final text = segment.output(node);
+      String text = '';
+      final textList = segment.allOutput(node);
+      // With a single line separator, only segment is repeated with multiples.
+      text = textList.join(segment.field!.separator);
       if (text.isNotEmpty) {
         if (segment.hasField) fieldsBlank = false;
         result.write(text);
@@ -74,6 +84,35 @@ class ParsedLine {
     }
     if (fieldsBlank && segments.any((s) => s.hasField)) return '';
     return result.toString();
+  }
+
+  /// Return a list of lines filled in with all data fields from [node].
+  List<String> formattedLineList(LeafNode node) {
+    final results = [StringBuffer()];
+    var fieldsBlank = true;
+    for (var segment in segments) {
+      final texts = segment.allOutput(node);
+      if (texts.length == 1) {
+        if (texts[0].isNotEmpty) {
+          for (var buf in results) {
+            buf.write(texts[0]);
+          }
+          if (segment.hasField) fieldsBlank = false;
+        }
+      } else {
+        // Only one field should have multiple entries.
+        assert(results.length == 1);
+        while (results.length < texts.length) {
+          results.add(StringBuffer(results[0].toString()));
+        }
+        for (var i = 0; i < texts.length; i++) {
+          results[i].write(texts[i]);
+        }
+        fieldsBlank = false;
+      }
+    }
+    if (fieldsBlank && segments.any((s) => s.hasField)) return [''];
+    return results.map((s) => s.toString()).toList();
   }
 
   String getUnparsedLine() {
@@ -90,6 +129,10 @@ class ParsedLine {
 
   bool hasMultipleFields() {
     return fields().map((field) => field.name).toSet().length > 1;
+  }
+
+  bool hasMultiplesAllowedField() {
+    return fields().any((field) => field.allowMultiples);
   }
 
   /// Remove the [field] from this line.
@@ -149,9 +192,9 @@ class LineSegment {
 
   bool get hasField => field != null;
 
-  String output(LeafNode node) {
-    if (field != null) return field!.outputText(node);
-    return text ?? '';
+  List<String> allOutput(LeafNode node) {
+    if (field != null) return field!.allOutputText(node);
+    return [text ?? ''];
   }
 
   String unparsedKey() {

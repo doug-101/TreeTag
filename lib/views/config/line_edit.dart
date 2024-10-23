@@ -84,7 +84,17 @@ class _LineEditState extends State<LineEdit> {
                       } else {
                         final field = model.fieldMap[result];
                         if (field != null) {
-                          newSegment = LineSegment(field: field);
+                          if (field.allowMultiples &&
+                              widget.line.hasMultiplesAllowedField()) {
+                            await common_dialogs.okDialog(
+                              context: context,
+                              title: 'Multiple Fields in a Line',
+                              label: 'Cannot have two fields that both allow '
+                                  'multiple entries in the same line.',
+                            );
+                          } else {
+                            newSegment = LineSegment(field: field);
+                          }
                         }
                       }
                       if (newSegment != null) {

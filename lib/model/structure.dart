@@ -73,15 +73,17 @@ class Structure extends ChangeNotifier {
     for (var lineString in jsonData['outputlines'] ?? []) {
       outputLines.add(ParsedLine(lineString ?? '', fieldMap));
     }
+    final String fileVersion = jsonData['properties']?['ttversion'] ?? '0.0.0';
+    final hasOldDataFormat = compareVersions(fileVersion, '0.8.0') < 0;
     for (var leaf in jsonData['leaves'] ?? []) {
-      leafNodes.add(LeafNode.fromJson(leaf));
+      leafNodes.add(LeafNode.fromJson(leaf, oldFormat: hasOldDataFormat));
     }
     if (fieldMap.isEmpty || rootNodes.isEmpty || outputLines.isEmpty) {
       throw const FormatException('Missing sections in file');
     }
     if (jsonData['usemarkdown'] != null) useMarkdownOutput = true;
     if (jsonData['userelativelinks'] != null) useRelativeLinks = true;
-    final seconds = jsonData['properties']?['modtime'];
+    final int seconds = jsonData['properties']?['modtime'];
     if (seconds != null) {
       modTime = DateTime.fromMillisecondsSinceEpoch(seconds);
     }
@@ -89,12 +91,17 @@ class Structure extends ChangeNotifier {
       for (var leaf in leafNodes) {
         for (var field in autoChoiceFields) {
           if (leaf.data[field.name] != null) {
-            field.options.add(leaf.data[field.name]!);
+            field.options.addAll(leaf.data[field.name]!);
           }
         }
       }
     }
-    undoList = UndoList.fromJson(jsonData['undos'] ?? [], this);
+    if (!hasOldDataFormat) {
+      undoList = UndoList.fromJson(jsonData['undos'] ?? [], this);
+    } else {
+      // Remove old undos if updating TreeTag version.
+      undoList = UndoList(this);
+    }
   }
 
   /// Start a new, skeleton file.
@@ -116,8 +123,8 @@ class Structure extends ChangeNotifier {
     );
     leafNodes.add(LeafNode(
       data: {
-        mainFieldName: 'Sample Node',
-        categoryFieldName: 'First Category',
+        mainFieldName: ['Sample Node'],
+        categoryFieldName: ['First Category'],
       },
     ));
     titleLine = ParsedLine(fieldMap[mainFieldName]!.lineText(), fieldMap);
@@ -318,30 +325,43 @@ class Structure extends ChangeNotifier {
       undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
       var nodeChanged = false;
       for (var field in fields) {
-        var text = node.data[field.name];
-        // Allow regexp searches to replace blank fields.
-        text ??= '';
-        // reversed to avoid mismatches due to varying replacement lengths.
-        for (var match in pattern.allMatches(text).toList().reversed) {
-          var newReplacement = replacement;
-          // Add match groups to backreferences in replacement string.
-          for (var replaceMatch in replaceGroupMatches.reversed) {
-            var groupNum = int.tryParse(replaceMatch.group(0)![1]);
-            if (groupNum != null && groupNum <= match.groupCount) {
-              newReplacement = newReplacement.replaceRange(
-                replaceMatch.start,
-                replaceMatch.end,
-                match.group(groupNum)!,
-              );
+        for (var i = 0; i < (node.data[field.name]?.length ?? 1); i++) {
+          var fieldChanged = false;
+          // Blank on null allows regexp searches to replace blank fields.
+          var text = node.data[field.name]?[i] ?? '';
+          // reversed to avoid mismatches due to varying replacement lengths.
+          for (var match in pattern.allMatches(text).toList().reversed) {
+            var newReplacement = replacement;
+            // Add match groups to backreferences in replacement string.
+            for (var replaceMatch in replaceGroupMatches.reversed) {
+              var groupNum = int.tryParse(replaceMatch.group(0)![1]);
+              if (groupNum != null && groupNum <= match.groupCount) {
+                newReplacement = newReplacement.replaceRange(
+                  replaceMatch.start,
+                  replaceMatch.end,
+                  match.group(groupNum)!,
+                );
+              }
+            }
+            text = text.replaceRange(match.start, match.end, newReplacement);
+            nodeChanged = true;
+            fieldChanged = true;
+          }
+          if (fieldChanged) {
+            if (text.isNotEmpty) {
+              if (node.data[field.name] != null) {
+                node.data[field.name]![i] = text;
+              } else {
+                node.data[field.name] = [text];
+              }
+            } else if (node.data[field.name] != null) {
+              if (node.data[field.name]!.length > 1) {
+                node.data[field.name]!.removeAt(i);
+              } else {
+                node.data.remove(field.name);
+              }
             }
           }
-          text = text!.replaceRange(match.start, match.end, newReplacement);
-          nodeChanged = true;
-        }
-        if (text!.isNotEmpty && nodeChanged) {
-          node.data[field.name] = text;
-        } else {
-          node.data.remove(field.name);
         }
       }
       if (!nodeChanged) undos.removeLast();
@@ -359,8 +379,9 @@ class Structure extends ChangeNotifier {
   /// Does not create undo objects or update views - that is done in
   /// [editNodeData()] after the user edits the new node.
   LeafNode newNode({DisplayNode? copyFromNode}) {
-    final data =
-        Map<String, String>.of(copyFromNode?.data ?? <String, String>{});
+    final data = Map<String, List<String>>.of(
+      copyFromNode?.data ?? <String, List<String>>{},
+    );
     if (copyFromNode is GroupNode) {
       while (copyFromNode?.parent is GroupNode) {
         copyFromNode = copyFromNode?.parent;
@@ -371,7 +392,7 @@ class Structure extends ChangeNotifier {
     for (var field in fieldMap.values) {
       if (data[field.name] == null) {
         final initValue = field.initialValue();
-        if (initValue != null) newNode.data[field.name] = initValue;
+        if (initValue != null) newNode.data[field.name] = [initValue];
       }
     }
     leafNodes.add(newNode);
@@ -380,6 +401,7 @@ class Structure extends ChangeNotifier {
 
   /// Called from [FrameView] to create a node with common child data.
   ///
+  /// Used for editing all child nodes at once.
   /// All children from the current detail view are considered.
   /// Common data is included in the node's map, including null values for
   /// mising/empty values.  The map contains a null char when values vary.
@@ -391,7 +413,7 @@ class Structure extends ChangeNotifier {
         obsoleteNodes.contains(rootNode)) {
       return null;
     }
-    Map<String, String> data = {};
+    Map<String, List<String>> data = {};
     for (var field in fieldMap.values) {
       final value = _commonData(field, rootNode.availableNodes);
       if (value != null) data[field.name] = value;
@@ -399,19 +421,23 @@ class Structure extends ChangeNotifier {
     return LeafNode(data: data);
   }
 
-  // Called from above to provide common data values.
-  // Returns a null char if values vary, but returns a null value for
+  // Called from above to provide common data value lists.
+  // Returns an empty list if values vary, but returns null for
   // consistently missing/empty values.
-  String? _commonData(Field field, List<LeafNode> nodes) {
-    final value = nodes[0].data[field.name];
+  List<String>? _commonData(Field field, List<LeafNode> nodes) {
+    final values = nodes[0].data[field.name];
     for (var node in nodes) {
-      if ((node.data[field.name]) != value) return '\u0000';
+      final nodeData = node.data[field.name];
+      if (nodeData?.length != values?.length) return [];
+      for (var i = 0; i < (nodeData?.length ?? 0); i++) {
+        if (nodeData?[i] != values?[i]) return [];
+      }
     }
-    return value;
+    return values;
   }
 
   /// Called from the [EditView] to update new or edited node data.
-  void editNodeData(LeafNode node, Map<String, String> nodeData,
+  void editNodeData(LeafNode node, Map<String, List<String>> nodeData,
       {bool newNode = false}) {
     if (newNode) {
       node.data = nodeData;
@@ -426,17 +452,17 @@ class Structure extends ChangeNotifier {
   }
 
   /// Called from the [EditView] to edit data in all child nodes.
-  void editChildData(Map<String, String> nodeData) {
+  void editChildData(Map<String, List<String>> nodeData) {
     final rootNode = currentDetailViewNode();
     if (rootNode != null) {
       final undos = <Undo>[];
       for (var node in rootNode.availableNodes) {
         undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
         for (var field in fieldMap.values) {
-          final newValue = nodeData[field.name];
-          if (newValue != null && newValue != '\u0000') {
-            node.data[field.name] = newValue;
-          } else if (newValue == null) {
+          final newValues = nodeData[field.name];
+          if (newValues != null && newValues != []) {
+            node.data[field.name] = newValues;
+          } else if (newValues == null) {
             node.data.remove(field.name);
           }
         }
@@ -504,6 +530,11 @@ class Structure extends ChangeNotifier {
     updateAll();
   }
 
+  /// Return true if any fields allow multiple entries.
+  bool get areMultiplesAllowed {
+    return fieldMap.values.any((field) => field.allowMultiples);
+  }
+
   /// Called from the [FieldEdit] view to add a new [field].
   void addNewField(Field field, {int? newPos, bool doAddOutput = false}) {
     final fieldUndo =
@@ -537,7 +568,7 @@ class Structure extends ChangeNotifier {
   ///
   /// Choices from [ChoiceField] need to be updated if [removeChoices].
   void editField(Field oldField, Field editedField,
-      {bool removeChoices = false}) {
+      {bool removeChoices = false, bool removeMultiples = false}) {
     final undos = <Undo>[];
     final pos = List.of(fieldMap.values).indexOf(oldField);
     undos.add(UndoEditField(
@@ -568,6 +599,14 @@ class Structure extends ChangeNotifier {
         if (!oldField.isStoredTextValid(leaf)) {
           undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
           leaf.data.remove(editedField.name);
+        }
+      }
+    }
+    if (removeMultiples) {
+      for (var leaf in leafNodes) {
+        if ((leaf.data[editedField.name]?.length ?? 0) > 1) {
+          undos.add(UndoEditLeafNode('', leafNodes.indexOf(leaf), leaf.data));
+          leaf.data[editedField.name] = [leaf.data[editedField.name]![0]];
         }
       }
     }
@@ -757,6 +796,7 @@ class Structure extends ChangeNotifier {
     saveFile();
   }
 
+  // TODO: Check whether a checkCustom = true option is required for deletion.
   void updateRuleChildSortFields() {
     for (var root in rootNodes) {
       for (var item in storedNodeGenerator(root)) {
@@ -801,12 +841,48 @@ class Structure extends ChangeNotifier {
     return false;
   }
 
+  /// Return how many leaf nodes where the field data doesn't match the format.
   int badFieldCount(Field field) {
     var count = 0;
     for (var leaf in leafNodes) {
       if (!field.isStoredTextValid(leaf)) count++;
     }
     return count;
+  }
+
+  /// Return true if any leaf nodes have multiple data entries in [field].
+  bool fieldHasMultiples(Field field) {
+    return leafNodes.any((leaf) => (leaf.data[field.name]?.length ?? 0) > 1);
+  }
+
+  /// Return multiple-enabled fields in the smae rule/output line as [field].
+  List<Field> multipleFieldsInSameLine(Field field) {
+    final result = <Field>[];
+    if (fieldMap.values.every((f) => !f.allowMultiples)) {
+      return result;
+    }
+    final allLines = <ParsedLine>[];
+    for (var root in rootNodes) {
+      for (var item in storedNodeGenerator(root)) {
+        if (item.node is RuleNode) {
+          allLines.add((item.node as RuleNode).ruleLine);
+        }
+      }
+    }
+    allLines.add(titleLine);
+    allLines.addAll(outputLines);
+    for (var line in allLines) {
+      if (line.fields().length > 1 && line.fields().contains(field)) {
+        for (var otherField in line.fields()) {
+          if (otherField != field &&
+              otherField.allowMultiples &&
+              !result.contains(otherField)) {
+            result.add(otherField);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   /// Update all alt format fields by removing unused and updating parents.
@@ -1286,6 +1362,22 @@ Iterable<LeveledStoredNode> storedNodeGenerator(StoredNode node,
   for (var child in node.storedChildren()) {
     yield* storedNodeGenerator(child, level: level + 1);
   }
+}
+
+/// Compare version strings (integers separated by periods).
+///
+/// Return -1 if first is less, 1 if first is greater, 0 if equal.
+int compareVersions(String firstStr, String secondStr) {
+  final first = firstStr.split('.');
+  final second = secondStr.split('.');
+  while (first.length < second.length) first.add('0');
+  while (second.length < first.length) second.add('0');
+  for (var i = 0; i < first.length; i++) {
+    final compare =
+        (int.tryParse(first[i]) ?? 0).compareTo(int.tryParse(second[i]) ?? 0);
+    if (compare != 0) return compare;
+  }
+  return 0;
 }
 
 /// An exception thrown prior to saving files that were externally modified.
