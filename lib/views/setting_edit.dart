@@ -23,9 +23,6 @@ class SettingEdit extends StatefulWidget {
 }
 
 class _SettingEditState extends State<SettingEdit> {
-  /// A flag showing that the view was forced to close.
-  var _cancelFlag = false;
-
   final _formKey = GlobalKey<FormState>();
   final _passwordKey = GlobalKey<FormFieldState>();
 
@@ -34,12 +31,21 @@ class _SettingEditState extends State<SettingEdit> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings - TreeTag'),
+        leading: IconButton(
+          icon: const Icon(Icons.check_circle),
+          tooltip: 'Save current settings and close',
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              _formKey.currentState!.save();
+              Navigator.of(context).pop();
+            }
+          },
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.close),
             tooltip: 'Revert all changes',
             onPressed: () {
-              _cancelFlag = true;
               Navigator.of(context).pop();
             },
           ),
@@ -50,9 +56,7 @@ class _SettingEditState extends State<SettingEdit> {
         canPop: false,
         onPopInvokedWithResult: (bool didPop, Object? result) {
           if (!didPop) {
-            if (_cancelFlag) {
-              Navigator.of(context).pop();
-            } else if (_formKey.currentState!.validate()) {
+            if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
               Navigator.of(context).pop();
             }

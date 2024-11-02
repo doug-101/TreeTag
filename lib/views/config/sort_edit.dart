@@ -42,6 +42,22 @@ class _SortEditState extends State<SortEdit> {
       appBar: AppBar(
         title:
             Text('${widget.availFields != null ? 'Rule' : 'Child'} Sort Edit'),
+        leading: IconButton(
+          icon: const Icon(Icons.check_circle),
+          tooltip: 'Save changes and close',
+          onPressed: () {
+            Navigator.pop(context, isChanged);
+          },
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: 'Cancel all changes',
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+          ),
+        ],
       ),
       body: PopScope<Object?>(
         // Avoid pop due to back button until a bool can be returned.

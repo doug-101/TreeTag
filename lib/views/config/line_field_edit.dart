@@ -41,6 +41,17 @@ class _LineFieldEditState extends State<LineFieldEdit> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.field.name} Line Field'),
+        leading: IconButton(
+          icon: const Icon(Icons.check_circle),
+          tooltip: 'Save current settings and close',
+          onPressed: () {
+            _formKey.currentState!.save();
+            final isChanged = widget.origPrefix != widget.field.prefix ||
+                widget.origSuffix != widget.field.suffix ||
+                widget.origFormat != widget.field.format;
+            Navigator.pop(context, isChanged);
+          },
+        ),
         actions: <Widget>[
           // Reset back to the alt format's parent field.
           IconButton(
@@ -57,6 +68,13 @@ class _LineFieldEditState extends State<LineFieldEdit> {
               } else {
                 _formKey.currentState!.reset();
               }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: 'Revert all changes',
+            onPressed: () {
+              Navigator.pop(context, false);
             },
           ),
         ],

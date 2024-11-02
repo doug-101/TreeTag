@@ -28,6 +28,21 @@ class _LineEditState extends State<LineEdit> {
   LineSegment? _selectedSegment;
   var _isChanged = false;
 
+  /// Prepare to close by validating.
+  ///
+  /// Returns true if it's ok to close.
+  Future<bool> _handleClose() async {
+    if (widget.line.isEmpty) {
+      await common_dialogs.okDialog(
+        context: context,
+        title: 'Cannot be empty',
+        label: 'Must add a field or a text entry',
+      );
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final model = Provider.of<Structure>(context, listen: false);
@@ -36,9 +51,20 @@ class _LineEditState extends State<LineEdit> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        leading: IconButton(
+          icon: const Icon(Icons.check_circle),
+          tooltip: 'Save changes and close',
+          onPressed: () async {
+            if (await _handleClose()) {
+              if (!context.mounted) return;
+              Navigator.pop(context, _isChanged);
+            }
+          },
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.close),
+            tooltip: 'Cancel all changes',
             onPressed: () {
               Navigator.pop(context, false);
             },
@@ -50,13 +76,8 @@ class _LineEditState extends State<LineEdit> {
         canPop: false,
         onPopInvokedWithResult: (bool didPop, Object? result) async {
           if (!didPop) {
-            if (widget.line.isEmpty) {
-              await common_dialogs.okDialog(
-                context: context,
-                title: 'Cannot be empty',
-                label: 'Must add a field or a text entry',
-              );
-            } else {
+            if (await _handleClose()) {
+              if (!context.mounted) return;
               Navigator.pop(context, _isChanged);
             }
           }

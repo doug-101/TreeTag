@@ -83,7 +83,7 @@ class Structure extends ChangeNotifier {
     }
     if (jsonData['usemarkdown'] != null) useMarkdownOutput = true;
     if (jsonData['userelativelinks'] != null) useRelativeLinks = true;
-    final int seconds = jsonData['properties']?['modtime'];
+    final int? seconds = jsonData['properties']?['modtime'];
     if (seconds != null) {
       modTime = DateTime.fromMillisecondsSinceEpoch(seconds);
     }
@@ -796,7 +796,6 @@ class Structure extends ChangeNotifier {
     saveFile();
   }
 
-  // TODO: Check whether a checkCustom = true option is required for deletion.
   void updateRuleChildSortFields() {
     for (var root in rootNodes) {
       for (var item in storedNodeGenerator(root)) {

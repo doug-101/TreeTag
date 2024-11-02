@@ -188,12 +188,14 @@ class UndoBatch extends Undo {
 
 class UndoEditLeafNode extends Undo {
   final int nodePos;
+  /// A deep copy of the data provided to the constructor.
   final Map<String, List<String>> storedNodeData;
 
   UndoEditLeafNode(
       String title, this.nodePos, Map<String, List<String>> nodeData,
       {bool isRedo = false})
-      : storedNodeData = Map.of(nodeData),
+      : storedNodeData =
+            nodeData.map((key, value) => MapEntry(key, List.of(value))),
         super(title, 'editleafnode', isRedo);
 
   UndoEditLeafNode._fromJson(Map<String, dynamic> jsonData)

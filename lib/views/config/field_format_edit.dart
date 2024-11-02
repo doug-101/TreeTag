@@ -110,6 +110,28 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.fieldType} Field Format'),
+        leading: IconButton(
+          icon: const Icon(Icons.check_circle),
+          tooltip: 'Retain values and close',
+          onPressed: () {
+            final formatResult = combineFieldFormat(segments, condense: true);
+            if (_fieldFormatIsValid(widget.fieldType, formatResult)) {
+              Navigator.pop<String?>(
+                context,
+                isChanged ? formatResult : null,
+              );
+            }
+          },
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: 'Cancel all changes',
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       ),
       body: PopScope<String?>(
         // Avoid pop due to back button until a result can be returned.

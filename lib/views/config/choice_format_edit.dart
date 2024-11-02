@@ -38,13 +38,33 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Choice Field Format Edit'),
+        leading: IconButton(
+          icon: const Icon(Icons.check_circle),
+          tooltip: 'Retain values and close',
+          onPressed: () {
+            final formatResult = combineChoiceFormat(segments);
+            Navigator.pop<String?>(
+              context,
+              isChanged ? formatResult : null,
+            );
+          },
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: 'Cancel all changes',
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       ),
       body: PopScope<String?>(
         // Avoid pop due to back button until a string can be returned.
         canPop: false,
         onPopInvokedWithResult: (bool didPop, String? result) {
           if (!didPop) {
-            var formatResult = combineChoiceFormat(segments);
+            final formatResult = combineChoiceFormat(segments);
             Navigator.pop<String?>(
               context,
               isChanged ? formatResult : null,

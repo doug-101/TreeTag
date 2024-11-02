@@ -217,7 +217,7 @@ Future<void> aboutDialog({
     context: context,
     applicationName: 'TreeTag',
     applicationVersion: 'Version ${packageInfo.version}',
-    applicationLegalese: '©2023 by Douglas W. Bell',
+    applicationLegalese: '©2024 by Douglas W. Bell',
     applicationIcon: Image.asset('assets/images/tree_icon_48.png'),
   );
 }

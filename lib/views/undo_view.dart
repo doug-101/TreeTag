@@ -27,6 +27,7 @@ class _UndoViewState extends State<UndoView> {
   /// Sets the view to delete all undos earlier than this position.
   int? deleteToPos;
 
+  var _cancelFlag = false;
   final _scrollController = ScrollController();
 
   @override
@@ -55,17 +56,36 @@ class _UndoViewState extends State<UndoView> {
     return PopScope<Object?>(
       canPop: true,
       onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (undoToPos != null) {
-          model.undoList.undoToPos(undoToPos!);
-        }
-        if (deleteToPos != null) {
-          model.undoList.removeRange(0, deleteToPos! + 1);
-          model.saveFile();
+        if (!_cancelFlag) {
+          if (undoToPos != null) {
+            model.undoList.undoToPos(undoToPos!);
+          }
+          if (deleteToPos != null) {
+            model.undoList.removeRange(0, deleteToPos! + 1);
+            model.saveFile();
+          }
         }
       },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Undo List'),
+          leading: IconButton(
+            icon: const Icon(Icons.check_circle),
+            tooltip: 'Perform actions and close',
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: 'Cancel pending actions and close',
+              onPressed: () {
+                _cancelFlag = true;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(10),

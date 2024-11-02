@@ -111,6 +111,7 @@ abstract class Field {
           initValue: initValue,
           prefix: prefix,
           suffix: suffix,
+          separator: separator,
         );
       case 'Time':
         newField = TimeField(

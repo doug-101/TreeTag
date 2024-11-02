@@ -49,7 +49,9 @@ class _EditViewState extends State<EditView> {
   @override
   void initState() {
     super.initState();
-    nodeData = Map.of(widget.node.data);
+    // A deep copy of the original data.
+    nodeData =
+        widget.node.data.map((key, value) => MapEntry(key, List.of(value)));
   }
 
   /// Prepare to close by validating and updating.
@@ -120,6 +122,16 @@ class _EditViewState extends State<EditView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(windowTitle),
+        leading: IconButton(
+          icon: const Icon(Icons.check_circle),
+          tooltip: 'Save changes and close',
+          onPressed: () async {
+            if (await _handleClose()) {
+              if (!context.mounted) return;
+              Navigator.of(context).pop();
+            }
+          },
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.restore),
@@ -127,6 +139,13 @@ class _EditViewState extends State<EditView> {
             onPressed: () {
               _formKey.currentState!.reset();
               _isChanged = false;
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: 'Cancel changes and close',
+            onPressed: () {
+              Navigator.of(context).pop();
             },
           ),
         ],
