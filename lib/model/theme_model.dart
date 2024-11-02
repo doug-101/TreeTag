@@ -31,7 +31,7 @@ class ThemeModel extends ChangeNotifier {
       // Tertiary is used for the drawer header.
       tertiary: Colors.blueGrey.shade900,
       onTertiary: Colors.teal.shade300,
-      // Surface is set the same as tiles.
+      // Surface is the default view background.
       surface: Colors.grey.shade50,
       onSurface: Colors.black,
     ),
@@ -43,8 +43,11 @@ class ThemeModel extends ChangeNotifier {
       backgroundColor: Colors.transparent,
       selectedColor: Colors.blueGrey.shade100,
     ),
+    cardTheme: CardTheme(
+      color: Colors.grey.shade100,
+    ),
     listTileTheme: ListTileThemeData(
-      tileColor: Colors.grey.shade50,
+      tileColor: Colors.grey.shade100,
       textColor: Colors.black,
       selectedTileColor: Colors.grey.shade400,
       selectedColor: Colors.black,
@@ -62,7 +65,7 @@ class ThemeModel extends ChangeNotifier {
       // Tertiary is used for the drawer header.
       tertiary: Colors.teal.shade700,
       onTertiary: Colors.black,
-      // Surface is set the same as tiles.
+      // Surface is the default view background.
       surface: Colors.grey.shade900,
       onSurface: Colors.white,
     ),
@@ -72,12 +75,15 @@ class ThemeModel extends ChangeNotifier {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: Colors.transparent,
-      selectedColor: Colors.blueGrey.shade700,
+      selectedColor: Colors.blueGrey.shade600,
+    ),
+    cardTheme: CardTheme(
+      color: Colors.grey.shade800,
     ),
     listTileTheme: ListTileThemeData(
-      tileColor: Colors.grey.shade900,
+      tileColor: Colors.grey.shade800,
       textColor: Colors.white,
-      selectedTileColor: Colors.grey.shade700,
+      selectedTileColor: Colors.grey.shade600,
       selectedColor: Colors.white,
     ),
     useMaterial3: true,
