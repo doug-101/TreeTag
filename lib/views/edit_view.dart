@@ -401,7 +401,9 @@ void _setFieldData(
   int dataPos = 0,
 ]) {
   var dataList = nodeData[fieldName] ?? <String>[];
-  while (dataList.length < dataPos + 1) dataList.add('');
+  while (dataList.length < dataPos + 1) {
+    dataList.add('');
+  }
   dataList[dataPos] = data;
   nodeData[fieldName] = dataList;
 }

@@ -320,7 +320,7 @@ class RuleNode implements StoredNode {
     }
     final oldGroups = <String, GroupNode>{};
     if (parentRef is GroupNode) {
-      for (var grp in (parentRef as GroupNode).previousChildNodes()) {
+      for (var grp in parentRef.previousChildNodes()) {
         oldGroups[grp.title] = grp;
       }
     } else if (parentRef is TitleNode) {

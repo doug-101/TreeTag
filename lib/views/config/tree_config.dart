@@ -140,7 +140,7 @@ class _TreeConfigState extends State<TreeConfig> {
                     setState(() {
                       model.deleteTreeNode(
                         selectedNode!,
-                        keepChildren: selectedNode!.storedChildren().length > 0,
+                        keepChildren: selectedNode!.storedChildren().isNotEmpty,
                       );
                       selectedNode = null;
                     });
@@ -168,7 +168,7 @@ class _TreeConfigState extends State<TreeConfig> {
                 ),
                 PopupMenuItem(
                   enabled: selectedNode != null &&
-                      selectedNode!.storedChildren().length > 0 &&
+                      selectedNode!.storedChildren().isNotEmpty &&
                       (selectedNode?.storedParent != null ||
                           model.rootNodes.length > 1),
                   value: DeleteMenuItems.branch,

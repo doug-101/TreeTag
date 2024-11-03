@@ -560,7 +560,7 @@ class UndoAddTreeNode extends Undo {
         parentTitle.removeChildTitleNode(node);
       } else {
         parentTitle.replaceChildTitleNode(
-          node as TitleNode,
+          node,
           node.storedChildren().cast<TitleNode>(),
         );
       }
@@ -626,7 +626,7 @@ class UndoDeleteTreeNode extends Undo {
         [node as TitleNode],
       );
       node.storedParent = null;
-      (node as TitleNode).updateChildParentRefs();
+      node.updateChildParentRefs();
     } else if (node is TitleNode) {
       final parentTitle = parentNode as TitleNode;
       if (replaceCount > 0) {

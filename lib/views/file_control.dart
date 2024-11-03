@@ -419,7 +419,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 final timeStr =
                     DateFormat('MMM d, yyyy, h:mm a').format(modTime);
                 if (!context.mounted) return;
-                common_dialogs.okDialog(
+                await common_dialogs.okDialog(
                   context: context,
                   title: 'File Info - ${fileObj.nameNoExtension}',
                   label: 'Full Path: ${fileObj.fullPath}\n\n'

@@ -766,8 +766,6 @@ class Structure extends ChangeNotifier {
           (ruleNode.storedParent as TitleNode)
               .replaceChildRule(ruleNode.childRuleNode);
         }
-      } else {
-        rootNodes.remove(ruleNode);
       }
     }
     if (undos.length > 1) {
@@ -945,7 +943,7 @@ class Structure extends ChangeNotifier {
         'Add title node: $newTitle', storedNodeId(parent), pos));
     final newNode = TitleNode(title: newTitle, parent: parent);
     if (parent != null) {
-      (parent as TitleNode).addChildTitleNode(newNode, pos: pos);
+      parent.addChildTitleNode(newNode, pos: pos);
     } else {
       rootNodes.insert(pos, newNode);
     }
@@ -998,7 +996,7 @@ class Structure extends ChangeNotifier {
       final parent = newNode.storedParent as RuleNode;
       if (parent.childRuleNode != null) {
         // Move any existing rule nodes lower in the structure.
-        newNode.replaceChildRule(parent?.childRuleNode!);
+        newNode.replaceChildRule(parent.childRuleNode!);
       }
       parent.replaceChildRule(newNode);
     }
@@ -1369,8 +1367,12 @@ Iterable<LeveledStoredNode> storedNodeGenerator(StoredNode node,
 int compareVersions(String firstStr, String secondStr) {
   final first = firstStr.split('.');
   final second = secondStr.split('.');
-  while (first.length < second.length) first.add('0');
-  while (second.length < first.length) second.add('0');
+  while (first.length < second.length) {
+    first.add('0');
+  }
+  while (second.length < first.length) {
+    second.add('0');
+  }
   for (var i = 0; i < first.length; i++) {
     final compare =
         (int.tryParse(first[i]) ?? 0).compareTo(int.tryParse(second[i]) ?? 0);
