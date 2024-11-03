@@ -78,10 +78,10 @@ class ThemeModel extends ChangeNotifier {
       selectedColor: Colors.blueGrey.shade600,
     ),
     cardTheme: CardTheme(
-      color: Colors.grey.shade800,
+      color: Colors.grey[850],
     ),
     listTileTheme: ListTileThemeData(
-      tileColor: Colors.grey.shade800,
+      tileColor: Colors.grey[850],
       textColor: Colors.white,
       selectedTileColor: Colors.grey.shade600,
       selectedColor: Colors.white,
