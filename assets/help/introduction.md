@@ -12,12 +12,12 @@ types of fields are available, including text, numbers, dates, times and
 predefined choices. The output format of each field can be defined for group
 headings, for data item titles and for data item output.
 
-The user configures the base portion of the tree, defining rules that will group
-the data items into desired categories.  The same items can appear in multiple
-locations, with sections of the tree structure using different fields for
-grouping or sorting.  For example, data items can be arranged by date in one
-section, by a name field sorted alphabetically in another, and by some other
-category field in another.  This allows the differently organized portions of
-the tree to act almost like predefined searches.
+The user configures the base portion of the tree, defining rules that will
+group the data items into desired categories.  The same items can appear in
+multiple locations, with sections of the tree structure using different fields
+for grouping or sorting.  For example, data items can be arranged by a date
+field in one section, by a name field sorted alphabetically in another, and by
+a category field in another.  This allows the differently organized portions of
+the tree to act much like predefined searches.
 
 Also visit <http://treetag.bellz.org> for more information.

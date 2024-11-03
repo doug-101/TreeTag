@@ -5,7 +5,7 @@
 * Stores almost any type of information, including plain text, formatted text,
   numbers, dates, times, booleans, URLs, etc.
 * Nodes can have several fields that form a mini-database.
-* The user-defined tree structure automatically keeps things organized.
+* The user-defined tree structure keeps things organized automatically.
 * The same nodes can appear in multiple locations.
 * Users can drill down into various sections of the tree to find nodes using
   different criteria.
@@ -24,6 +24,8 @@
   external browser.
 * When using Markdown on desktop platforms, file links can be added that will
   open files using their default applications.
+* An option can be set to allow multiple entries in a field, so leaf nodes can
+  show up in multiple categories.
 * Undo operations are stored in the files, so operations from a previous session
   can be undone.
 * The data from a two TreeTag files can be merged together.

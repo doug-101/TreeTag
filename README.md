@@ -12,13 +12,13 @@ types of fields are available, including text, numbers, dates, times and
 predefined choices. The output format of each field can be defined for group
 headings, for data item titles and for data item output.
 
-The user configures the base portion of the tree, defining rules that will group
-the data items into desired categories.  The same items can appear in multiple
-locations, with sections of the tree structure using different fields for
-grouping or sorting.  For example, data items can be arranged by date in one
-section, by a name field sorted alphabetically in another, and by some other
-category field in another.  This allows the differently organized portions of
-the tree to act almost like predefined searches.
+The user configures the base portion of the tree, defining rules that will
+group the data items into desired categories.  The same items can appear in
+multiple locations, with sections of the tree structure using different fields
+for grouping or sorting.  For example, data items can be arranged by a date
+field in one section, by a name field sorted alphabetically in another, and by
+a category field in another.  This allows the differently organized portions of
+the tree to act much like predefined searches.
 
 Also visit <http://treetag.bellz.org> for more information.
 
@@ -27,7 +27,7 @@ Also visit <http://treetag.bellz.org> for more information.
 * Stores almost any type of information, including plain text, formatted text,
   numbers, dates, times, booleans, URLs, etc.
 * Nodes can have several fields that form a mini-database.
-* The user-defined tree structure automatically keeps things organized.
+* The user-defined tree structure keeps things organized automatically.
 * The same nodes can appear in multiple locations.
 * Users can drill down into various sections of the tree to find nodes using
   different criteria.
@@ -46,6 +46,8 @@ Also visit <http://treetag.bellz.org> for more information.
   external browser.
 * When using Markdown on desktop platforms, file links can be added that will
   open files using their default applications.
+* An option can be set to allow multiple entries in a field, so leaf nodes can
+  show up in multiple categories.
 * Undo operations are stored in the files, so operations from a previous session
   can be undone.
 * The data from a two TreeTag files can be merged together.
@@ -317,6 +319,17 @@ oval chips for each segment of the format.  The chips can be tapped/clicked to
 select them, and can be edited using the icons above the chips.  The Number,
 Date and Time types show a format sample preview below the chips that formats an
 arbitrary value.
+
+The field configuration edit form includes an option for allowing multiple
+entries.  If enabled, a plus sign will appear at that field when editing a leaf
+node.  Clicking the plus will add an extra entry for that field.  This allows
+leaf nodes to show under multiple categories.  Any blank entries will be
+removed after editing.  Enabling this option in the field configuration edit
+form also shows a field separator option.  This separator is used in leaf node
+outputs to join multiple entries.  By default, it is set to a comma and a
+space.  Use "\n" in the separator to show the entries on different lines,
+duplicating the entire output line.  Note that two fields with the multiple
+entries option enabled can not be combined in the same rule or output line.
 
 ## Configure the Tree
 

@@ -19,7 +19,7 @@
 </div>
 
 <div class="toplinks">
-<p>Version 0.7.3 (stable)</p>
+<p>Version 0.8.0 (stable)</p>
 
 <p><a href="http://www.bellz.org/progs.html">Other Programs</a></p>
 <p><a href="http://www.bellz.org/contact.html">Contact Info</a></p>
@@ -239,6 +239,17 @@ edit view with oval chips for each segment of the format.  The chips can be
 tapped/clicked to select them, and can be edited using the icons above the
 chips.  The Number, Date and Time types show a format sample preview below the
 chips that formats an arbitrary value.</p>
+
+<p>The field configuration edit form includes an option for allowing multiple
+entries.  If enabled, a plus sign will appear at that field when editing a leaf
+node.  Clicking the plus will add an extra entry for that field.  This allows
+leaf nodes to show under multiple categories.  Any blank entries will be
+removed after editing.  Enabling this option in the field configuration edit
+form also shows a field separator option.  This separator is used in leaf node
+outputs to join multiple entries.  By default, it is set to a comma and a
+space.  Use "\n" in the separator to show the entries on different lines,
+duplicating the entire output line.  Note that two fields with the multiple
+entries option enabled can not be combined in the same rule or output line.</p>
 
 <a id="configtree"></a> <h2>Configure the Tree</h2>
 

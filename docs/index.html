@@ -19,7 +19,7 @@
 </div>
 
 <div class="toplinks">
-<p>Version 0.7.3 (stable)</p>
+<p>Version 0.8.0 (stable)</p>
 
 <p><a href="http://www.bellz.org/progs.html">Other Programs</a></p>
 <p><a href="http://www.bellz.org/contact.html">Contact Info</a></p>
@@ -52,285 +52,287 @@ group headings, for data item titles and for data item output.</p>
 <p> The user configures the base portion of the tree, defining rules that will
 group the data items into desired categories. The same items can appear in
 multiple locations, with sections of the tree structure using different fields
-for grouping or sorting. For example, data items can be arranged by date in
-one section, by a name field sorted alphabetically in another, and by some
-other category field in another. This allows the differently organized
-portions of the tree to act almost like predefined searches.</p>
+for grouping or sorting. For example, data items can be arranged by a date
+field in one section, by a name field sorted alphabetically in another, and by
+a category field in another. This allows the differently organized portions of
+the tree to act much like predefined searches.</p>
 
 <p> A source code repository is available at
 <a href="https://github.com/doug-101/TreeTag">GitHub.</a></p>
 
 <h1>News</h1>
 
+<h2>November 9, 2024 - Release 0.8.0 (stable)</h2>
+
+<h3>New Features:</h3>
+
+<ul>
+<li>Added a field configuration option that allows multiple entries for a single
+field.  Nodes with multiple entries can show under multiple categories.</li>
+<li>In a group rule, the default child sort fields now exclude the fields used in
+upstream rules.</li>
+<li>Changed from a back button to separate accept &amp; reject buttons on several
+views.</li>
+</ul>
+
+<h3>Updates:</h3>
+
+<ul>
+<li>Tweaked the theme colors to make cards and tiles more visible.</li>
+<li>Made several code cleanup changes.</li>
+<li>Updated the Android build to work with Android 15.</li>
+<li>Updated the versions of several libraries used for building TreeTag.</li>
+</ul>
+
+<h3>Bug Fixes:</h3>
+
+<ul>
+<li>Fixed a problem with the search and replace function that could cause a loss
+of data.</li>
+</ul>
+
 <h2>July 24, 2024 - Release 0.7.3 (stable)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
-<li>Added a setting to hide the windows title bar on desktop platforms.  This
-is useful for improving the appearance under Linux/Wayland.</li>
-
+<ul>
+<li>Added a setting to hide the windows title bar on desktop platforms.
+This is useful for improving the appearance under Linux/Wayland.</li>
 </ul>
 
-<ul><b>Updates:</b>
+<h3>Updates:</h3>
 
+<ul>
 <li>Made many minor code cleanup changes.</li>
-
 <li>Updated several versions of library code used for building TreeTag.</li>
-
 <li>Updated to use the latest target API (level 34) for Android.</li>
-
 </ul>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
+<ul>
 <li>Fixed problems with permissions for the copy to folder command under
 Android.</li>
-
-<li>Display search results properly formatted when using Markdown formatting.
-Matches are also properly highlighted.</li>
-
+<li>Display search results properly formatted when using Markdown
+formatting. Matches are also properly highlighted.</li>
 </ul>
 
 <h2>November 30, 2023 - Release 0.7.2 (stable)</h2>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
-<li>Fixed theme color visibility problems under the new Material 3 default
-settings.</li>
-
+<ul>
+<li>Fixed theme color visibility problems under the new Material 3
+default settings.</li>
 </ul>
 
 <h2>November 26, 2023 - Release 0.7.1 (stable)</h2>
 
-<ul><b>Updates:</b>
+<h3>Updates:</h3>
 
+<ul>
 <li>A file path given in the command line will be opened at startup.</li>
-
 <li>The maximum width of several views has been reduced to improve the
 appearance.</li>
-
 <li>The minimum size of the desktop window has been adjusted.</li>
-
 <li>A warning was added to the Linux installer if the /usr/local/bin
 directory used for the startup symlink is not in the PATH variable.</li>
-
 </ul>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
+<ul>
 <li>The Linux installer explicitly sets permissions for the installation
 directory rather than relying on the system mask settings.</li>
-
 </ul>
 
 <h2>August 27, 2023 - Release 0.7.0 (stable)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
-<li>Created a new script for Linux installation.  It uses the native packaging
-system to install dependencies, builds TreeTag and installs it.  This replaces
-the TreeTag snap package, which is no longer supported.</li>
-
-<li>On desktop systems, a new interface can easily add local file links in
-Markdown text fields.  Clicking on a link opens the default application for
-that file type.  An setting controls whether new links use full or relative
-paths.</li>
-
+<ul>
+<li>Created a new script for Linux installation. It uses the native
+packaging system to install dependencies, builds TreeTag and
+installs it. This replaces the TreeTag snap package, which is no
+longer supported.</li>
+<li>On desktop systems, a new interface can easily add local file links
+in Markdown text fields. Clicking on a link opens the default
+application for that file type. A setting controls whether new
+links use full or relative paths.</li>
 </ul>
 
-<ul><b>Updates:</b>
+<h3>Updates:</h3>
 
+<ul>
 <li>The Android version of TreeTag is now available in the Google Play
 store.</li>
-
 <li>Changed the file list to use a case-insensitive sort order.</li>
-
 <li>Improved the built-in help interface by splitting pages and adding
 navigation controls.</li>
-
 <li>Added tooltips to most of the icon buttons.</li>
-
 </ul>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
+<ul>
 <li>Fixed indenting of multi-line fields when exporting indented text.</li>
-
-<li>Fixed the appearance of the application bar when using a dark theme with
-Markdown text fields.</li>
-
+<li>Fixed the appearance of the application bar when using a dark theme
+with Markdown text fields.</li>
 </ul>
 
 <h2>May 26, 2023 - Release 0.6.0 (stable)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
+<ul>
 <li>An option was added to select between light and dark visual themes.</li>
-
 <li>Added a view scale setting that is useful for high-dpi displays.</li>
-
 <li>Added a command to export the TreeTag tree to an indented text file.</li>
-
-<li>Before saving a file, TreeTag checks for external modifications from other
-sessions or over a network.  The user has options to load or overwrite the
-file.</li>
-
+<li>Before saving a file, TreeTag checks for external modifications from
+other sessions or over a network. The user has options to load or
+overwrite the file.</li>
 </ul>
 
-<ul><b>Updates:</b>
+<h3>Updates:</h3>
 
-<li>If a leaf node moves due to field edits, its new parent is automatically
-opened to make the new position visible.</li>
-
+<ul>
+<li>If a leaf node moves due to field edits, its new parent is
+automatically opened to make the new position visible.</li>
 <li>The code was updated to use the Dart version 3.0 library.</li>
-
 </ul>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
-<li>Switched to a forked version of a Markdown library to make select and copy
-commands work properly in Markdown detail output.</li>
-
+<ul>
+<li>Switched to a forked version of a Markdown library to make select
+and copy commands work properly in Markdown detail output.</li>
 </ul>
 
 <h2>March 31, 2023 - Release 0.5.0 (stable)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
-<li>Improved searching by adding options to search by phrase, keywords or
-regular expressions.</li>
-
+<ul>
+<li>Improved searching by adding options to search by phrase, keywords
+or regular expressions.</li>
 <li>Added highlighting of matched words to the search results.</li>
-
-<li>Implemented a replace function for use on search results.  On regular
+<li>Implemented a replace function for use on search results. On regular
 expression searches, matched groups can be substituted back into the
 replacement string.</li>
-
-<li>Added an option on desktop platforms to restore the previously used window
-size and position at startup.</li>
-
+<li>Added an option on desktop platforms to restore the previously used
+window size and position at startup.</li>
 </ul>
 
-<ul><b>Updates:</b>
+<h3>Updates:</h3>
 
+<ul>
 <li>When a new field is configured, ask the user whether it should be
 automatically added as an output line.</li>
-
-<li>Trim leading and trailing spaces from new file names entered for new,
-copy and rename operations.</li>
-
+<li>Trim leading and trailing spaces from new file names entered for
+new, copy and rename operations.</li>
 </ul>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
+<ul>
 <li>Fixed spell checking of words in angle brackets.</li>
-
 </ul>
 
 <h2>February 21, 2023 - Release 0.4.0 (beta)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
+<ul>
 <li>Added a spell checker that shows misspelled English words with a red
-underline by default.  Currently, making spelling suggestions is not
+underline by default. Currently, making spelling suggestions is not
 supported on desktop platforms.</li>
-
 <li>Added functions to import and output node data as CSV files.</li>
-
-<li>A new command merges node data from a second TreeTag file.  This is useful
-to add data from a CSV imported file without affecting the configuration.</li>
-
-<li>A new setting automatically removes undo operations stored in TreeTag
-files that are older than a set number of days.</li>
-
+<li>A new command merges node data from a second TreeTag file. This is
+useful to add data from a CSV imported file without affecting the
+configuration.</li>
+<li>A new setting automatically removes undo operations stored in
+TreeTag files that are older than a set number of days.</li>
 </ul>
 
-<ul><b>Updates:</b>
+<h3>Updates:</h3>
 
-<li>TreeTag is now available as a snap on Linux platforms.  This should
+<ul>
+<li>TreeTag is now available as a snap on Linux platforms. This should
 eliminate previous issues with some library dependencies.</li>
-
-<li>Placed the filename earlier in the window header text to avoid truncating
-it on narrow screens.</li>
-
+<li>Placed the filename earlier in the window header text to avoid
+truncating it on narrow screens.</li>
 </ul>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
+<ul>
 <li>Fixed a bug that could revert changes in data editors when they were
 scrolled far out of view.</li>
-
 <li>Fixed problems using the data editor reset command with auto choice
 fields.</li>
-
-<li>Fixed issues with file extensions for other file types when copying or
-renaming files.</li>
-
+<li>Fixed issues with file extensions for other file types when copying
+or renaming files.</li>
 </ul>
 
 <h2>January 14, 2023 - Release 0.3.0 (beta)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
+<ul>
 <li>Added optional display of formatted text using Markdown text tags.</li>
-
 <li>Added support for storing and retrieving files from a Kinto network
 server.</li>
-
 </ul>
 
 <h2>October 29, 2022 - Release 0.2.0 (beta)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
+<ul>
 <li>Added a search function.</li>
-
-<li>Added commands to edit or delete multiple child nodes simultaneously.</li>
-
+<li>Added commands to edit or delete multiple child nodes
+simultaneously.</li>
 <li>Added the ability to select and copy text from the detail view.</li>
-
 </ul>
 
 <h2>July 30, 2022 - Release 0.1.0 (beta)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
+<ul>
 <li>Ported TreeTag to Linux and Windows desktops.</li>
-
 <li>Added a two-pane view on wide screens.</li>
-
 <li>Added sample files.</li>
-
 </ul>
 
-<ul><b>Bug Fixes:</b>
+<h3>Bug Fixes:</h3>
 
+<ul>
 <li>Many bug fixes.</li>
-
 </ul>
 
 <h2>May 9, 2022 - Release 0.0.3 (beta)</h2>
 
-<ul><b>New Features:</b>
+<h3>New Features:</h3>
 
+<ul>
 <li>Added import and export to/from TreeLine files.</li>
-
 </ul>
 
 <h2>April 23, 2022 - Release 0.0.2 (beta)</h2>
 
-<ul><b>Updates:</b>
+<h3>Updates:</h3>
 
+<ul>
 <li>Updated build parameters to work with older Android devices.</li>
-
 </ul>
 
 <h2>April 19, 2022 - Release 0.0.1 (beta)</h2>
 
+<h3>New Features:</h3>
+
 <ul>
-
 <li>Initial release.</li>
-
 </ul>
 
 </div>

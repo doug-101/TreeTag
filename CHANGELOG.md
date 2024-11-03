@@ -1,12 +1,24 @@
 
 ---
-## September 15, 2024 - Release 0.7.4 (stable)
+## November 9, 2024 - Release 0.8.0 (stable)
+
+### New Features:
+- Added a field configuration option that allows multiple entries for a single
+  field.  Nodes with multiple entries can show under multiple categories.
+- In a group rule, the default child sort fields now exclude the fields used in
+  upstream rules.
+- Changed from a back button to separate accept & reject buttons on several
+  views.
 
 ### Updates:
-- Made several minor code cleanup changes.
-- Updated several versions of library code used for building TreeTag.
-- Converted to a newer style of Android plugin build settings.
-- Added metadata to support an F-Droid build.
+- Tweaked the theme colors to make cards and tiles more visible.
+- Made several code cleanup changes.
+- Updated the Android build to work with Android 15.
+- Updated the versions of several libraries used for building TreeTag.
+
+### Bug Fixes:
+- Fixed a problem with the search and replace function that could cause a loss
+  of data.
 
 ---
 ## July 24, 2024 - Release 0.7.3 (stable)
