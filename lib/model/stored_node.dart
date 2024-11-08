@@ -109,10 +109,11 @@ class TitleNode implements StoredNode, DisplayNode {
   List<DisplayNode> childNodes({bool forceUpdate = false}) {
     if (childRuleNode != null) {
       if (forceUpdate || _groupChildren.isEmpty) {
+        // newChildren must be created before clearing to allow reuse.
+        final newChildren =
+            childRuleNode!.createGroups(StoredNode.modelRef.leafNodes, this);
         _groupChildren.clear();
-        _groupChildren.addAll(
-          childRuleNode!.createGroups(StoredNode.modelRef.leafNodes, this),
-        );
+        _groupChildren.addAll(newChildren);
       }
       return _groupChildren;
     }
@@ -336,8 +337,18 @@ class RuleNode implements StoredNode {
       groupNode.matchingNodes = nodeData[line]!;
       groupNode.data.clear();
       for (var field in ruleLine.fields()) {
-        final fieldValue = groupNode.matchingNodes[0].data[field.name];
-        if (fieldValue != null) groupNode.data[field.name] = fieldValue;
+        final firstNode = groupNode.matchingNodes[0];
+        final fieldValue = firstNode.data[field.name];
+        if (fieldValue != null) {
+          if (fieldValue.length > 1) {
+            // Find the correct field position for nodes with multiple entries.
+            final fieldPos =
+                ruleLine.formattedLineList(firstNode).indexOf(line);
+            groupNode.data[field.name] = [fieldValue[fieldPos]];
+          } else {
+            groupNode.data[field.name] = fieldValue;
+          }
+        }
       }
       groups.add(groupNode);
     }

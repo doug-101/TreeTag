@@ -13,12 +13,18 @@
 ### Updates:
 - Tweaked the theme colors to make cards and tiles more visible.
 - Made several code cleanup changes.
-- Updated the Android build to work with Android 15.
-- Updated the versions of several libraries used for building TreeTag.
+- Updated the movies sample to include multiple field entries.
+- The Android build was updated to work with Android 15.
+- Updated the versions of several libraries used to build TreeTag.
 
 ### Bug Fixes:
 - Fixed a problem with the search and replace function that could cause a loss
   of data.
+
+### Notes:
+- Changes to support multiple field entries broke backward compatibility.  This
+  version can open files from older versions, but older versions can not open
+  files saved in this version.
 
 ---
 ## July 24, 2024 - Release 0.7.3 (stable)

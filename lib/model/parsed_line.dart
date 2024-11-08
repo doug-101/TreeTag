@@ -75,8 +75,12 @@ class ParsedLine {
     for (var segment in segments) {
       String text = '';
       final textList = segment.allOutput(node);
-      // With a single line separator, only segment is repeated with multiples.
-      text = textList.join(segment.field!.separator);
+      if (textList.length > 1) {
+        // With a single line separator, only segment is repeated with multiples.
+        text = textList.join(segment.field!.separator);
+      } else {
+        text = textList[0];
+      }
       if (text.isNotEmpty) {
         if (segment.hasField) fieldsBlank = false;
         result.write(text);

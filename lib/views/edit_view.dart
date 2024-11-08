@@ -218,17 +218,16 @@ class _EditViewState extends State<EditView> {
   /// Return the number the last row with the given field.
   int _rowPosition(String fieldName) {
     final model = Provider.of<Structure>(context, listen: false);
-    var wasFound = false;
     var count = 0;
     for (var field in model.fieldMap.values) {
+      count += max(nodeData[field.name]?.length ?? 1, 1);
       if (field.name == fieldName) {
-        wasFound = true;
-      } else if (wasFound) {
+        // Subtract 1, since extra row was already added.
         return count - 1;
       }
-      count += max(nodeData[fieldName]?.length ?? 1, 1);
     }
-    return count - 1;
+    assert(false, 'Should never fall through');
+    return 0;
   }
 
   /// Return the proper field editor based on field type.

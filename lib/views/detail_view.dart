@@ -62,6 +62,8 @@ class DetailView extends StatelessWidget {
             cards.add(
               Card(
                 child: SelectionArea(
+                  // A key is required to clear selection at rebuild.
+                  key: UniqueKey(),
                   child: Container(
                     margin: innerMargin,
                     child: outWidget(rootNode.outputs().join(lineEnd)),
