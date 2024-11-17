@@ -271,12 +271,12 @@ class RuleNode implements StoredNode {
       childSortFields = [
         for (var field in StoredNode.modelRef.fieldMap.values) SortKey(field)
       ];
-      StoredNode parent = this;
+      StoredNode? parent = this;
       while (parent is RuleNode) {
         for (var field in parent.ruleLine.fields()) {
-          childSortFields.removeWhere((key) => key.keyField == field);
+          childSortFields.removeWhere((key) => key.keyField.name == field.name);
         }
-        parent = parent.storedParent!;
+        parent = parent.storedParent;
       }
     }
   }
@@ -285,7 +285,7 @@ class RuleNode implements StoredNode {
   bool isFieldInChildSort(Field field) {
     if (!hasCustomChildSortFields) return false;
     for (var key in childSortFields) {
-      if (key.keyField == field) return true;
+      if (key.keyField.name == field.name) return true;
     }
     return false;
   }
@@ -294,7 +294,7 @@ class RuleNode implements StoredNode {
   bool removeChildSortField(Field field) {
     if (!hasCustomChildSortFields) return false;
     for (var key in childSortFields) {
-      if (key.keyField == field) {
+      if (key.keyField.name == field.name) {
         if (childSortFields.length > 1) {
           childSortFields.remove(key);
         } else {

@@ -43,6 +43,10 @@ class _FieldConfigState extends State<FieldConfig> {
                 int? newPos;
                 if (selectedField != null) {
                   newPos = fieldList.indexOf(selectedField!);
+                  if (newPos < 0) {
+                    // Shouldn't be needed, but might fix non-reproducable bug?
+                    newPos = null;
+                  }
                 }
                 await Navigator.push(
                   context,
@@ -148,7 +152,10 @@ class _FieldConfigState extends State<FieldConfig> {
                       Card(
                         child: ListTile(
                           title: Text(field.name),
-                          subtitle: Text(field.fieldType),
+                          subtitle: Text(
+                            '${field.fieldType}'
+                            '${field.allowMultiples ? ' (mult.)' : ''}',
+                          ),
                           selected: field == selectedField,
                           onTap: () {
                             setState(() {

@@ -131,6 +131,10 @@ class ParsedLine {
     return List.of(segments.where((s) => s.hasField).map((s) => s.field!));
   }
 
+  List<String> fieldNames() {
+    return List.of(fields().map((f) => f.name));
+  }
+
   bool hasMultipleFields() {
     return fields().map((field) => field.name).toSet().length > 1;
   }
@@ -144,9 +148,9 @@ class ParsedLine {
   /// Replace the [field] with [replacement] if given if there are no other
   /// fields present.
   void deleteField(Field field, {Field? replacement}) {
-    if (fields().contains(field)) {
+    if (fieldNames().contains(field.name)) {
       if (hasMultipleFields()) {
-        var pos = segments.indexWhere((s) => s.field == field);
+        var pos = segments.indexWhere((s) => s.field?.name == field.name);
         while (pos >= 0) {
           // Combine prefix and suffix text around deleted field if applicable.
           if (pos > 0 &&
@@ -158,10 +162,10 @@ class ParsedLine {
             segments.removeAt(pos + 1);
           }
           segments.removeAt(pos);
-          pos = segments.indexWhere((s) => s.field == field);
+          pos = segments.indexWhere((s) => s.field?.name == field.name);
         }
       } else if (replacement != null) {
-        var pos = segments.indexWhere((s) => s.field == field);
+        var pos = segments.indexWhere((s) => s.field?.name == field.name);
         segments[pos] = LineSegment(field: replacement);
       } else {
         segments.clear();

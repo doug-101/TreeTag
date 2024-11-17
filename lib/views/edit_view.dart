@@ -78,12 +78,12 @@ class _EditViewState extends State<EditView> {
       _formKey.currentState!.save();
       for (var field in model.fieldMap.values) {
         var dataList = nodeData[field.name];
-        if (dataList != null) {
+        if (dataList != null && dataList.isNotEmpty) {
           dataList.removeWhere((data) => data.isEmpty);
           if (dataList.isNotEmpty) {
             if (dataList.length > 1) {
               // Sort entries in an ascending direction for consistency.
-              dataList.sort();
+              dataList.sort(field.compareData);
             }
             nodeData[field.name] = dataList;
           } else {
@@ -117,8 +117,15 @@ class _EditViewState extends State<EditView> {
             _tableRow(field, dataPos),
       ];
     }
-    var windowTitle = widget.node.title;
-    if (windowTitle.contains('\u0000')) windowTitle = '[title varies]';
+    late String windowTitle;
+    if (widget.editMode == EditMode.nodeChildren &&
+        model.titleLine
+            .fields()
+            .any((field) => nodeData[field.name]?.isEmpty ?? false)) {
+      windowTitle = '[title varies]';
+    } else {
+      windowTitle = widget.node.title;
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(windowTitle),
@@ -145,6 +152,10 @@ class _EditViewState extends State<EditView> {
             icon: const Icon(Icons.close),
             tooltip: 'Cancel changes and close',
             onPressed: () {
+              if (widget.editMode == EditMode.newNode) {
+                // Discard temporary new node to cancel.
+                model.deleteNode(widget.node, withUndo: false);
+              }
               Navigator.of(context).pop();
             },
           ),
@@ -187,28 +198,30 @@ class _EditViewState extends State<EditView> {
     return TableRow(
       children: <Widget>[
         _fieldEditor(field, dataPos),
-        InkWell(
-          onTap: () {
-            if (field.allowMultiples &&
-                (nodeData[field.name]?.isNotEmpty ?? true)) {
-              if (nodeData[field.name] == null) {
-                nodeData[field.name] = ['', ''];
-              } else {
-                nodeData[field.name]!.add('');
+        ExcludeFocus(
+          child: InkWell(
+            onTap: () {
+              if (field.allowMultiples &&
+                  (nodeData[field.name]?.isNotEmpty ?? true)) {
+                if (nodeData[field.name] == null) {
+                  nodeData[field.name] = ['', ''];
+                } else {
+                  nodeData[field.name]!.add('');
+                }
+                setState(() {
+                  _rowWidgetList.insert(
+                    _rowPosition(field.name),
+                    _tableRow(field, dataPos + 1),
+                  );
+                });
               }
-              setState(() {
-                _rowWidgetList.insert(
-                  _rowPosition(field.name),
-                  _tableRow(field, dataPos + 1),
-                );
-              });
-            }
-          },
-          child: Text(
-            field.allowMultiples && (nodeData[field.name]?.isNotEmpty ?? true)
-                ? '+'
-                : '',
-            textAlign: TextAlign.right,
+            },
+            child: Text(
+              field.allowMultiples && (nodeData[field.name]?.isNotEmpty ?? true)
+                  ? '+'
+                  : '',
+              textAlign: TextAlign.right,
+            ),
           ),
         ),
       ],
@@ -234,11 +247,13 @@ class _EditViewState extends State<EditView> {
   Widget _fieldEditor(Field field, int dataPos) {
     final model = Provider.of<Structure>(context, listen: false);
     var labelString = field.name;
-    String? initString = nodeData[field.name]?[dataPos];
+    String? initString;
     if (widget.editMode == EditMode.nodeChildren &&
         (nodeData[field.name]?.isEmpty ?? false)) {
       labelString = '$labelString [varies]';
       initString = null;
+    } else {
+      initString = nodeData[field.name]?[dataPos];
     }
     switch (field) {
       case LongTextField _:
@@ -275,7 +290,8 @@ class _EditViewState extends State<EditView> {
           ],
           decoration: InputDecoration(labelText: labelString),
           // Null value gives a blank.
-          value: initString,
+          value:
+              (initString != null && initString.isNotEmpty) ? initString : null,
           onChanged: (String? value) {},
           onSaved: (String? value) {
             if (value != null) {
@@ -330,8 +346,9 @@ class _EditViewState extends State<EditView> {
         return DateFormField(
           key: UniqueKey(),
           fieldFormat: field.format,
-          initialValue:
-              initString != null ? storedDateFormat.parse(initString) : null,
+          initialValue: (initString != null && initString.isNotEmpty)
+              ? storedDateFormat.parse(initString)
+              : null,
           heading: labelString,
           onSaved: (DateTime? value) async {
             if (value != null) {
@@ -341,6 +358,9 @@ class _EditViewState extends State<EditView> {
                 storedDateFormat.format(value),
                 dataPos,
               );
+            } else if (widget.editMode == EditMode.nodeChildren &&
+                (nodeData[field.name]?.isEmpty ?? false)) {
+              nodeData[field.name] = [];
             } else {
               _setFieldData(nodeData, field.name, '', dataPos);
             }
@@ -351,8 +371,9 @@ class _EditViewState extends State<EditView> {
         return TimeFormField(
           key: UniqueKey(),
           fieldFormat: field.format,
-          initialValue:
-              initString != null ? storedTimeFormat.parse(initString) : null,
+          initialValue: (initString != null && initString.isNotEmpty)
+              ? storedTimeFormat.parse(initString)
+              : null,
           heading: labelString,
           onSaved: (DateTime? value) {
             if (value != null) {
@@ -362,6 +383,9 @@ class _EditViewState extends State<EditView> {
                 storedTimeFormat.format(value),
                 dataPos,
               );
+            } else if (widget.editMode == EditMode.nodeChildren &&
+                (nodeData[field.name]?.isEmpty ?? false)) {
+              nodeData[field.name] = [];
             } else {
               _setFieldData(nodeData, field.name, '', dataPos);
             }

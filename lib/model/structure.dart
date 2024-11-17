@@ -329,8 +329,9 @@ class Structure extends ChangeNotifier {
           var fieldChanged = false;
           // Blank on null allows regexp searches to replace blank fields.
           var text = node.data[field.name]?[i] ?? '';
+          final searchText = pattern is RegExp ? text : text.toLowerCase();
           // reversed to avoid mismatches due to varying replacement lengths.
-          for (var match in pattern.allMatches(text).toList().reversed) {
+          for (var match in pattern.allMatches(searchText).toList().reversed) {
             var newReplacement = replacement;
             // Add match groups to backreferences in replacement string.
             for (var replaceMatch in replaceGroupMatches.reversed) {
@@ -460,7 +461,7 @@ class Structure extends ChangeNotifier {
         undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
         for (var field in fieldMap.values) {
           final newValues = nodeData[field.name];
-          if (newValues != null && newValues != []) {
+          if (newValues != null && newValues.isNotEmpty) {
             node.data[field.name] = newValues;
           } else if (newValues == null) {
             node.data.remove(field.name);
@@ -501,6 +502,7 @@ class Structure extends ChangeNotifier {
         for (var leafNode in childNodes)
           UndoDeleteLeafNode('', leafNodes.indexOf(leafNode), leafNode)
       ];
+      undos.sort((a, b) => a.nodePos.compareTo(b.nodePos));
       undoList.add(UndoBatch('Delete children of ${rootNode.title}', undos));
       leafNodes.removeWhere((node) => childNodes.contains(node));
       updateAllChildren();

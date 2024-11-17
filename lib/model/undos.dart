@@ -188,6 +188,7 @@ class UndoBatch extends Undo {
 
 class UndoEditLeafNode extends Undo {
   final int nodePos;
+
   /// A deep copy of the data provided to the constructor.
   final Map<String, List<String>> storedNodeData;
 

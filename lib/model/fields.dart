@@ -255,11 +255,17 @@ abstract class Field {
   }
 
   /// Return -1, 0 or 1 compare values for field data.
-  ///
-  /// Overridden by other field types with more specific sorting keys.
   int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = firstNode.data[name]?[0].toLowerCase() ?? '';
-    final secondValue = secondNode.data[name]?[0].toLowerCase() ?? '';
+    return compareData(firstNode.data[name]?[0], secondNode.data[name]?[0]);
+  }
+
+  /// Return -1, 0 or 1 compare values for the given data.
+  ///
+  /// Null data defaults to low values.
+  /// Overridden by other field types with more specific sorting keys.
+  int compareData(String? firstData, String? secondData) {
+    final firstValue = firstData?.toLowerCase() ?? '';
+    final secondValue = secondData?.toLowerCase() ?? '';
     return firstValue.compareTo(secondValue);
   }
 
@@ -470,9 +476,9 @@ class NumberField extends Field {
   }
 
   @override
-  int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = num.parse(firstNode.data[name]?[0] ?? '0');
-    final secondValue = num.parse(secondNode.data[name]?[0] ?? '0');
+  int compareData(String? firstData, String? secondData) {
+    final firstValue = num.parse(firstData ?? '0');
+    final secondValue = num.parse(secondData ?? '0');
     return firstValue.compareTo(secondValue);
   }
 }
@@ -523,9 +529,9 @@ class DateField extends Field {
   }
 
   @override
-  int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = _parseStored(firstNode.data[name]?[0] ?? '0001-01-01');
-    final secondValue = _parseStored(secondNode.data[name]?[0] ?? '0001-01-01');
+  int compareData(String? firstData, String? secondData) {
+    final firstValue = _parseStored(firstData ?? '0001-01-01');
+    final secondValue = _parseStored(secondData ?? '0001-01-01');
     return firstValue.compareTo(secondValue);
   }
 }
@@ -576,10 +582,9 @@ class TimeField extends Field {
   }
 
   @override
-  int compareNodes(DisplayNode firstNode, DisplayNode secondNode) {
-    final firstValue = _parseStored(firstNode.data[name]?[0] ?? '00:00:00.000');
-    final secondValue =
-        _parseStored(secondNode.data[name]?[0] ?? '00:00:00.000');
+  int compareData(String? firstData, String? secondData) {
+    final firstValue = _parseStored(firstData ?? '00:00:00.000');
+    final secondValue = _parseStored(secondData ?? '00:00:00.000');
     return firstValue.compareTo(secondValue);
   }
 }
