@@ -28,11 +28,12 @@ class TreeLineExport {
       'outputlines': ['{*Title*}'],
     };
     final fieldData = <Map<String, dynamic>>[];
-    final textFields = <String>[];
     for (var field in model.fieldMap.values) {
       final data = field.toJson();
-      if (field.fieldType == 'LongText') {
+      if (field.fieldType == 'LongText' || field.allowMultiples) {
+        // TreeLine can't handle multiple field values, so fall back to text.
         data['fieldtype'] = 'Text';
+        data.remove('format');
       } else if (field.fieldType == 'Date') {
         data['format'] = _adjustDateFormat(field.format);
       } else if (field.fieldType == 'Time') {
@@ -42,7 +43,8 @@ class TreeLineExport {
         data['init'] = data['initvalue'];
         data.remove('initvalue');
       }
-      if (data['fieldtype'] == 'Text') textFields.add(field.name);
+      data.remove('separator');
+      data.remove('allow_multiples');
       fieldData.add(data);
     }
     final leafFormat = <String, dynamic>{
@@ -68,9 +70,9 @@ class TreeLineExport {
       Map<String, String> data;
       if (node is LeafNode) {
         data = {};
-        for (var fieldName in textFields) {
-          var value = node.data[fieldName]?.join(', ');
-          if (value != null) data[fieldName] = htmlEscape.convert(value);
+        for (var field in model.fieldMap.values) {
+          var value = node.data[field.name]?.join(', ');
+          if (value != null) data[field.name] = htmlEscape.convert(value);
         }
       } else {
         data = {'Title': node.title};

@@ -502,6 +502,7 @@ class Structure extends ChangeNotifier {
         for (var leafNode in childNodes)
           UndoDeleteLeafNode('', leafNodes.indexOf(leafNode), leafNode)
       ];
+      // Sort undos to return to original sequence at undo without error.
       undos.sort((a, b) => a.nodePos.compareTo(b.nodePos));
       undoList.add(UndoBatch('Delete children of ${rootNode.title}', undos));
       leafNodes.removeWhere((node) => childNodes.contains(node));
