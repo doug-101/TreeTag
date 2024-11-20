@@ -3,7 +3,7 @@
 // Copyright (c) 2024, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
-import 'dart:convert' show json;
+import 'dart:convert' show jsonDecode;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
@@ -68,7 +68,7 @@ class _SampleControlState extends State<SampleControl> {
       }
     } else {
       final data = await rootBundle.loadString(path);
-      model.openFromData(json.decode(data));
+      model.openFromData(jsonDecode(data));
       model.fileObject = newFile;
     }
     if (!mounted) return;

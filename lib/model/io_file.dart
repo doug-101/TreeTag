@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import '../main.dart' show prefs;
 
+const JsonEncoder _jsonEncoder = JsonEncoder.withIndent(' ');
+
 /// Interface definition for both local and network files.
 abstract class IOFile {
   final String filename;
@@ -78,7 +80,7 @@ class LocalFile extends IOFile {
   /// Returns the modified time stored in the file's data.
   @override
   Future<DateTime> get dataModTime async {
-    final data = json.decode(await File(fullPath).readAsString());
+    final data = jsonDecode(await File(fullPath).readAsString());
     final seconds = data['properties']?['modtime'];
     DateTime time;
     if (seconds != null) {
@@ -100,7 +102,7 @@ class LocalFile extends IOFile {
   /// Reads the file and returns the JSON objects.
   @override
   Future<Map<String, dynamic>> readJson() async {
-    return json.decode(await File(fullPath).readAsString());
+    return jsonDecode(await File(fullPath).readAsString());
   }
 
   /// Reads a string file (for non-JSON files).
@@ -113,7 +115,7 @@ class LocalFile extends IOFile {
   /// Raises a [SaveException] on error, caught in main source file.
   @override
   Future<void> writeJson(Map<String, dynamic> data) async {
-    final dataString = json.encode(data);
+    final dataString = _jsonEncoder.convert(data);
     try {
       await File(fullPath).writeAsString(dataString);
     } on IOException catch (e) {
@@ -213,7 +215,7 @@ class NetworkFile extends IOFile {
     final resp = await http.get(Uri.parse('$recordPath?has_filesize=true'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
-      final data = json.decode(resp.body)['data'];
+      final data = jsonDecode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
         size = data[0]['filesize'];
       }
@@ -229,7 +231,7 @@ class NetworkFile extends IOFile {
     var resp = await http.get(Uri.parse('$recordPath?has_modtime=true'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
-      final data = json.decode(resp.body)['data'];
+      final data = jsonDecode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
         seconds = data[0]['modtime'];
       }
@@ -237,7 +239,7 @@ class NetworkFile extends IOFile {
         // If no modtime property, fall back to Kinto network's time.
         resp = await http.get(Uri.parse(fullPath), headers: _networkHeader());
         if (resp.statusCode == 200) {
-          seconds = json.decode(resp.body)['data']['last_modified'];
+          seconds = jsonDecode(resp.body)['data']['last_modified'];
         }
       }
       if (seconds != null) {
@@ -252,7 +254,7 @@ class NetworkFile extends IOFile {
   Future<DateTime> get fileModTime async {
     final resp = await http.get(Uri.parse(fullPath), headers: _networkHeader());
     if (resp.statusCode == 200) {
-      final seconds = json.decode(resp.body)['data']['last_modified'];
+      final seconds = jsonDecode(resp.body)['data']['last_modified'];
       if (seconds != null) {
         return DateTime.fromMillisecondsSinceEpoch(seconds);
       }
@@ -277,7 +279,7 @@ class NetworkFile extends IOFile {
     final resp = await http.get(Uri.parse('$recordPath?has_modtime=false'),
         headers: _networkHeader());
     if (resp.statusCode == 200) {
-      final data = json.decode(resp.body)['data'];
+      final data = jsonDecode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
         return data[0];
       }
@@ -293,7 +295,7 @@ class NetworkFile extends IOFile {
     try {
       var resp = await http.put(Uri.parse(fullPath), headers: _networkHeader());
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        final dataString = json.encode({'data': data});
+        final dataString = _jsonEncoder.convert({'data': data});
         final size = dataString.length;
         resp = await http.post(Uri.parse(recordPath),
             headers: _networkHeader(), body: dataString);
@@ -301,7 +303,7 @@ class NetworkFile extends IOFile {
           final seconds = data['properties']?['modtime'] ??
               DateTime.now().millisecondsSinceEpoch;
           final metaData = {'filesize': size, 'modtime': seconds};
-          final metaString = json.encode({'data': metaData});
+          final metaString = _jsonEncoder.convert({'data': metaData});
           await http.post(Uri.parse(recordPath),
               headers: _networkHeader(), body: metaString);
         }
@@ -325,7 +327,7 @@ class NetworkFile extends IOFile {
   @override
   Future<void> copyFromPath(String path) async {
     try {
-      final data = json.decode(await File(path).readAsString());
+      final data = jsonDecode(await File(path).readAsString());
       await writeJson(data);
     } on FormatException catch (e) {
       throw HttpException(e.toString());
@@ -366,7 +368,7 @@ class NetworkFile extends IOFile {
         [prefs.getString('netaddress') ?? '', 'collections'].join('/'));
     final resp = await http.get(address, headers: _networkHeader());
     if (resp.statusCode == 200) {
-      final objList = json.decode(resp.body)['data'];
+      final objList = jsonDecode(resp.body)['data'];
       if (objList != null) {
         for (var obj in objList) {
           final name = obj['id'];
