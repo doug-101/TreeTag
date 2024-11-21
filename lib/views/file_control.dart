@@ -25,12 +25,14 @@ const fileExtension = '.trtg';
 
 enum MenuItems {
   addFromFolder,
+  refreshList,
   copy,
   copyToFolder,
   uploadToNetwork,
   downloadToStorage,
   rename,
   delete,
+  clearSelection,
 }
 
 /// Provides a file listview with options for new files, open files, etc.
@@ -459,10 +461,11 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       if (Platform.isAndroid || Platform.isIOS) {
                         FilePicker.platform.clearTemporaryFiles();
                       }
-                      setState(() {
-                        _updateFileList();
-                      });
+                      _updateFileList();
                     }
+                  case MenuItems.refreshList:
+                    // Update the list of files after external changes.
+                    _updateFileList();
                   case MenuItems.copy:
                     // Copy current file to another name.
                     final initName = _selectedFiles.first.nameNoExtension;
@@ -484,9 +487,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       }
                       errorLabel = 'Could not write to ${newFileObj.fullPath}';
                       await fileObj.copyToFile(newFileObj);
-                      setState(() {
-                        _updateFileList();
-                      });
+                      _updateFileList();
                     }
                   case MenuItems.copyToFolder:
                     // Copy current file to an external directory.
@@ -554,9 +555,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       }
                       errorLabel = 'Could not write to $newName';
                       await fileObj.rename(newName);
-                      setState(() {
-                        _updateFileList();
-                      });
+                      _updateFileList();
                     }
                   case MenuItems.delete:
                     // Delete the current file(s).
@@ -572,10 +571,12 @@ class _FileControlState extends State<FileControl> with WindowListener {
                         errorLabel = 'Could not delete ${fileObj.filename}';
                         await fileObj.delete();
                       }
-                      setState(() {
-                        _updateFileList();
-                      });
+                      _updateFileList();
                     }
+                  case MenuItems.clearSelection:
+                    setState(() {
+                      _selectedFiles.clear();
+                    });
                 }
               } on IOException catch (e) {
                 if (!context.mounted) return;
@@ -593,6 +594,11 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 const PopupMenuItem(
                   value: MenuItems.addFromFolder,
                   child: Text('Add from folder'),
+                ),
+              if (_selectedFiles.isEmpty)
+                const PopupMenuItem(
+                  value: MenuItems.refreshList,
+                  child: Text('Refresh file list'),
                 ),
               if (_selectedFiles.length == 1)
                 const PopupMenuItem(
@@ -624,6 +630,11 @@ class _FileControlState extends State<FileControl> with WindowListener {
                   value: MenuItems.delete,
                   child: Text('Delete'),
                 ),
+              if (_selectedFiles.isNotEmpty)
+                const PopupMenuItem(
+                  value: MenuItems.clearSelection,
+                  child: Text('Clear Selection'),
+                )
             ],
           ),
         ],
