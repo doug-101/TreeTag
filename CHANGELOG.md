@@ -1,6 +1,6 @@
 
 ---
-## November 9, 2024 - Release 0.8.0 (stable)
+## November 24, 2024 - Release 0.8.0 (stable)
 
 ### New Features:
 - Added a field configuration option that allows multiple entries for a single
@@ -9,6 +9,8 @@
   upstream rules.
 - Changed from a back button to separate accept & reject buttons on several
   views.
+- Added commands to the file list view for refreshing the list and for clearing
+  selections.
 
 ### Updates:
 - Tweaked the theme colors to make cards and tiles more visible.
@@ -20,6 +22,7 @@
 ### Bug Fixes:
 - Fixed a problem with the search and replace function that could cause a loss
   of data.
+- Fixed exporting special field types to TreeLine files.
 
 ### Notes:
 - Changes to support multiple field entries broke backward compatibility.  This

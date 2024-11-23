@@ -29,10 +29,12 @@ arbitrary value.
 The field configuration edit form includes an option for allowing multiple
 entries.  If enabled, a plus sign will appear at that field when editing a leaf
 node.  Clicking the plus will add an extra entry for that field.  This allows
-leaf nodes to show under multiple categories.  Any blank entries will be
-removed after editing.  Enabling this option in the field configuration edit
-form also shows a field separator option.  This separator is used in leaf node
-outputs to join multiple entries.  By default, it is set to a comma and a
-space.  Use "\n" in the separator to show the entries on different lines,
-duplicating the entire output line.  Note that two fields with the multiple
-entries option enabled can not be combined in the same rule or output line.
+leaf nodes to show under multiple categories.  Any blank entries will be removed
+after editing.  Enabling this option in the field configuration edit form also
+shows a field separator option.  This separator is used in leaf node outputs to
+join multiple entries.  By default, it is set to a comma and a space.  Use a
+"\n" in the separator to show the entries on different lines, duplicating the
+entire output line.  Note that two fields with the multiple entries option
+enabled can not be combined in the same rule or output line. Also note that
+multiple entry fields do not work well when nested rules use that same field
+with different formats (such as date field rules for years then for months).
