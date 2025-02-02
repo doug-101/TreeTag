@@ -88,8 +88,19 @@ Future<void> main(List<String> cmdLineArgs) async {
       // Use "external" user-accessible location if possible.
       workDir = await getExternalStorageDirectory();
     }
-    // For failed external storage or for non-Android platforms.
-    workDir ??= await getApplicationDocumentsDirectory();
+    try {
+      // For failed external storage or for non-Android platforms.
+      workDir ??= await getApplicationDocumentsDirectory();
+    } on MissingPlatformDirectoryException {
+      // Can fail on Linux if XDG packages aren't installed.
+      final workDirStr = Platform.environment['HOME'];
+      if (workDirStr != null) {
+        workDir = Directory(workDirStr);
+      } else {
+        // Last resort is system working directory.
+        workDir = Directory.current;
+      }
+    }
     await prefs.setString('workdir', workDir.path);
   }
   // Use a global navigator key to get a BuildContext for an error dialog.
