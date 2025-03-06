@@ -4,6 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'dart:io';
+import 'package:charset/charset.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -195,57 +196,9 @@ class _FileControlState extends State<FileControl> with WindowListener {
         _updateFileList();
       });
     } on FormatException {
-      // If not TreeTag formt, try to import as a TreeLine file.
-      try {
-        final import = TreeLineImport(await fileObj.readJson());
-        if (!mounted) return;
-        final typeName = await common_dialogs.choiceDialog(
-          context: context,
-          choices: import.formatNames(),
-          title: 'TreeLine File Import\n\nChoose Node Type',
-        );
-        if (typeName != null) {
-          model.clearModel();
-          import.convertNodeType(typeName, model);
-          final baseFilename = fileObj.nameNoExtension;
-          final fileWithExt = _addExtensionIfNone(baseFilename);
-          model.fileObject = IOFile.currentType(fileWithExt);
-          if (!(await model.fileObject.exists) ||
-              await askOverwriteOk(fileWithExt)) {
-            model.saveFile();
-            if (!mounted) return;
-            Navigator.pushNamed(
-              context,
-              '/frameView',
-              arguments: baseFilename,
-            ).then((value) async {
-              _updateFileList();
-            });
-          }
-        }
-      } on FormatException {
-        // If not TreeTag or TreeLine format, try a CSV import.
-        try {
-          if (fileObj is! LocalFile) throw const FormatException();
-          final import = CsvImport(await fileObj.readString());
-          model.clearModel();
-          import.convertCsv(model);
-          final baseFilename = fileObj.nameNoExtension;
-          final fileWithExt = _addExtensionIfNone(baseFilename);
-          model.fileObject = IOFile.currentType(fileWithExt);
-          if (!(await model.fileObject.exists) ||
-              await askOverwriteOk(fileWithExt)) {
-            model.saveFile();
-            if (!mounted) return;
-            Navigator.pushNamed(
-              context,
-              '/frameView',
-              arguments: baseFilename,
-            ).then((value) async {
-              _updateFileList();
-            });
-          }
-        } on FormatException {
+      // If not TreeTag formt, try to import as a TreeLine or CSV file.
+      if (!(await _openTreeLineFile(fileObj))) {
+        if (!(await _openCsvFile(fileObj))) {
           if (!mounted) return;
           await common_dialogs.okDialog(
             context: context,
@@ -256,13 +209,95 @@ class _FileControlState extends State<FileControl> with WindowListener {
         }
       }
     } on IOException catch (e) {
-      await common_dialogs.okDialog(
-        context: context,
-        title: 'Error',
-        label: 'Could not read file: ${fileObj.nameNoExtension}\n$e',
-        isDissmissable: false,
-      );
+      // Try CSV file import (might be an encodign issue).
+      if (!(await _openCsvFile(fileObj))) {
+        if (!mounted) return;
+        await common_dialogs.okDialog(
+          context: context,
+          title: 'Error',
+          label: 'Could not read file: ${fileObj.nameNoExtension}\n$e',
+          isDissmissable: false,
+        );
+      }
     }
+  }
+
+  /// Try opening the file as a TreeLine import.
+  ///
+  /// Return true on success.
+  Future<bool> _openTreeLineFile(IOFile fileObj) async {
+    final model = Provider.of<Structure>(context, listen: false);
+    try {
+      final import = TreeLineImport(await fileObj.readJson());
+      if (!mounted) return false;
+      final typeName = await common_dialogs.choiceDialog(
+        context: context,
+        choices: import.formatNames(),
+        title: 'TreeLine File Import\n\nChoose Node Type',
+      );
+      if (typeName != null) {
+        model.clearModel();
+        import.convertNodeType(typeName, model);
+        final baseFilename = fileObj.nameNoExtension;
+        final fileWithExt = _addExtensionIfNone(baseFilename);
+        model.fileObject = IOFile.currentType(fileWithExt);
+        if (!(await model.fileObject.exists) ||
+            await askOverwriteOk(fileWithExt)) {
+          model.saveFile();
+          if (!mounted) return false;
+          Navigator.pushNamed(
+            context,
+            '/frameView',
+            arguments: baseFilename,
+          ).then((value) async {
+            _updateFileList();
+          });
+        }
+      }
+    } on FormatException {
+      return false;
+    }
+    return true;
+  }
+
+  /// Try opening the file using a CSV import with multiple encodings.
+  ///
+  /// Return true on success.
+  Future<bool> _openCsvFile(IOFile fileObj) async {
+    final model = Provider.of<Structure>(context, listen: false);
+    if (fileObj is! LocalFile) return false;
+    try {
+      late final CsvImport import;
+      try {
+        import = CsvImport(await fileObj.readString());
+      } on IOException {
+        try {
+          import = CsvImport(await fileObj.readString(encoding: windows1252));
+        } on IOException {
+          return false;
+        }
+      }
+      model.clearModel();
+      import.convertCsv(model);
+      final baseFilename = fileObj.nameNoExtension;
+      final fileWithExt = _addExtensionIfNone(baseFilename);
+      model.fileObject = IOFile.currentType(fileWithExt);
+      if (!(await model.fileObject.exists) ||
+          await askOverwriteOk(fileWithExt)) {
+        model.saveFile();
+        if (!mounted) return false;
+        Navigator.pushNamed(
+          context,
+          '/frameView',
+          arguments: baseFilename,
+        ).then((value) async {
+          _updateFileList();
+        });
+      }
+    } on FormatException {
+      return false;
+    }
+    return true;
   }
 
   @override

@@ -106,8 +106,8 @@ class LocalFile extends IOFile {
   }
 
   /// Reads a string file (for non-JSON files).
-  Future<String> readString() async {
-    return File(fullPath).readAsString();
+  Future<String> readString({Encoding encoding = utf8}) async {
+    return File(fullPath).readAsString(encoding: encoding);
   }
 
   /// Writes the JSON file.
