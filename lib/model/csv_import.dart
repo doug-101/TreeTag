@@ -21,7 +21,10 @@ class CsvImport {
   void convertCsv(Structure model) {
     // Detect the first EOL and quotation delimiters in the file.
     const detector = FirstOccurrenceSettingsDetector(
-        eols: ['\r\n', '\n'], textDelimiters: ['"', "'"]);
+      eols: ['\r\n', '\n'],
+      fieldDelimiters: [',', ';', '\t'],
+      textDelimiters: ['"', "'"],
+    );
     const converter = CsvToListConverter(
       shouldParseNumbers: false,
       allowInvalid: false,
