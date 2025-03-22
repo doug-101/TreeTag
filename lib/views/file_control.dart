@@ -423,7 +423,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 icon: const Icon(Icons.menu),
                 tooltip: 'Open Drawer Menu',
                 onPressed: () {
-                  // Open drawer from parent frame scaffold.
+                  // Open drawer from the parent's scaffold.
                   _scaffoldKey.currentState!.openDrawer();
                 },
               )
