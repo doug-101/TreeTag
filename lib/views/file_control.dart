@@ -53,6 +53,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
   var _fileList = <IOFile>[];
   final _selectedFiles = <IOFile>{};
   late bool _usingLocalFiles;
+  // Key is needed to open drawer from AppBar under it.
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   /// Initialize with last local/network setting and load file list.
   @override
@@ -303,6 +305,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       drawer: Drawer(
         child: ListView(
           children: <Widget>[
@@ -415,6 +418,24 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 ? 'Local Files - TreeTag'
                 : 'Network Files - TreeTag')
             : '${_selectedFiles.length} Selected'),
+        leading: _selectedFiles.isEmpty
+            ? IconButton(
+                icon: const Icon(Icons.menu),
+                tooltip: 'Open Drawer Menu',
+                onPressed: () {
+                  // Open drawer from parent frame scaffold.
+                  _scaffoldKey.currentState!.openDrawer();
+                },
+              )
+            : IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Clear Selection',
+                onPressed: () {
+                  setState(() {
+                    _selectedFiles.clear();
+                  });
+                },
+              ),
         actions: <Widget>[
           if (_selectedFiles.isEmpty)
             IconButton(
@@ -686,10 +707,49 @@ class _FileControlState extends State<FileControl> with WindowListener {
                     child: InkWell(
                       onTap: () async {
                         setState(() {
-                          if (_selectedFiles.contains(fileObj)) {
-                            _selectedFiles.remove(fileObj);
+                          if (HardwareKeyboard.instance.isShiftPressed) {
+                            if (_selectedFiles.isEmpty) {
+                              // Holding shift with no selection just selects.
+                              _selectedFiles.add(fileObj);
+                            } else {
+                              final origSelectPos = <int>[];
+                              for (var pos = 0; pos < _fileList.length; pos++) {
+                                if (_selectedFiles.contains(_fileList[pos])) {
+                                  origSelectPos.add(pos);
+                                }
+                              }
+                              final clickPos = _fileList.indexOf(fileObj);
+                              if (_selectedFiles.contains(fileObj)) {
+                                // Do a chain unselect, removing from bottom.
+                                for (var obj in _fileList.getRange(
+                                    clickPos + 1, origSelectPos.last + 1)) {
+                                  _selectedFiles.remove(obj);
+                                }
+                              } else {
+                                // Do a chain select.
+                                var closest = origSelectPos.first;
+                                for (var i in origSelectPos.skip(1)) {
+                                  if ((clickPos - i).abs() <
+                                      (clickPos - closest).abs()) {
+                                    closest = i;
+                                  }
+                                }
+                                if (clickPos > closest) {
+                                  _selectedFiles.addAll(_fileList.getRange(
+                                      closest, clickPos + 1));
+                                } else {
+                                  _selectedFiles.addAll(_fileList.getRange(
+                                      clickPos, closest + 1));
+                                }
+                              }
+                            }
                           } else {
-                            _selectedFiles.add(fileObj);
+                            // Do a regular individual select or unselect.
+                            if (_selectedFiles.contains(fileObj)) {
+                              _selectedFiles.remove(fileObj);
+                            } else {
+                              _selectedFiles.add(fileObj);
+                            }
                           }
                         });
                       },
