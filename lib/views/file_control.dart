@@ -33,7 +33,6 @@ enum MenuItems {
   downloadToStorage,
   rename,
   delete,
-  clearSelection,
 }
 
 /// Provides a file listview with options for new files, open files, etc.
@@ -629,10 +628,6 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       }
                       _updateFileList();
                     }
-                  case MenuItems.clearSelection:
-                    setState(() {
-                      _selectedFiles.clear();
-                    });
                 }
               } on IOException catch (e) {
                 if (!context.mounted) return;
@@ -686,11 +681,6 @@ class _FileControlState extends State<FileControl> with WindowListener {
                   value: MenuItems.delete,
                   child: Text('Delete'),
                 ),
-              if (_selectedFiles.isNotEmpty)
-                const PopupMenuItem(
-                  value: MenuItems.clearSelection,
-                  child: Text('Clear Selection'),
-                )
             ],
           ),
         ],
