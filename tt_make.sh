@@ -15,10 +15,15 @@ depends_error () {
     echo "    curl"
     echo "    git"
     echo "    GTK development headers"
+    echo "    Mesa OpenGL utility library"
     echo "    Ninja build"
     echo "    pkg-config"
+    echo "    standard C++ development headers"
+    echo "    unzip"
     echo "    XZ development headers"
+    echo "    XZ utilities"
     echo "    zenity"
+    echo "    zip"
     echo
     exit 1
 }
@@ -43,18 +48,20 @@ case "$1" in
         if [ -x "$(command -v apt-get)" ]; then
             echo "Detected 'apt-get' (Debian-based system)"
             echo
-            apt-get -y install clang cmake curl git libgtk-3-dev ninja-build \
-                pkgconf liblzma-dev zenity || depends_error
+            apt-get -y install clang cmake curl git libgtk-3-dev libglu1-mesa \
+                ninja-build pkgconf libstdc++-12-dev unzip liblzma-dev \
+                xz-utils zenity zip || depends_error
         elif [ -x "$(command -v dnf)" ]; then
             echo "Detected 'dnf' (Fedora-based system)"
             echo
-            dnf -y install clang cmake curl git gtk3-devel ninja-build \
-                pkgconf xz-devel zenity || depends_error
+            dnf -y install clang cmake curl git gtk3-devel mesa-libGLU \
+                ninja-build pkgconf libstdc++-devel unzip xz-devel xz zenity \
+                zip || depends_error
         elif [ -x "$(command -v pacman)" ]; then
             echo "Detected 'pacman' (Arch-based system)"
             echo
-            pacman -S --needed --noconfirm clang cmake curl git gtk3 ninja \
-                pkgconf xz zenity || depends_error
+            pacman -S --needed --noconfirm clang cmake curl git gtk3 glu \
+                ninja pkgconf libc++ unzip xz zenity zip || depends_error
         else
             echo "Could not find a supported package manager"
             depends_error
@@ -103,6 +110,9 @@ case "$1" in
         echo "Copy done"
         echo
         echo "Creating symlinks..."
+        mkdir -p -m 755 /usr/local/share/applications \
+            || misc_error \
+            "Could not create '/usr/local/share/applications' directory"
         ln -sf /opt/treetag/treetag /usr/local/bin/. \
             && ln -sf /opt/treetag/treetag.desktop \
             /usr/local/share/applications/. \
