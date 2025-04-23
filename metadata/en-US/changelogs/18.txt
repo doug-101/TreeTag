@@ -1,0 +1,15 @@
+## April 23, 2025 - Release 0.8.1 (stable)
+
+### New Features:
+- On CSV imports, auto-detect semicolon and tab delimiters.
+- Support Windows-1252 character encoding for CSV imports.
+- Add a back key to unselect items on the file list.
+- On desktop platforms, support use of shift+click for chain selection on the
+  file list.
+
+### Updates:
+- Update the versions of several libraries used to build TreeTag.
+- Update the list of dependencies on the Linux install script.
+
+### Bug Fixes:
+- Fixed a Linux error occurring when XDG is not installed.
