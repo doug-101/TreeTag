@@ -1,6 +1,6 @@
 // search_view.dart, a viww to do node searches and show results.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2025, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
@@ -18,6 +18,7 @@ enum MenuItems {
   regExpSearch,
   fieldChange,
   allFields,
+  allOutput,
   replace,
 }
 
@@ -41,6 +42,7 @@ class _SearchViewState extends State<SearchView> {
   var resultNodes = <LeafNode>[];
   final selectedNodes = <LeafNode>[];
   var searchType = SearchType.phrase;
+  var doOutputSearch = true;
   Field? searchField;
 
   @override
@@ -57,6 +59,7 @@ class _SearchViewState extends State<SearchView> {
     if (lastTypeIndex != null) {
       searchType = SearchType.values[lastTypeIndex];
     }
+    doOutputSearch = prefs.getBool('searchoutput') ?? true;
   }
 
   @override
@@ -73,8 +76,12 @@ class _SearchViewState extends State<SearchView> {
         if (searchType == SearchType.regExp) {
           try {
             final exp = RegExp(searchString);
-            resultNodes = model.regExpSearchResults(exp, availableNodes,
-                searchField: searchField);
+            resultNodes = model.regExpSearchResults(
+              exp,
+              availableNodes,
+              doOutputSearch: doOutputSearch,
+              searchField: searchField,
+            );
           } on FormatException {
             resultNodes.clear();
           }
@@ -88,8 +95,12 @@ class _SearchViewState extends State<SearchView> {
             searchTerms = searchString.split(' ');
             searchTerms.removeWhere((s) => s.isEmpty);
           }
-          resultNodes = model.stringSearchResults(searchTerms, availableNodes,
-              searchField: searchField);
+          resultNodes = model.stringSearchResults(
+            searchTerms,
+            availableNodes,
+            doOutputSearch: doOutputSearch,
+            searchField: searchField,
+          );
         }
       } else {
         resultNodes.clear();
@@ -190,8 +201,11 @@ class _SearchViewState extends State<SearchView> {
   @override
   Widget build(BuildContext context) {
     final model = Provider.of<Structure>(context, listen: false);
-    final fieldTitle =
-        searchField != null ? '${searchField!.name} field' : 'all fields';
+    final fieldTitle = doOutputSearch
+        ? 'all output'
+        : searchField != null
+            ? '${searchField!.name} field'
+            : 'all fields';
     return PopScope<Object?>(
       canPop: true,
       onPopInvokedWithResult: (bool didPop, Object? result) {
@@ -275,9 +289,18 @@ class _SearchViewState extends State<SearchView> {
                     );
                     if (fieldName != null) {
                       searchField = model.fieldMap[fieldName];
+                      doOutputSearch = false;
+                      prefs.setBool('searchoutput', doOutputSearch);
                       doSearch(_controller.text);
                     }
                   case MenuItems.allFields:
+                    searchField = null;
+                    doOutputSearch = false;
+                    prefs.setBool('searchoutput', doOutputSearch);
+                    doSearch(_controller.text);
+                  case MenuItems.allOutput:
+                    doOutputSearch = true;
+                    prefs.setBool('searchoutput', doOutputSearch);
                     searchField = null;
                     doSearch(_controller.text);
                   case MenuItems.replace:
@@ -329,6 +352,10 @@ class _SearchViewState extends State<SearchView> {
                 const PopupMenuItem(
                   value: MenuItems.allFields,
                   child: Text('Search All Fields'),
+                ),
+                const PopupMenuItem(
+                  value: MenuItems.allOutput,
+                  child: Text('Search All Output'),
                 ),
                 if (searchType != SearchType.keyword &&
                     resultNodes.isNotEmpty) ...[

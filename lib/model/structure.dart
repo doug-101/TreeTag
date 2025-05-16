@@ -1,6 +1,6 @@
 // structure.dart, top level storage for the tree model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2025, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -270,11 +270,21 @@ class Structure extends ChangeNotifier {
   List<LeafNode> stringSearchResults(
     List<String> searchTerms,
     List<LeafNode> availableNodes, {
+    bool doOutputSearch = true,
     Field? searchField,
   }) {
+    // [searchFields] is empty for output searches, otherwise has search fields.
+    var searchFields = <Field>[];
+    if (!doOutputSearch) {
+      if (searchField != null) {
+        searchFields = [searchField];
+      } else {
+        searchFields = List.of(fieldMap.values);
+      }
+    }
     final results = <LeafNode>[];
     for (var node in availableNodes) {
-      if (node.isSearchMatch(searchTerms, searchField)) {
+      if (node.isSearchMatch(searchTerms, searchFields)) {
         results.add(node);
       }
     }
@@ -286,11 +296,24 @@ class Structure extends ChangeNotifier {
   }
 
   /// Return nodes from [availableNodes] that match the [regExp].
-  List<LeafNode> regExpSearchResults(RegExp exp, List<LeafNode> availableNodes,
-      {Field? searchField}) {
+  List<LeafNode> regExpSearchResults(
+    RegExp exp,
+    List<LeafNode> availableNodes, {
+    bool doOutputSearch = true,
+    Field? searchField,
+  }) {
+    // [searchFields] is empty for output searches, otherwise has search fields.
+    var searchFields = <Field>[];
+    if (!doOutputSearch) {
+      if (searchField != null) {
+        searchFields = [searchField];
+      } else {
+        searchFields = List.of(fieldMap.values);
+      }
+    }
     final results = <LeafNode>[];
     for (var node in availableNodes) {
-      if (node.isRegExpMatch(exp, searchField)) {
+      if (node.isRegExpMatch(exp, searchFields)) {
         results.add(node);
       }
     }

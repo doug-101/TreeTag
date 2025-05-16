@@ -1,6 +1,6 @@
 // display_node.dart, defines node types for display in the tree model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2025, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'fields.dart';
@@ -154,10 +154,15 @@ class LeafNode implements DisplayNode {
   }
 
   /// Return true if all of the searchTerms are found in the data output.
-  bool isSearchMatch(List<String> searchTerms, Field? searchField) {
-    final text = searchField == null
+  ///
+  /// [searchFields] is empty for all output searches.
+  bool isSearchMatch(List<String> searchTerms, List<Field> searchFields) {
+    final text = searchFields.isEmpty
         ? outputs().join('\n').toLowerCase()
-        : searchField.allOutputText(this).join('\n').toLowerCase();
+        : searchFields
+            .expand((f) => f.allOutputText(this))
+            .join('\n')
+            .toLowerCase();
     for (var term in searchTerms) {
       if (!text.contains(term)) return false;
     }
@@ -165,10 +170,12 @@ class LeafNode implements DisplayNode {
   }
 
   /// Return true if the regular expression is found in the data output.
-  bool isRegExpMatch(RegExp exp, Field? searchField) {
-    final text = searchField == null
+  ///
+  /// [searchFields] is empty for all output searches.
+  bool isRegExpMatch(RegExp exp, List<Field> searchFields) {
+    final text = searchFields.isEmpty
         ? outputs().join('\n')
-        : searchField.allOutputText(this).join('\n');
+        : searchFields.expand((f) => f.allOutputText(this)).join('\n');
     return exp.hasMatch(text);
   }
 
