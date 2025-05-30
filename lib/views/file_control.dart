@@ -180,7 +180,8 @@ class _FileControlState extends State<FileControl> with WindowListener {
       );
     }
     _fileList.sort(
-        (a, b) => a.filename.toLowerCase().compareTo(b.filename.toLowerCase()));
+      (a, b) => a.filename.toLowerCase().compareTo(b.filename.toLowerCase()),
+    );
     _selectedFiles.clear();
     setState(() {});
   }
@@ -191,9 +192,11 @@ class _FileControlState extends State<FileControl> with WindowListener {
     try {
       await model.openFile(fileObj);
       if (!mounted) return;
-      Navigator.pushNamed(context, '/frameView',
-              arguments: fileObj.nameNoExtension)
-          .then((value) async {
+      Navigator.pushNamed(
+        context,
+        '/frameView',
+        arguments: fileObj.nameNoExtension,
+      ).then((value) async {
         _updateFileList();
       });
     } on FormatException {
@@ -370,9 +373,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 Navigator.pop(context);
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingEdit(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const SettingEdit()),
                 );
                 _updateFileList();
               },
@@ -385,9 +386,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 Navigator.pop(context);
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const HelpView(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const HelpView()),
                 );
               },
             ),
@@ -412,11 +411,13 @@ class _FileControlState extends State<FileControl> with WindowListener {
         ),
       ),
       appBar: AppBar(
-        title: Text((_selectedFiles.isEmpty)
-            ? (_usingLocalFiles
-                ? 'Local Files - TreeTag'
-                : 'Network Files - TreeTag')
-            : '${_selectedFiles.length} Selected'),
+        title: Text(
+          (_selectedFiles.isEmpty)
+              ? (_usingLocalFiles
+                    ? 'Local Files - TreeTag'
+                    : 'Network Files - TreeTag')
+              : '${_selectedFiles.length} Selected',
+        ),
         leading: _selectedFiles.isEmpty
             ? IconButton(
                 icon: const Icon(Icons.menu),
@@ -447,18 +448,23 @@ class _FileControlState extends State<FileControl> with WindowListener {
                   label: 'Name for the new file:',
                 );
                 if (filename != null) {
-                  final fileObj =
-                      IOFile.currentType(_addExtensionIfNone(filename));
+                  final fileObj = IOFile.currentType(
+                    _addExtensionIfNone(filename),
+                  );
                   if (!(await fileObj.exists) ||
                       await askOverwriteOk(fileObj.filename)) {
                     if (!context.mounted) return;
-                    final model =
-                        Provider.of<Structure>(context, listen: false);
+                    final model = Provider.of<Structure>(
+                      context,
+                      listen: false,
+                    );
                     model.newFile(fileObj);
                     if (!context.mounted) return;
-                    Navigator.pushNamed(context, '/frameView',
-                            arguments: filename)
-                        .then((value) async {
+                    Navigator.pushNamed(
+                      context,
+                      '/frameView',
+                      arguments: filename,
+                    ).then((value) async {
                       _updateFileList();
                     });
                   }
@@ -473,13 +479,15 @@ class _FileControlState extends State<FileControl> with WindowListener {
               onPressed: () async {
                 final fileObj = _selectedFiles.first;
                 final modTime = await fileObj.dataModTime;
-                final timeStr =
-                    DateFormat('MMM d, yyyy, h:mm a').format(modTime);
+                final timeStr = DateFormat(
+                  'MMM d, yyyy, h:mm a',
+                ).format(modTime);
                 if (!context.mounted) return;
                 await common_dialogs.okDialog(
                   context: context,
                   title: 'File Info - ${fileObj.nameNoExtension}',
-                  label: 'Full Path: ${fileObj.fullPath}\n\n'
+                  label:
+                      'Full Path: ${fileObj.fullPath}\n\n'
                       'Last Modiified: $timeStr\n\n'
                       'Size: ${await fileObj.fileSize} bytes',
                 );
@@ -494,16 +502,17 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 switch (result) {
                   case MenuItems.addFromFolder:
                     // Copy file from external path.
-                    FilePickerResult? answer =
-                        await FilePicker.platform.pickFiles(
-                      initialDirectory: prefs.getString('workdir')!,
-                      dialogTitle: 'Select File to be Added',
-                    );
+                    FilePickerResult? answer = await FilePicker.platform
+                        .pickFiles(
+                          initialDirectory: prefs.getString('workdir')!,
+                          dialogTitle: 'Select File to be Added',
+                        );
                     if (answer != null) {
                       final cachePath = answer.files.single.path;
                       if (cachePath != null) {
-                        final newFileObj =
-                            IOFile.currentType(p.basename(cachePath));
+                        final newFileObj = IOFile.currentType(
+                          p.basename(cachePath),
+                        );
                         if (await newFileObj.exists) {
                           if (!(await askOverwriteOk(newFileObj.filename))) {
                             break;
@@ -712,7 +721,9 @@ class _FileControlState extends State<FileControl> with WindowListener {
                               if (_selectedFiles.contains(fileObj)) {
                                 // Do a chain unselect, removing from bottom.
                                 for (var obj in _fileList.getRange(
-                                    clickPos + 1, origSelectPos.last + 1)) {
+                                  clickPos + 1,
+                                  origSelectPos.last + 1,
+                                )) {
                                   _selectedFiles.remove(obj);
                                 }
                               } else {
@@ -725,11 +736,13 @@ class _FileControlState extends State<FileControl> with WindowListener {
                                   }
                                 }
                                 if (clickPos > closest) {
-                                  _selectedFiles.addAll(_fileList.getRange(
-                                      closest, clickPos + 1));
+                                  _selectedFiles.addAll(
+                                    _fileList.getRange(closest, clickPos + 1),
+                                  );
                                 } else {
-                                  _selectedFiles.addAll(_fileList.getRange(
-                                      clickPos, closest + 1));
+                                  _selectedFiles.addAll(
+                                    _fileList.getRange(clickPos, closest + 1),
+                                  );
                                 }
                               }
                             }

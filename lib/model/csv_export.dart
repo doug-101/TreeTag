@@ -20,7 +20,7 @@ class CsvExport {
   /// Convert the structure to CSV and return the result.
   String csvString({bool useOutput = false}) {
     var rows = [
-      [for (var field in model.fieldMap.values) field.name]
+      [for (var field in model.fieldMap.values) field.name],
     ];
     for (var node in model.leafNodes) {
       final row = <String>[];

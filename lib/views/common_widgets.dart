@@ -17,8 +17,12 @@ class MarkdownWithLinks extends StatelessWidget {
   final ThemeData? theme;
   final bool doShowMatches;
 
-  const MarkdownWithLinks(
-      {super.key, required this.data, this.theme, this.doShowMatches = false});
+  const MarkdownWithLinks({
+    super.key,
+    required this.data,
+    this.theme,
+    this.doShowMatches = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,12 +33,8 @@ class MarkdownWithLinks extends StatelessWidget {
       // Tried internal links to headers, but not supported.
       //extensionSet: md.ExtensionSet.gitHubWeb,
       styleSheet: style,
-      builders: {
-        if (doShowMatches) 'match': ShowMatchBuilder(),
-      },
-      inlineSyntaxes: [
-        if (doShowMatches) ShowMatchSyntax(),
-      ],
+      builders: {if (doShowMatches) 'match': ShowMatchBuilder()},
+      inlineSyntaxes: [if (doShowMatches) ShowMatchSyntax()],
       onTapLink: (String text, String? href, String title) async {
         if (href != null && !href.startsWith('#')) {
           if (href.startsWith('file:')) {
@@ -44,10 +44,7 @@ class MarkdownWithLinks extends StatelessWidget {
               href = 'file:$path';
             }
           }
-          launchUrl(
-            Uri.parse(href),
-            mode: LaunchMode.externalApplication,
-          );
+          launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
         }
       },
     );

@@ -35,17 +35,15 @@ class TreeView extends StatelessWidget {
             items.add(_row(leveledNode, context));
           }
         }
-        return ListView(
-          controller: ScrollController(),
-          children: items,
-        );
+        return ListView(controller: ScrollController(), children: items);
       },
     );
   }
 
   /// A single widget for a tree node.
   Widget _row(LeveledNode leveledNode, BuildContext context) {
-    final spacing = (prefs.getBool('linespacing') ??
+    final spacing =
+        (prefs.getBool('linespacing') ??
             Platform.isLinux || Platform.isWindows || Platform.isMacOS)
         ? 2.0
         : 8.0;
@@ -61,7 +59,11 @@ class TreeView extends StatelessWidget {
         model.hasWideDisplay && node == model.currentDetailViewNode();
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          25.0 * leveledNode.level + 4.0, spacing, 4.0, spacing),
+        25.0 * leveledNode.level + 4.0,
+        spacing,
+        4.0,
+        spacing,
+      ),
       child: GestureDetector(
         onTap: () {
           if (node.hasChildren) {
@@ -85,20 +87,20 @@ class TreeView extends StatelessWidget {
           children: <Widget>[
             node.hasChildren
                 ? node.isOpen
-                    ? isNodeSelected
-                        ? Icon(
-                            Icons.arrow_drop_down,
-                            size: 24.0,
-                            color: Theme.of(context).colorScheme.secondary,
-                          )
-                        : const Icon(Icons.arrow_drop_down, size: 24.0)
-                    : isNodeSelected
-                        ? Icon(
-                            Icons.arrow_right,
-                            size: 24.0,
-                            color: Theme.of(context).colorScheme.secondary,
-                          )
-                        : const Icon(Icons.arrow_right, size: 24.0)
+                      ? isNodeSelected
+                            ? Icon(
+                                Icons.arrow_drop_down,
+                                size: 24.0,
+                                color: Theme.of(context).colorScheme.secondary,
+                              )
+                            : const Icon(Icons.arrow_drop_down, size: 24.0)
+                      : isNodeSelected
+                      ? Icon(
+                          Icons.arrow_right,
+                          size: 24.0,
+                          color: Theme.of(context).colorScheme.secondary,
+                        )
+                      : const Icon(Icons.arrow_right, size: 24.0)
                 : Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: isNodeSelected
@@ -111,13 +113,8 @@ class TreeView extends StatelessWidget {
                   ),
             Expanded(
               child: model.useMarkdownOutput
-                  ? MarkdownWithLinks(
-                      data: nodeText,
-                    )
-                  : Text(
-                      nodeText,
-                      softWrap: true,
-                    ),
+                  ? MarkdownWithLinks(data: nodeText)
+                  : Text(nodeText, softWrap: true),
             ),
           ],
         ),

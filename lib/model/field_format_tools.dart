@@ -51,7 +51,9 @@ class FormatSegment {
 
 /// Split a format, return segments with codes or extra text.
 List<FormatSegment> parseFieldFormat(
-    String format, Map<String, String> formatMap) {
+  String format,
+  Map<String, String> formatMap,
+) {
   // Use null char to hande escaped (double) single quotes.
   format = format.replaceAll("''", "\x00");
   final result = <FormatSegment>[];
@@ -59,8 +61,11 @@ List<FormatSegment> parseFieldFormat(
     if (format[0] == "'") {
       final endPos = format.indexOf("'", 1);
       if (endPos < 0) throw const FormatException('Expected closing quote');
-      result.add(FormatSegment(
-          extraText: format.substring(1, endPos).replaceAll("\x00", "'")));
+      result.add(
+        FormatSegment(
+          extraText: format.substring(1, endPos).replaceAll("\x00", "'"),
+        ),
+      );
       format = format.substring(endPos + 1);
     } else {
       final formatLen = format.length;
@@ -92,8 +97,10 @@ List<FormatSegment> parseFieldFormat(
 /// Combine parsed format back into a single format string.
 ///
 /// If [condense], combine adjacent text segments.
-String combineFieldFormat(List<FormatSegment> parsedList,
-    {bool condense = false}) {
+String combineFieldFormat(
+  List<FormatSegment> parsedList, {
+  bool condense = false,
+}) {
   if (condense) {
     final condensedList = <FormatSegment>[];
     for (var segment in parsedList) {

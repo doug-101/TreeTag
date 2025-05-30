@@ -20,48 +20,51 @@ class FieldFormatDisplay extends FormField<String> {
     super.key,
     super.onSaved,
   }) : super(
-            initialValue: initialFormat,
-            builder: (FormFieldState<String> state) {
-              return InkWell(
-                onTap: () async {
-                  final newFormat = await Navigator.push(
-                    state.context,
-                    MaterialPageRoute<String?>(
-                      builder: (context) {
-                        if (fieldType == 'Choice') {
-                          return ChoiceFormatEdit(initFormat: state.value!);
-                        }
-                        return FieldFormatEdit(
-                            fieldType: fieldType, initFormat: state.value!);
-                      },
-                    ),
-                  );
-                  if (newFormat != null) {
-                    state.didChange(newFormat);
-                  }
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: Text('$fieldType Field Format',
-                          style: Theme.of(state.context).textTheme.bodySmall),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: Text(
-                        _fieldFormatPreview(fieldType, state.value!),
-                        style: Theme.of(state.context).textTheme.titleMedium,
-                      ),
-                    ),
-                    const Divider(
-                      thickness: 3.0,
-                    ),
-                  ],
-                ),
-              );
-            });
+         initialValue: initialFormat,
+         builder: (FormFieldState<String> state) {
+           return InkWell(
+             onTap: () async {
+               final newFormat = await Navigator.push(
+                 state.context,
+                 MaterialPageRoute<String?>(
+                   builder: (context) {
+                     if (fieldType == 'Choice') {
+                       return ChoiceFormatEdit(initFormat: state.value!);
+                     }
+                     return FieldFormatEdit(
+                       fieldType: fieldType,
+                       initFormat: state.value!,
+                     );
+                   },
+                 ),
+               );
+               if (newFormat != null) {
+                 state.didChange(newFormat);
+               }
+             },
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: <Widget>[
+                 Padding(
+                   padding: const EdgeInsets.only(top: 10.0),
+                   child: Text(
+                     '$fieldType Field Format',
+                     style: Theme.of(state.context).textTheme.bodySmall,
+                   ),
+                 ),
+                 Padding(
+                   padding: const EdgeInsets.symmetric(vertical: 5.0),
+                   child: Text(
+                     _fieldFormatPreview(fieldType, state.value!),
+                     style: Theme.of(state.context).textTheme.titleMedium,
+                   ),
+                 ),
+                 const Divider(thickness: 3.0),
+               ],
+             ),
+           );
+         },
+       );
 }
 
 /// The field format edit widget.
@@ -72,8 +75,11 @@ class FieldFormatEdit extends StatefulWidget {
   final String fieldType;
   final String initFormat;
 
-  const FieldFormatEdit(
-      {super.key, required this.fieldType, required this.initFormat});
+  const FieldFormatEdit({
+    super.key,
+    required this.fieldType,
+    required this.initFormat,
+  });
 
   @override
   State<FieldFormatEdit> createState() => _FieldFormatEditState();
@@ -105,8 +111,9 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
 
   @override
   Widget build(BuildContext context) {
-    final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.primary);
+    final contrastStyle = TextStyle(
+      color: Theme.of(context).colorScheme.primary,
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.fieldType} Field Format'),
@@ -116,10 +123,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
           onPressed: () {
             final formatResult = combineFieldFormat(segments, condense: true);
             if (_fieldFormatIsValid(widget.fieldType, formatResult)) {
-              Navigator.pop<String?>(
-                context,
-                isChanged ? formatResult : null,
-              );
+              Navigator.pop<String?>(context, isChanged ? formatResult : null);
             }
           },
         ),
@@ -140,10 +144,7 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
           if (!didPop) {
             final formatResult = combineFieldFormat(segments, condense: true);
             if (_fieldFormatIsValid(widget.fieldType, formatResult)) {
-              Navigator.pop<String?>(
-                context,
-                isChanged ? formatResult : null,
-              );
+              Navigator.pop<String?>(context, isChanged ? formatResult : null);
             }
           }
         },
@@ -197,13 +198,14 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                         PopupMenuItem<String>(
                           value: code,
                           child: Text('Add: ${formatMap[code]}'),
-                        )
+                        ),
                     ],
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
                     tooltip: 'Edit segment',
-                    onPressed: (selectedSegment == null ||
+                    onPressed:
+                        (selectedSegment == null ||
                             selectedSegment?.extraText == null)
                         ? null
                         : () async {
@@ -240,7 +242,8 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
                     tooltip: 'Move segment left',
-                    onPressed: (selectedSegment == null ||
+                    onPressed:
+                        (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) == 0)
                         ? null
                         : () {
@@ -256,7 +259,8 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                   IconButton(
                     icon: const Icon(Icons.arrow_forward),
                     tooltip: 'Move segment right',
-                    onPressed: (selectedSegment == null ||
+                    onPressed:
+                        (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) ==
                                 segments.length - 1)
                         ? null
@@ -298,8 +302,10 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
                             ),
                             showCheckmark: false,
                             label: segment.formatCode != null
-                                ? Text(formatMap[segment.formatCode]!,
-                                    style: contrastStyle)
+                                ? Text(
+                                    formatMap[segment.formatCode]!,
+                                    style: contrastStyle,
+                                  )
                                 : Text(segment.extraText ?? ''),
                             // Tap target setting prevents uneven spacing.
                             materialTapTargetSize:
@@ -322,8 +328,10 @@ class _FieldFormatEditState extends State<FieldFormatEdit> {
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 15.0),
-                child: Text('Format Sample',
-                    style: Theme.of(context).textTheme.bodySmall),
+                child: Text(
+                  'Format Sample',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 5.0),

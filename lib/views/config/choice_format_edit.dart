@@ -43,10 +43,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
           tooltip: 'Retain values and close',
           onPressed: () {
             final formatResult = combineChoiceFormat(segments);
-            Navigator.pop<String?>(
-              context,
-              isChanged ? formatResult : null,
-            );
+            Navigator.pop<String?>(context, isChanged ? formatResult : null);
           },
         ),
         actions: <Widget>[
@@ -65,10 +62,7 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
         onPopInvokedWithResult: (bool didPop, String? result) {
           if (!didPop) {
             final formatResult = combineChoiceFormat(segments);
-            Navigator.pop<String?>(
-              context,
-              isChanged ? formatResult : null,
-            );
+            Navigator.pop<String?>(context, isChanged ? formatResult : null);
           }
         },
         child: Padding(
@@ -144,7 +138,8 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_up),
                     tooltip: 'Move a segment up',
-                    onPressed: (selectedSegment == null ||
+                    onPressed:
+                        (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) == 0)
                         ? null
                         : () {
@@ -160,7 +155,8 @@ class _ChoiceFormatEditState extends State<ChoiceFormatEdit> {
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_down),
                     tooltip: 'Move a segment down',
-                    onPressed: (selectedSegment == null ||
+                    onPressed:
+                        (selectedSegment == null ||
                             segments.indexOf(selectedSegment!) ==
                                 segments.length - 1)
                         ? null

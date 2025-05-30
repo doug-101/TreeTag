@@ -26,8 +26,9 @@ class TreeLineImport {
   void convertNodeType(String typeName, Structure model) {
     final boolFieldNames = <String>{};
     final textFieldNames = <String>{};
-    final formatData = jsonData['formats']
-        .firstWhere((item) => item['formatname'] == typeName);
+    final formatData = jsonData['formats'].firstWhere(
+      (item) => item['formatname'] == typeName,
+    );
     for (var fieldData in formatData['fields'] ?? []) {
       if (fieldData['fieldtype'] == 'Boolean') {
         // Convert a Boolean field to a Choice field.
@@ -64,14 +65,16 @@ class TreeLineImport {
             if (field is AutoChoiceField) {
               field.options.add(leafNode.data[field.name]![0]);
             } else if (boolFieldNames.contains(field.name)) {
-              if ({'true', 'yes'}
-                  .contains(leafNode.data[field.name]![0].toLowerCase())) {
+              if ({
+                'true',
+                'yes',
+              }.contains(leafNode.data[field.name]![0].toLowerCase())) {
                 leafNode.data[field.name] = [
-                  splitChoiceFormat(field.format)[0]
+                  splitChoiceFormat(field.format)[0],
                 ];
               } else {
                 leafNode.data[field.name] = [
-                  splitChoiceFormat(field.format)[1]
+                  splitChoiceFormat(field.format)[1],
                 ];
               }
             } else if (textFieldNames.contains(field.name)) {
@@ -90,10 +93,7 @@ class TreeLineImport {
     final root = TitleNode(title: 'Root');
     root.isOpen = true;
     model.rootNodes.add(root);
-    root.childRuleNode = RuleNode(
-      rule: 'All Nodes',
-      storedParent: root,
-    );
+    root.childRuleNode = RuleNode(rule: 'All Nodes', storedParent: root);
   }
 }
 
@@ -125,10 +125,11 @@ String _adjustDateTimeFormat(String origFormat) {
   };
   final regExp = RegExp(r'%-?[daAmbByYjHIMSfp%]');
   var newFormat = origFormat.replaceAllMapped(
-      regExp,
-      (Match m) => replacements[m.group(0)] != null
-          ? "'${replacements[m.group(0)]}'"
-          : m.group(0)!);
+    regExp,
+    (Match m) => replacements[m.group(0)] != null
+        ? "'${replacements[m.group(0)]}'"
+        : m.group(0)!,
+  );
   newFormat = "'$newFormat'";
   newFormat = newFormat.replaceAll("''", "");
   return newFormat;

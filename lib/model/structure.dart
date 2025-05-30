@@ -121,12 +121,14 @@ class Structure extends ChangeNotifier {
       rule: fieldMap[categoryFieldName]!.lineText(),
       storedParent: root,
     );
-    leafNodes.add(LeafNode(
-      data: {
-        mainFieldName: ['Sample Node'],
-        categoryFieldName: ['First Category'],
-      },
-    ));
+    leafNodes.add(
+      LeafNode(
+        data: {
+          mainFieldName: ['Sample Node'],
+          categoryFieldName: ['First Category'],
+        },
+      ),
+    );
     titleLine = ParsedLine(fieldMap[mainFieldName]!.lineText(), fieldMap);
     outputLines.add(ParsedLine.fromSingleField(fieldMap[mainFieldName]!));
     outputLines.add(ParsedLine.fromSingleField(fieldMap[categoryFieldName]!));
@@ -161,8 +163,9 @@ class Structure extends ChangeNotifier {
           // or other file system changes.
           final dataModTime = await fileObject.dataModTime;
           if (dataModTime.difference(modTime).inSeconds >= 60) {
-            final timeStr =
-                DateFormat('MMM d, yyyy, h:mm a').format(fileModTime);
+            final timeStr = DateFormat(
+              'MMM d, yyyy, h:mm a',
+            ).format(fileModTime);
             throw ExternalModException('Modified on $timeStr');
           }
         }
@@ -182,7 +185,7 @@ class Structure extends ChangeNotifier {
     jsonData['fields'] = [for (var field in fieldMap.values) field.toJson()];
     jsonData['titleline'] = titleLine.getUnparsedLine();
     jsonData['outputlines'] = [
-      for (var line in outputLines) line.getUnparsedLine()
+      for (var line in outputLines) line.getUnparsedLine(),
     ];
     jsonData['leaves'] = [for (var leaf in leafNodes) leaf.toJson()];
     if (useMarkdownOutput) jsonData['usemarkdown'] = true;
@@ -253,8 +256,11 @@ class Structure extends ChangeNotifier {
   }
 
   /// Add a child to [detailViewRecords] and do an update.
-  void addDetailViewRecord(DisplayNode node,
-      {DisplayNode? parent, bool doClearFirst = false}) {
+  void addDetailViewRecord(
+    DisplayNode node, {
+    DisplayNode? parent,
+    bool doClearFirst = false,
+  }) {
     if (doClearFirst) detailViewRecords.clear();
     // Only stores the parent for leaves (other nodes have parent member).
     detailViewRecords.add((
@@ -338,11 +344,13 @@ class Structure extends ChangeNotifier {
     if (pattern is RegExp) {
       // Find backreferences ($1, $2, etc.) in replacement that get loaded
       // with matched groups.
-      replaceGroupMatches =
-          RegExp(r'(?<!\$)\$\d').allMatches(replacement).toList();
+      replaceGroupMatches = RegExp(
+        r'(?<!\$)\$\d',
+      ).allMatches(replacement).toList();
     }
-    final fields =
-        searchField != null ? [searchField] : fieldMap.values.toList();
+    final fields = searchField != null
+        ? [searchField]
+        : fieldMap.values.toList();
     final undos = <Undo>[];
     for (var node in availableNodes) {
       undos.add(UndoEditLeafNode('', leafNodes.indexOf(node), node.data));
@@ -461,15 +469,27 @@ class Structure extends ChangeNotifier {
   }
 
   /// Called from the [EditView] to update new or edited node data.
-  void editNodeData(LeafNode node, Map<String, List<String>> nodeData,
-      {bool newNode = false}) {
+  void editNodeData(
+    LeafNode node,
+    Map<String, List<String>> nodeData, {
+    bool newNode = false,
+  }) {
     if (newNode) {
       node.data = nodeData;
-      undoList.add(UndoAddLeafNode(
-          'New leaf node: ${node.title}', leafNodes.indexOf(node)));
+      undoList.add(
+        UndoAddLeafNode(
+          'New leaf node: ${node.title}',
+          leafNodes.indexOf(node),
+        ),
+      );
     } else {
-      undoList.add(UndoEditLeafNode(
-          'Edit leaf node: ${node.title}', leafNodes.indexOf(node), node.data));
+      undoList.add(
+        UndoEditLeafNode(
+          'Edit leaf node: ${node.title}',
+          leafNodes.indexOf(node),
+          node.data,
+        ),
+      );
       node.data = nodeData;
     }
     updateAll();
@@ -503,7 +523,10 @@ class Structure extends ChangeNotifier {
     if (withUndo) {
       undoList.add(
         UndoDeleteLeafNode(
-            'Delete leaf node: ${node.title}', leafNodes.indexOf(node), node),
+          'Delete leaf node: ${node.title}',
+          leafNodes.indexOf(node),
+          node,
+        ),
       );
     }
     leafNodes.remove(node);
@@ -523,7 +546,7 @@ class Structure extends ChangeNotifier {
       final childNodes = List.of(rootNode.availableNodes);
       final undos = [
         for (var leafNode in childNodes)
-          UndoDeleteLeafNode('', leafNodes.indexOf(leafNode), leafNode)
+          UndoDeleteLeafNode('', leafNodes.indexOf(leafNode), leafNode),
       ];
       // Sort undos to return to original sequence at undo without error.
       undos.sort((a, b) => a.nodePos.compareTo(b.nodePos));
@@ -563,8 +586,10 @@ class Structure extends ChangeNotifier {
 
   /// Called from the [FieldEdit] view to add a new [field].
   void addNewField(Field field, {int? newPos, bool doAddOutput = false}) {
-    final fieldUndo =
-        UndoAddNewField('Add new field: ${field.name}', field.name);
+    final fieldUndo = UndoAddNewField(
+      'Add new field: ${field.name}',
+      field.name,
+    );
     if (newPos != null) {
       final fieldList = List.of(fieldMap.values);
       fieldList.insert(newPos, field);
@@ -593,12 +618,17 @@ class Structure extends ChangeNotifier {
   /// Called from the [FieldEdit] view to add settings from [editedField].
   ///
   /// Choices from [ChoiceField] need to be updated if [removeChoices].
-  void editField(Field oldField, Field editedField,
-      {bool removeChoices = false, bool removeMultiples = false}) {
+  void editField(
+    Field oldField,
+    Field editedField, {
+    bool removeChoices = false,
+    bool removeMultiples = false,
+  }) {
     final undos = <Undo>[];
     final pos = List.of(fieldMap.values).indexOf(oldField);
-    undos.add(UndoEditField(
-        'Edit field: ${oldField.name}', pos, Field.copy(oldField)));
+    undos.add(
+      UndoEditField('Edit field: ${oldField.name}', pos, Field.copy(oldField)),
+    );
     if (oldField.name != editedField.name) {
       // Field was renamed.
       final fieldList = List.of(fieldMap.values);
@@ -748,8 +778,9 @@ class Structure extends ChangeNotifier {
       }
       if (outputLines.isEmpty) {
         undos.add(UndoAddOutputLine('', 0));
-        outputLines
-            .add(ParsedLine.fromSingleField(List.of(fieldMap.values)[0]));
+        outputLines.add(
+          ParsedLine.fromSingleField(List.of(fieldMap.values)[0]),
+        );
       }
     }
     var badRules = <RuleNode>[];
@@ -763,24 +794,28 @@ class Structure extends ChangeNotifier {
             badRules.add(rule);
           }
           if (rule.isFieldInChildSort(field)) {
-            undos.add(UndoEditSortKeys(
-              '',
-              storedNodeId(rule),
-              rule.childSortFields,
-              isChildSort: true,
-            ));
+            undos.add(
+              UndoEditSortKeys(
+                '',
+                storedNodeId(rule),
+                rule.childSortFields,
+                isChildSort: true,
+              ),
+            );
             rule.removeChildSortField(field);
           }
         }
       }
     }
     for (var ruleNode in badRules) {
-      undos.add(UndoDeleteTreeNode(
-        '',
-        storedNodeId(ruleNode.storedParent),
-        0,
-        ruleNode,
-      ));
+      undos.add(
+        UndoDeleteTreeNode(
+          '',
+          storedNodeId(ruleNode.storedParent),
+          0,
+          ruleNode,
+        ),
+      );
       if (ruleNode.childRuleNode != null) {
         undos.add(UndoAddTreeNode('', storedNodeId(ruleNode), 0));
       }
@@ -789,8 +824,9 @@ class Structure extends ChangeNotifier {
           (ruleNode.storedParent as RuleNode).childRuleNode =
               ruleNode.childRuleNode;
         } else {
-          (ruleNode.storedParent as TitleNode)
-              .replaceChildRule(ruleNode.childRuleNode);
+          (ruleNode.storedParent as TitleNode).replaceChildRule(
+            ruleNode.childRuleNode,
+          );
         }
       }
     }
@@ -965,8 +1001,9 @@ class Structure extends ChangeNotifier {
   void addTitleSibling(TitleNode siblingNode, String newTitle) {
     final parent = siblingNode.storedParent as TitleNode?;
     final pos = storedNodePos(siblingNode) + 1;
-    undoList.add(UndoAddTreeNode(
-        'Add title node: $newTitle', storedNodeId(parent), pos));
+    undoList.add(
+      UndoAddTreeNode('Add title node: $newTitle', storedNodeId(parent), pos),
+    );
     final newNode = TitleNode(title: newTitle, parent: parent);
     if (parent != null) {
       parent.addChildTitleNode(newNode, pos: pos);
@@ -998,8 +1035,13 @@ class Structure extends ChangeNotifier {
 
   /// Called from [TreeConfig] to edit an existing title node.
   void editTitle(TitleNode node, String newTitle) {
-    undoList.add(UndoEditTitleNode(
-        'Edit title node: ${node.title}', storedNodeId(node), node.title));
+    undoList.add(
+      UndoEditTitleNode(
+        'Edit title node: ${node.title}',
+        storedNodeId(node),
+        node.title,
+      ),
+    );
     node.title = newTitle;
     updateAll();
   }
@@ -1007,10 +1049,13 @@ class Structure extends ChangeNotifier {
   /// Called from [TreeConfig] to add a new rule node as a child.
   void addRuleChild(RuleNode newNode) {
     if (newNode.storedParent == null) return;
-    undoList.add(UndoAddTreeNode(
+    undoList.add(
+      UndoAddTreeNode(
         'Add rule node: ${newNode.ruleLine.getUnparsedLine()}',
         storedNodeId(newNode.storedParent),
-        0));
+        0,
+      ),
+    );
     if (newNode.storedParent is TitleNode) {
       final parent = newNode.storedParent as TitleNode;
       if (parent.childRuleNode != null) {
@@ -1033,9 +1078,10 @@ class Structure extends ChangeNotifier {
 
   void editRuleLine(RuleNode node, ParsedLine newRuleLine) {
     final editUndo = UndoEditRuleLine(
-        'Edit rule line: ${node.ruleLine.getUnparsedLine()}',
-        storedNodeId(node),
-        node.ruleLine);
+      'Edit rule line: ${node.ruleLine.getUnparsedLine()}',
+      storedNodeId(node),
+      node.ruleLine,
+    );
     node.ruleLine = newRuleLine;
     final prevSortKeys = List.of(node.sortFields);
     if (node.setDefaultRuleSortFields(checkCustom: true)) {
@@ -1057,13 +1103,15 @@ class Structure extends ChangeNotifier {
   /// Called from [TreeConfig] to delete a title or rule node.
   void deleteTreeNode(StoredNode node, {bool keepChildren = false}) {
     if (node is TitleNode) {
-      undoList.add(UndoDeleteTreeNode(
-        'Delete title node: ${node.title}',
-        storedNodeId(node.storedParent),
-        storedNodePos(node),
-        node,
-        replaceCount: keepChildren ? node.storedChildren().length : 0,
-      ));
+      undoList.add(
+        UndoDeleteTreeNode(
+          'Delete title node: ${node.title}',
+          storedNodeId(node.storedParent),
+          storedNodePos(node),
+          node,
+          replaceCount: keepChildren ? node.storedChildren().length : 0,
+        ),
+      );
       if (keepChildren && node.hasChildren && node.storedParent != null) {
         final parentTitleNode = node.storedParent as TitleNode;
         if (node.childRuleNode == null) {
@@ -1091,17 +1139,20 @@ class Structure extends ChangeNotifier {
         rootNodes.remove(node);
       }
     } else {
-      undoList.add(UndoDeleteTreeNode(
-        'Delete rule node: ${(node as RuleNode).ruleLine.getUnparsedLine()}',
-        storedNodeId(node.storedParent),
-        storedNodePos(node),
-        node,
-        replaceCount: keepChildren ? 1 : 0,
-      ));
+      undoList.add(
+        UndoDeleteTreeNode(
+          'Delete rule node: ${(node as RuleNode).ruleLine.getUnparsedLine()}',
+          storedNodeId(node.storedParent),
+          storedNodePos(node),
+          node,
+          replaceCount: keepChildren ? 1 : 0,
+        ),
+      );
       if (node.storedParent is TitleNode) {
         // Deleting a RuleNode from a TitleNode.
-        (node.storedParent as TitleNode)
-            .replaceChildRule(keepChildren ? node.childRuleNode : null);
+        (node.storedParent as TitleNode).replaceChildRule(
+          keepChildren ? node.childRuleNode : null,
+        );
       } else {
         final parentRule = node.storedParent as RuleNode;
         if (keepChildren && node.childRuleNode != null) {
@@ -1121,8 +1172,14 @@ class Structure extends ChangeNotifier {
         ? node.storedParent!.storedChildren()
         : rootNodes;
     var pos = siblings.indexOf(node);
-    undoList.add(UndoMoveTitleNode('Move title node: ${node.title}',
-        storedNodeId(node.storedParent), pos, up));
+    undoList.add(
+      UndoMoveTitleNode(
+        'Move title node: ${node.title}',
+        storedNodeId(node.storedParent),
+        pos,
+        up,
+      ),
+    );
     siblings.removeAt(pos);
     siblings.insert(up ? --pos : ++pos, node);
     updateAll();
@@ -1141,12 +1198,14 @@ class Structure extends ChangeNotifier {
 
   /// Called from [RuleEdit] to set default rule sort keys.
   void ruleSortKeysToDefault(RuleNode node) {
-    undoList.add(UndoEditSortKeys(
-      'Rule sort keys to default',
-      storedNodeId(node),
-      node.sortFields,
-      isCustom: node.hasCustomSortFields,
-    ));
+    undoList.add(
+      UndoEditSortKeys(
+        'Rule sort keys to default',
+        storedNodeId(node),
+        node.sortFields,
+        isCustom: node.hasCustomSortFields,
+      ),
+    );
     node.hasCustomSortFields = false;
     node.setDefaultRuleSortFields();
     updateAll();
@@ -1154,13 +1213,15 @@ class Structure extends ChangeNotifier {
 
   /// Called from [RuleEdit] to set default child sort keys.
   void childSortKeysToDefault(RuleNode node) {
-    undoList.add(UndoEditSortKeys(
-      'Child sort keys to default',
-      storedNodeId(node),
-      node.childSortFields,
-      isCustom: node.hasCustomChildSortFields,
-      isChildSort: true,
-    ));
+    undoList.add(
+      UndoEditSortKeys(
+        'Child sort keys to default',
+        storedNodeId(node),
+        node.childSortFields,
+        isCustom: node.hasCustomChildSortFields,
+        isChildSort: true,
+      ),
+    );
     node.hasCustomChildSortFields = false;
     node.setDefaultChildSortFields();
     updateAll();
@@ -1168,12 +1229,14 @@ class Structure extends ChangeNotifier {
 
   /// Called from [RuleEdit] to set custom rule sort keys.
   void updateRuleSortKeys(RuleNode node, List<SortKey> newKeys) {
-    undoList.add(UndoEditSortKeys(
-      'Edit rule sort keys',
-      storedNodeId(node),
-      node.sortFields,
-      isCustom: node.hasCustomSortFields,
-    ));
+    undoList.add(
+      UndoEditSortKeys(
+        'Edit rule sort keys',
+        storedNodeId(node),
+        node.sortFields,
+        isCustom: node.hasCustomSortFields,
+      ),
+    );
     node.hasCustomSortFields = true;
     node.sortFields = newKeys;
     updateAll();
@@ -1181,13 +1244,15 @@ class Structure extends ChangeNotifier {
 
   /// Called from [RuleEdit] to set custom child sort keys.
   void updateChildSortKeys(RuleNode node, List<SortKey> newKeys) {
-    undoList.add(UndoEditSortKeys(
-      'Edit child sort keys',
-      storedNodeId(node),
-      node.childSortFields,
-      isCustom: node.hasCustomChildSortFields,
-      isChildSort: true,
-    ));
+    undoList.add(
+      UndoEditSortKeys(
+        'Edit child sort keys',
+        storedNodeId(node),
+        node.childSortFields,
+        isCustom: node.hasCustomChildSortFields,
+        isChildSort: true,
+      ),
+    );
     node.hasCustomChildSortFields = true;
     node.childSortFields = newKeys;
     updateAll();
@@ -1195,8 +1260,9 @@ class Structure extends ChangeNotifier {
 
   /// Called from [OutputConfig] to add a new output line.
   void addOutputLine(int pos, ParsedLine newLine) {
-    undoList.add(UndoAddOutputLine(
-        'Add output line: ${newLine.getUnparsedLine()}', pos));
+    undoList.add(
+      UndoAddOutputLine('Add output line: ${newLine.getUnparsedLine()}', pos),
+    );
     outputLines.insert(pos, newLine);
     updateAltFormatFields();
     updateAll();
@@ -1205,13 +1271,23 @@ class Structure extends ChangeNotifier {
   /// Called from [OutputConfig] to edit a title line or an output line.
   void editOutputLine(ParsedLine origLine, ParsedLine newLine) {
     if (origLine == titleLine) {
-      undoList.add(UndoEditOutputLine(
-          'Edit title line: ${origLine.getUnparsedLine()}', -1, origLine));
+      undoList.add(
+        UndoEditOutputLine(
+          'Edit title line: ${origLine.getUnparsedLine()}',
+          -1,
+          origLine,
+        ),
+      );
       titleLine = newLine;
     } else {
       int pos = outputLines.indexOf(origLine);
-      undoList.add(UndoEditOutputLine(
-          'Edit output line: ${origLine.getUnparsedLine()}', pos, origLine));
+      undoList.add(
+        UndoEditOutputLine(
+          'Edit output line: ${origLine.getUnparsedLine()}',
+          pos,
+          origLine,
+        ),
+      );
       if (pos >= 0) outputLines[pos] = newLine;
     }
     updateAltFormatFields();
@@ -1221,8 +1297,13 @@ class Structure extends ChangeNotifier {
   /// Called from [OutputConfig] to delete an output line.
   void removeOutputLine(ParsedLine origLine) {
     int pos = outputLines.indexOf(origLine);
-    undoList.add(UndoRemoveOutputLine(
-        'Remove output line: ${origLine.getUnparsedLine()}', pos, origLine));
+    undoList.add(
+      UndoRemoveOutputLine(
+        'Remove output line: ${origLine.getUnparsedLine()}',
+        pos,
+        origLine,
+      ),
+    );
     outputLines.remove(origLine);
     updateAltFormatFields();
     updateAll();
@@ -1231,8 +1312,13 @@ class Structure extends ChangeNotifier {
   /// Called from [OutputConfig] to move an output line up or down.
   void moveOutputLine(ParsedLine line, {bool up = true}) {
     var pos = outputLines.indexOf(line);
-    undoList.add(UndoMoveOutputLine(
-        'Move output line: ${line.getUnparsedLine()}', pos, up));
+    undoList.add(
+      UndoMoveOutputLine(
+        'Move output line: ${line.getUnparsedLine()}',
+        pos,
+        up,
+      ),
+    );
     outputLines.removeAt(pos);
     outputLines.insert(up ? --pos : ++pos, line);
     updateAll();
@@ -1240,16 +1326,26 @@ class Structure extends ChangeNotifier {
 
   /// Called from [OptionConfig] to change the Markdown output setting.
   void setMarkdownOutput(bool setting) {
-    undoList.add(UndoParameters(
-        'Set markdown output option', useMarkdownOutput, useRelativeLinks));
+    undoList.add(
+      UndoParameters(
+        'Set markdown output option',
+        useMarkdownOutput,
+        useRelativeLinks,
+      ),
+    );
     useMarkdownOutput = setting;
     updateAll();
   }
 
   /// Called from [OptionConfig] to change the relative link setting.
   void setUseRelativeLink(bool setting) {
-    undoList.add(UndoParameters(
-        'Set relative link option', useMarkdownOutput, useRelativeLinks));
+    undoList.add(
+      UndoParameters(
+        'Set relative link option',
+        useMarkdownOutput,
+        useRelativeLinks,
+      ),
+    );
     useRelativeLinks = setting;
   }
 
@@ -1279,8 +1375,11 @@ class Structure extends ChangeNotifier {
       }
     }
     for (var root in rootNodes) {
-      updateChildren(root,
-          forceUpdate: forceUpdate, extraUpdates: viewAncestors);
+      updateChildren(
+        root,
+        forceUpdate: forceUpdate,
+        extraUpdates: viewAncestors,
+      );
     }
     // Check whether the position of the current detail node has changed.
     if (detailViewRecords.isNotEmpty) {
@@ -1300,16 +1399,22 @@ class Structure extends ChangeNotifier {
 }
 
 /// Update the children of a given [node].
-void updateChildren(DisplayNode node,
-    {bool forceUpdate = true, Set<DisplayNode> extraUpdates = const {}}) {
+void updateChildren(
+  DisplayNode node, {
+  bool forceUpdate = true,
+  Set<DisplayNode> extraUpdates = const {},
+}) {
   if (node.isOpen || extraUpdates.contains(node)) {
     if (node.isStale) {
       forceUpdate = true;
       node.isStale = false;
     }
     for (var child in node.childNodes(forceUpdate: forceUpdate)) {
-      updateChildren(child,
-          forceUpdate: forceUpdate, extraUpdates: extraUpdates);
+      updateChildren(
+        child,
+        forceUpdate: forceUpdate,
+        extraUpdates: extraUpdates,
+      );
     }
   } else if (forceUpdate && node.hasChildren) {
     node.isStale = true;
@@ -1317,8 +1422,11 @@ void updateChildren(DisplayNode node,
 }
 
 /// Generate nodes for all of the nodes in the branch.
-Iterable<DisplayNode> allNodeGenerator(DisplayNode node,
-    {DisplayNode? parent, bool forceUpdate = false}) sync* {
+Iterable<DisplayNode> allNodeGenerator(
+  DisplayNode node, {
+  DisplayNode? parent,
+  bool forceUpdate = false,
+}) sync* {
   yield node;
   if (node.isStale) {
     forceUpdate = true;
@@ -1379,8 +1487,10 @@ class LeveledStoredNode {
 }
 
 /// Generate [LeveledNodes] for all of the stored nodes.
-Iterable<LeveledStoredNode> storedNodeGenerator(StoredNode node,
-    {int level = 0}) sync* {
+Iterable<LeveledStoredNode> storedNodeGenerator(
+  StoredNode node, {
+  int level = 0,
+}) sync* {
   yield LeveledStoredNode(node, level);
   for (var child in node.storedChildren()) {
     yield* storedNodeGenerator(child, level: level + 1);
@@ -1400,8 +1510,9 @@ int compareVersions(String firstStr, String secondStr) {
     second.add('0');
   }
   for (var i = 0; i < first.length; i++) {
-    final compare =
-        (int.tryParse(first[i]) ?? 0).compareTo(int.tryParse(second[i]) ?? 0);
+    final compare = (int.tryParse(first[i]) ?? 0).compareTo(
+      int.tryParse(second[i]) ?? 0,
+    );
     if (compare != 0) return compare;
   }
   return 0;

@@ -19,10 +19,7 @@ class TreeLineExport {
     var headingFormat = <String, dynamic>{
       'formatname': 'HEADING',
       'fields': [
-        {
-          'fieldname': 'Title',
-          'fieldtype': 'Text',
-        },
+        {'fieldname': 'Title', 'fieldtype': 'Text'},
       ],
       'titleline': '{*Title*}',
       'outputlines': ['{*Title*}'],
@@ -52,7 +49,7 @@ class TreeLineExport {
       'fields': fieldData,
       'titleline': model.titleLine.getUnparsedLine(),
       'outputlines': [
-        for (var line in model.outputLines) line.getUnparsedLine()
+        for (var line in model.outputLines) line.getUnparsedLine(),
       ],
     };
     const uuid = Uuid();

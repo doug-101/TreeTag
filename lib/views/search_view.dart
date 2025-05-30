@@ -114,8 +114,10 @@ class _SearchViewState extends State<SearchView> {
     var matches = <Match>[];
     switch (searchType) {
       case SearchType.phrase:
-        matches =
-            node.allPatternMatches(_controller.text.toLowerCase(), searchField);
+        matches = node.allPatternMatches(
+          _controller.text.toLowerCase(),
+          searchField,
+        );
       case SearchType.keyword:
         for (var searchTerm in _controller.text.toLowerCase().split(' ')) {
           if (searchTerm.isNotEmpty) {
@@ -161,12 +163,15 @@ class _SearchViewState extends State<SearchView> {
     for (var match in matches) {
       if (match.start + delta != nextStart) {
         spans.add(
-            TextSpan(text: text.substring(nextStart, match.start + delta)));
+          TextSpan(text: text.substring(nextStart, match.start + delta)),
+        );
       }
-      spans.add(TextSpan(
-        text: text.substring(match.start + delta, match.end + delta),
-        style: const TextStyle(color: Colors.red),
-      ));
+      spans.add(
+        TextSpan(
+          text: text.substring(match.start + delta, match.end + delta),
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
       nextStart = match.end + delta;
     }
     if (text.length > matches.last.end + delta) {
@@ -204,8 +209,8 @@ class _SearchViewState extends State<SearchView> {
     final fieldTitle = doOutputSearch
         ? 'all output'
         : searchField != null
-            ? '${searchField!.name} field'
-            : 'all fields';
+        ? '${searchField!.name} field'
+        : 'all fields';
     return PopScope<Object?>(
       canPop: true,
       onPopInvokedWithResult: (bool didPop, Object? result) {
@@ -314,8 +319,9 @@ class _SearchViewState extends State<SearchView> {
                             ? _controller.text.toLowerCase()
                             : RegExp(_controller.text),
                         replacement: result.replacementString,
-                        availableNodes:
-                            result.isSelectedOnly ? selectedNodes : resultNodes,
+                        availableNodes: result.isSelectedOnly
+                            ? selectedNodes
+                            : resultNodes,
                         searchField: searchField,
                       );
                       if (!context.mounted) return;
@@ -392,11 +398,11 @@ class _SearchViewState extends State<SearchView> {
                       padding: const EdgeInsets.all(10.0),
                       child: selectedNodes.contains(node)
                           ? model.useMarkdownOutput
-                              ? longMarkdownOutput(node)
-                              : longTextOutput(node)
+                                ? longMarkdownOutput(node)
+                                : longTextOutput(node)
                           : model.useMarkdownOutput
-                              ? MarkdownWithLinks(data: node.title)
-                              : Text(node.title),
+                          ? MarkdownWithLinks(data: node.title)
+                          : Text(node.title),
                     ),
                   ),
                 ),
@@ -437,8 +443,9 @@ Future<_ReplaceResult?> _replaceDialog({
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 TextField(
-                  decoration:
-                      const InputDecoration(labelText: 'Replacement String'),
+                  decoration: const InputDecoration(
+                    labelText: 'Replacement String',
+                  ),
                   autofocus: true,
                   onChanged: (value) {
                     replacementString = value;
@@ -446,8 +453,10 @@ Future<_ReplaceResult?> _replaceDialog({
                   onSubmitted: (value) {
                     // Complete the dialog when the user presses enter.
                     replacementString = value;
-                    Navigator.pop(context,
-                        _ReplaceResult(replacementString, isSelectedOnly));
+                    Navigator.pop(
+                      context,
+                      _ReplaceResult(replacementString, isSelectedOnly),
+                    );
                   },
                 ),
                 Padding(
@@ -458,9 +467,7 @@ Future<_ReplaceResult?> _replaceDialog({
                     },
                     child: Row(
                       children: <Widget>[
-                        const Expanded(
-                          child: Text('Selected Nodes Only'),
-                        ),
+                        const Expanded(child: Text('Selected Nodes Only')),
                         Switch(
                           value: isSelectedOnly,
                           onChanged: (bool value) {
@@ -480,7 +487,9 @@ Future<_ReplaceResult?> _replaceDialog({
             child: const Text('OK'),
             onPressed: () {
               Navigator.pop(
-                  context, _ReplaceResult(replacementString, isSelectedOnly));
+                context,
+                _ReplaceResult(replacementString, isSelectedOnly),
+              );
             },
           ),
           TextButton(

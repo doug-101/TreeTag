@@ -25,11 +25,13 @@ class DetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final innerMargin = (prefs.getBool('linespacing') ??
+    final innerMargin =
+        (prefs.getBool('linespacing') ??
             Platform.isLinux || Platform.isWindows || Platform.isMacOS)
         ? const EdgeInsets.symmetric(vertical: 4, horizontal: 10)
         : const EdgeInsets.all(10.0);
-    final outerMargin = (prefs.getBool('linespacing') ??
+    final outerMargin =
+        (prefs.getBool('linespacing') ??
             Platform.isLinux || Platform.isWindows || Platform.isMacOS)
         ? const EdgeInsets.symmetric(vertical: 3, horizontal: 5)
         : const EdgeInsets.all(5.0);
@@ -53,8 +55,9 @@ class DetailView extends StatelessWidget {
                 child: Container(
                   margin: innerMargin,
                   child: Text(
-                      rootNode is LeafNode ? 'Node Deleted' : 'Group Removed',
-                      style: const TextStyle(color: Colors.red)),
+                    rootNode is LeafNode ? 'Node Deleted' : 'Group Removed',
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 ),
               ),
             );
@@ -86,9 +89,11 @@ class DetailView extends StatelessWidget {
                       margin: innerMargin,
                       child: childNode is LeafNode
                           ? outWidget(childNode.outputs().join(lineEnd))
-                          : outWidget(childNode.title.isNotEmpty
-                              ? childNode.title
-                              : emptyTitleName),
+                          : outWidget(
+                              childNode.title.isNotEmpty
+                                  ? childNode.title
+                                  : emptyTitleName,
+                            ),
                     ),
                   ),
                 ),
@@ -96,10 +101,7 @@ class DetailView extends StatelessWidget {
             }
           }
         }
-        return ListView(
-          controller: ScrollController(),
-          children: cards,
-        );
+        return ListView(controller: ScrollController(), children: cards);
       },
     );
   }

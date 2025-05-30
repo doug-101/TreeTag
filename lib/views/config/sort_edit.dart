@@ -34,14 +34,15 @@ class _SortEditState extends State<SortEdit> {
     final model = Provider.of<Structure>(context, listen: false);
     final usedFieldNames = [for (var key in widget.sortKeys) key.keyField.name];
     final availFieldNames = [
-      for (var field in widget.availFields ?? model.fieldMap.values) field.name
+      for (var field in widget.availFields ?? model.fieldMap.values) field.name,
     ];
     // Position number for the field card label.
     var posNum = 1;
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('${widget.availFields != null ? 'Rule' : 'Child'} Sort Edit'),
+        title: Text(
+          '${widget.availFields != null ? 'Rule' : 'Child'} Sort Edit',
+        ),
         leading: IconButton(
           icon: const Icon(Icons.check_circle),
           tooltip: 'Save changes and close',
@@ -85,8 +86,10 @@ class _SortEditState extends State<SortEdit> {
                         pos = widget.sortKeys.indexOf(selectedKey!);
                       }
                       setState(() {
-                        widget.sortKeys
-                            .insert(pos, SortKey(model.fieldMap[fieldName]!));
+                        widget.sortKeys.insert(
+                          pos,
+                          SortKey(model.fieldMap[fieldName]!),
+                        );
                         isChanged = true;
                       });
                     },
@@ -96,7 +99,7 @@ class _SortEditState extends State<SortEdit> {
                           PopupMenuItem(
                             value: fieldName,
                             child: Text('Add Field: $fieldName'),
-                          )
+                          ),
                     ],
                   ),
                   // Swap sort direction for the selected field.
@@ -118,20 +121,21 @@ class _SortEditState extends State<SortEdit> {
                     tooltip: 'Remove a field',
                     onPressed:
                         (selectedKey == null || widget.sortKeys.length < 2)
-                            ? null
-                            : () {
-                                setState(() {
-                                  widget.sortKeys.remove(selectedKey);
-                                  selectedKey = null;
-                                  isChanged = true;
-                                });
-                              },
+                        ? null
+                        : () {
+                            setState(() {
+                              widget.sortKeys.remove(selectedKey);
+                              selectedKey = null;
+                              isChanged = true;
+                            });
+                          },
                   ),
                   // Move the selected field up.
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_up),
                     tooltip: 'Move a field up',
-                    onPressed: (selectedKey == null ||
+                    onPressed:
+                        (selectedKey == null ||
                             widget.sortKeys.indexOf(selectedKey!) == 0)
                         ? null
                         : () {
@@ -147,7 +151,8 @@ class _SortEditState extends State<SortEdit> {
                   IconButton(
                     icon: const Icon(Icons.arrow_circle_down),
                     tooltip: 'Move a field down',
-                    onPressed: (selectedKey == null ||
+                    onPressed:
+                        (selectedKey == null ||
                             widget.sortKeys.indexOf(selectedKey!) ==
                                 widget.sortKeys.length - 1)
                         ? null
@@ -172,9 +177,11 @@ class _SortEditState extends State<SortEdit> {
                         child: Card(
                           child: ListTile(
                             selected: key == selectedKey,
-                            leading: Icon(key.isAscend
-                                ? Icons.arrow_drop_up
-                                : Icons.arrow_drop_down),
+                            leading: Icon(
+                              key.isAscend
+                                  ? Icons.arrow_drop_up
+                                  : Icons.arrow_drop_down,
+                            ),
                             title: Text(key.keyField.name),
                             trailing: Text((posNum++).toString()),
                             onTap: () {

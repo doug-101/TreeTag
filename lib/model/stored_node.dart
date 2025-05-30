@@ -16,8 +16,10 @@ abstract class StoredNode {
   RuleNode? childRuleNode;
 
   /// Used to create subclass node types.
-  factory StoredNode(Map<String, dynamic> jsonData,
-      [StoredNode? storedParent]) {
+  factory StoredNode(
+    Map<String, dynamic> jsonData, [
+    StoredNode? storedParent,
+  ]) {
     if (jsonData.containsKey('title')) {
       return TitleNode._fromJson(jsonData, storedParent);
     } else if (jsonData.containsKey('rule')) {
@@ -74,8 +76,10 @@ class TitleNode implements StoredNode, DisplayNode {
     _storedParent = parent as StoredNode?;
   }
 
-  TitleNode._fromJson(Map<String, dynamic> jsonData,
-      [StoredNode? storedParent]) {
+  TitleNode._fromJson(
+    Map<String, dynamic> jsonData, [
+    StoredNode? storedParent,
+  ]) {
     _storedParent = storedParent;
     _parent = storedParent as DisplayNode?;
     title = jsonData['title']!;
@@ -110,8 +114,10 @@ class TitleNode implements StoredNode, DisplayNode {
     if (childRuleNode != null) {
       if (forceUpdate || _groupChildren.isEmpty) {
         // newChildren must be created before clearing to allow reuse.
-        final newChildren =
-            childRuleNode!.createGroups(StoredNode.modelRef.leafNodes, this);
+        final newChildren = childRuleNode!.createGroups(
+          StoredNode.modelRef.leafNodes,
+          this,
+        );
         _groupChildren.clear();
         _groupChildren.addAll(newChildren);
       }
@@ -205,7 +211,7 @@ class RuleNode implements StoredNode {
     if (sortData != null) {
       sortFields = [
         for (var fieldName in sortData)
-          SortKey.fromString(fieldName, StoredNode.modelRef.fieldMap)
+          SortKey.fromString(fieldName, StoredNode.modelRef.fieldMap),
       ];
       hasCustomSortFields = true;
     } else {
@@ -215,7 +221,7 @@ class RuleNode implements StoredNode {
     if (childSortData != null) {
       childSortFields = [
         for (var fieldName in childSortData)
-          SortKey.fromString(fieldName, StoredNode.modelRef.fieldMap)
+          SortKey.fromString(fieldName, StoredNode.modelRef.fieldMap),
       ];
       hasCustomChildSortFields = true;
     } else {
@@ -269,7 +275,7 @@ class RuleNode implements StoredNode {
   void setDefaultChildSortFields() {
     if (!hasCustomChildSortFields) {
       childSortFields = [
-        for (var field in StoredNode.modelRef.fieldMap.values) SortKey(field)
+        for (var field in StoredNode.modelRef.fieldMap.values) SortKey(field),
       ];
       StoredNode? parent = this;
       while (parent is RuleNode) {
@@ -307,8 +313,10 @@ class RuleNode implements StoredNode {
   }
 
   /// Return a new list of [GroupNode] based on this node's rule.
-  List<GroupNode> createGroups(List<LeafNode> availableNodes,
-      [DisplayNode? parentRef]) {
+  List<GroupNode> createGroups(
+    List<LeafNode> availableNodes, [
+    DisplayNode? parentRef,
+  ]) {
     final nodeData = <String, List<LeafNode>>{};
     for (var node in availableNodes) {
       for (var line in ruleLine.formattedLineList(node)) {
@@ -342,8 +350,9 @@ class RuleNode implements StoredNode {
         if (fieldValue != null) {
           if (fieldValue.length > 1) {
             // Find the correct field position for nodes with multiple entries.
-            final fieldPos =
-                ruleLine.formattedLineList(firstNode).indexOf(line);
+            final fieldPos = ruleLine
+                .formattedLineList(firstNode)
+                .indexOf(line);
             groupNode.data[field.name] = [fieldValue[fieldPos]];
           } else {
             groupNode.data[field.name] = fieldValue;
@@ -363,12 +372,12 @@ class RuleNode implements StoredNode {
     result['rule'] = ruleLine.getUnparsedLine();
     if (hasCustomSortFields) {
       result['sortfields'] = [
-        for (var sortKey in sortFields) sortKey.toString()
+        for (var sortKey in sortFields) sortKey.toString(),
       ];
     }
     if (hasCustomChildSortFields) {
       result['childsortfields'] = [
-        for (var sortKey in childSortFields) sortKey.toString()
+        for (var sortKey in childSortFields) sortKey.toString(),
       ];
     }
     if (childRuleNode != null) {

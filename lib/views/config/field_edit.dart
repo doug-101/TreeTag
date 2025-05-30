@@ -73,8 +73,11 @@ class _FieldEditState extends State<FieldEdit> {
           trueButtonText: 'YES',
           falseButtonText: 'NO',
         );
-        model.addNewField(_editedField,
-            newPos: widget.newPos, doAddOutput: doAddOutput ?? false);
+        model.addNewField(
+          _editedField,
+          newPos: widget.newPos,
+          doAddOutput: doAddOutput ?? false,
+        );
         return true;
       }
       if (_isFieldTypeChanged) {
@@ -107,7 +110,8 @@ class _FieldEditState extends State<FieldEdit> {
             final doKeep = await common_dialogs.okCancelDialog(
               context: context,
               title: 'Choice Data Mismatch',
-              label: 'Choice field changes will cause $numErrors '
+              label:
+                  'Choice field changes will cause $numErrors '
                   'nodes to lose data.',
               trueButtonText: 'KEEP CHANGES',
               falseButtonText: 'REVERT CHANGES',
@@ -126,7 +130,8 @@ class _FieldEditState extends State<FieldEdit> {
           final doKeep = await common_dialogs.okCancelDialog(
             context: context,
             title: 'Disabling Multiple Entries',
-            label: 'Some leaf nodes have multiple data entries that '
+            label:
+                'Some leaf nodes have multiple data entries that '
                 'will be discarded.',
             trueButtonText: 'KEEP CHANGE',
             falseButtonText: 'REVERT CHANGE',
@@ -223,12 +228,14 @@ class _FieldEditState extends State<FieldEdit> {
                       final badCharMatches = RegExp(r'\W').allMatches(text);
                       if (badCharMatches.isNotEmpty) {
                         final badChars = [
-                          for (var match in badCharMatches) match.group(0)
+                          for (var match in badCharMatches) match.group(0),
                         ];
                         return 'Illegal characters: "${badChars.join()}"';
                       }
-                      final model =
-                          Provider.of<Structure>(context, listen: false);
+                      final model = Provider.of<Structure>(
+                        context,
+                        listen: false,
+                      );
                       if (text != widget.field.name &&
                           model.fieldMap.containsKey(text)) {
                         return 'Duplicate field name';
@@ -250,7 +257,7 @@ class _FieldEditState extends State<FieldEdit> {
                         DropdownMenuItem<String>(
                           value: type,
                           child: Text(type),
-                        )
+                        ),
                     ],
                     onSaved: (String? newType) {
                       // Changes are made in onChanged.
@@ -265,8 +272,9 @@ class _FieldEditState extends State<FieldEdit> {
                           _editedField = _editedField.copyToType(newType);
                           _isFieldTypeChanged = true;
                           if (_fieldFormatKey.currentState != null) {
-                            _fieldFormatKey.currentState!
-                                .didChange(_editedField.format);
+                            _fieldFormatKey.currentState!.didChange(
+                              _editedField.format,
+                            );
                           }
                           if (_editedField.initValue.isNotEmpty) {
                             _editedField.initValue = '';
@@ -298,8 +306,9 @@ class _FieldEditState extends State<FieldEdit> {
                     // Defined below.
                     InitNowBoolFormField(
                       key: _fieldInitBoolKey,
-                      initialValue:
-                          _editedField.initValue == 'now' ? true : false,
+                      initialValue: _editedField.initValue == 'now'
+                          ? true
+                          : false,
                       heading: _editedField is DateField
                           ? 'Initial Value to Current Date'
                           : 'Initial Value to Current Time',
@@ -313,8 +322,9 @@ class _FieldEditState extends State<FieldEdit> {
                     // Initial value for other fields.
                     TextFormField(
                       key: _fieldInitStrKey,
-                      decoration:
-                          const InputDecoration(labelText: 'Initial Value'),
+                      decoration: const InputDecoration(
+                        labelText: 'Initial Value',
+                      ),
                       initialValue: _editedField.initValue,
                       validator: (String? value) {
                         // Update field format before validating the init value.
@@ -332,8 +342,9 @@ class _FieldEditState extends State<FieldEdit> {
                     ),
                   TextFormField(
                     key: _fieldPrefixKey,
-                    decoration:
-                        const InputDecoration(labelText: 'Default Prefix'),
+                    decoration: const InputDecoration(
+                      labelText: 'Default Prefix',
+                    ),
                     initialValue: _editedField.prefix,
                     onSaved: (String? value) {
                       if (value != null) {
@@ -343,8 +354,9 @@ class _FieldEditState extends State<FieldEdit> {
                   ),
                   TextFormField(
                     key: _fieldSuffixKey,
-                    decoration:
-                        const InputDecoration(labelText: 'Default Suffix'),
+                    decoration: const InputDecoration(
+                      labelText: 'Default Suffix',
+                    ),
                     initialValue: _editedField.suffix,
                     onSaved: (String? value) {
                       if (value != null) {
@@ -364,24 +376,28 @@ class _FieldEditState extends State<FieldEdit> {
                     onChange: (bool? value) async {
                       if (value != null) {
                         if (value == true) {
-                          final sameRuleFields =
-                              model.multipleFieldsInSameLine(_editedField);
+                          final sameRuleFields = model.multipleFieldsInSameLine(
+                            _editedField,
+                          );
                           if (sameRuleFields.isNotEmpty) {
-                            final fields =
-                                sameRuleFields.map((f) => f.name).join(' & ');
+                            final fields = sameRuleFields
+                                .map((f) => f.name)
+                                .join(' & ');
                             final fieldtext = sameRuleFields.length > 1
                                 ? 'fields.'
                                 : 'field.';
                             await common_dialogs.okDialog(
                               context: context,
                               title: 'Multiple Fields in Lines',
-                              label: 'This field cannot be set to multiple '
+                              label:
+                                  'This field cannot be set to multiple '
                                   'entries, since it is in the same rule or '
                                   'output line as the $fields $fieldtext',
                             );
                             setState(() {
-                              _fieldAllowMultipleKey.currentState!
-                                  .didChange(false);
+                              _fieldAllowMultipleKey.currentState!.didChange(
+                                false,
+                              );
                               _hasSeparator = false;
                             });
                             return;
@@ -396,14 +412,19 @@ class _FieldEditState extends State<FieldEdit> {
                   if (_hasSeparator)
                     TextFormField(
                       key: _fieldSeparatorKey,
-                      decoration:
-                          const InputDecoration(labelText: 'Field Separator'),
-                      initialValue:
-                          _editedField.separator.replaceAll('\n', '\\n'),
+                      decoration: const InputDecoration(
+                        labelText: 'Field Separator',
+                      ),
+                      initialValue: _editedField.separator.replaceAll(
+                        '\n',
+                        '\\n',
+                      ),
                       onSaved: (String? value) {
                         if (value != null) {
-                          _editedField.separator =
-                              value.replaceAll('\\n', '\n');
+                          _editedField.separator = value.replaceAll(
+                            '\\n',
+                            '\n',
+                          );
                         }
                       },
                     ),
@@ -425,33 +446,29 @@ class InitNowBoolFormField extends FormField<bool> {
     super.key,
     super.onSaved,
   }) : super(
-          builder: (FormFieldState<bool> state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                InkWell(
-                  onTap: () {
-                    state.didChange(!state.value!);
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(heading ?? 'Initial Value to Now'),
-                      ),
-                      Switch(
-                        value: state.value!,
-                        onChanged: (bool value) {
-                          state.didChange(!state.value!);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(
-                  thickness: 3.0,
-                ),
-              ],
-            );
-          },
-        );
+         builder: (FormFieldState<bool> state) {
+           return Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: <Widget>[
+               InkWell(
+                 onTap: () {
+                   state.didChange(!state.value!);
+                 },
+                 child: Row(
+                   children: <Widget>[
+                     Expanded(child: Text(heading ?? 'Initial Value to Now')),
+                     Switch(
+                       value: state.value!,
+                       onChanged: (bool value) {
+                         state.didChange(!state.value!);
+                       },
+                     ),
+                   ],
+                 ),
+               ),
+               const Divider(thickness: 3.0),
+             ],
+           );
+         },
+       );
 }

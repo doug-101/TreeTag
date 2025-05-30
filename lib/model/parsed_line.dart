@@ -39,15 +39,17 @@ class ParsedLine {
     final regExp = RegExp(r'{\*([\w_\-.]+)(:\d+)?\*}');
     for (var match in regExp.allMatches(unparsedLine, start)) {
       if (match.start > start) {
-        segments
-            .add(LineSegment(text: unparsedLine.substring(start, match.start)));
+        segments.add(
+          LineSegment(text: unparsedLine.substring(start, match.start)),
+        );
       }
       var field = fieldMap[match.group(1)];
       if (field != null) {
         final altFieldStr = match.group(2);
         if (altFieldStr != null) {
-          final altField =
-              field.altFormatField(int.parse(altFieldStr.substring(1)));
+          final altField = field.altFormatField(
+            int.parse(altFieldStr.substring(1)),
+          );
           if (altField != null) field = altField;
         }
         segments.add(LineSegment(field: field));

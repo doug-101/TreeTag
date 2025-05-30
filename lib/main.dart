@@ -113,8 +113,9 @@ Future<void> main(List<String> cmdLineArgs) async {
           builder: (context) {
             return AlertDialog(
               title: const Text('Error'),
-              content:
-                  Text('Failed to save file changes:\n${error.toString()}'),
+              content: Text(
+                'Failed to save file changes:\n${error.toString()}',
+              ),
               actions: <Widget>[
                 TextButton(
                   child: const Text('OK'),
@@ -135,9 +136,10 @@ Future<void> main(List<String> cmdLineArgs) async {
             final model = Provider.of<Structure>(context, listen: false);
             return AlertDialog(
               title: const Text('Warning'),
-              content:
-                  Text('This file appears to have been externally modified.'
-                      '\n${error.toString()}'),
+              content: Text(
+                'This file appears to have been externally modified.'
+                '\n${error.toString()}',
+              ),
               actions: <Widget>[
                 TextButton(
                   child: const Text('RELOAD'),
@@ -150,7 +152,8 @@ Future<void> main(List<String> cmdLineArgs) async {
                       await common_dialogs.okDialog(
                         context: context,
                         title: 'Error',
-                        label: 'Could not read file: '
+                        label:
+                            'Could not read file: '
                             '${model.fileObject.nameNoExtension}\n$e',
                         isDissmissable: false,
                       );
@@ -197,36 +200,48 @@ Future<void> main(List<String> cmdLineArgs) async {
                 onGenerateRoute: (settings) {
                   switch (settings.name) {
                     case '/fileControl':
-                      return MaterialPageRoute(builder: (context) {
-                        if (initialPath != null) {
-                          final tmpPath = initialPath;
-                          initialPath = null;
-                          return FileControl(initialFilePath: tmpPath);
-                        }
-                        return const FileControl();
-                      });
+                      return MaterialPageRoute(
+                        builder: (context) {
+                          if (initialPath != null) {
+                            final tmpPath = initialPath;
+                            initialPath = null;
+                            return FileControl(initialFilePath: tmpPath);
+                          }
+                          return const FileControl();
+                        },
+                      );
                     case '/frameView':
                       final fileName = settings.arguments as String;
-                      return MaterialPageRoute(builder: (context) {
-                        return FrameView(fileRootName: fileName);
-                      });
+                      return MaterialPageRoute(
+                        builder: (context) {
+                          return FrameView(fileRootName: fileName);
+                        },
+                      );
                     case '/treeView':
                       final fileName = settings.arguments as String;
-                      return MaterialPageRoute(builder: (context) {
-                        return TreeView(fileRootName: fileName);
-                      });
+                      return MaterialPageRoute(
+                        builder: (context) {
+                          return TreeView(fileRootName: fileName);
+                        },
+                      );
                     case '/detailView':
-                      return MaterialPageRoute(builder: (context) {
-                        return const DetailView();
-                      });
+                      return MaterialPageRoute(
+                        builder: (context) {
+                          return const DetailView();
+                        },
+                      );
                     case '/configView':
-                      return MaterialPageRoute(builder: (context) {
-                        return const ConfigView();
-                      });
+                      return MaterialPageRoute(
+                        builder: (context) {
+                          return const ConfigView();
+                        },
+                      );
                     case '/undoView':
-                      return MaterialPageRoute(builder: (context) {
-                        return const UndoView();
-                      });
+                      return MaterialPageRoute(
+                        builder: (context) {
+                          return const UndoView();
+                        },
+                      );
                     default:
                       return null;
                   }

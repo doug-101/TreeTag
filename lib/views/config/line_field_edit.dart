@@ -46,7 +46,8 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           tooltip: 'Save current settings and close',
           onPressed: () {
             _formKey.currentState!.save();
-            final isChanged = widget.origPrefix != widget.field.prefix ||
+            final isChanged =
+                widget.origPrefix != widget.field.prefix ||
                 widget.origSuffix != widget.field.suffix ||
                 widget.origFormat != widget.field.format;
             Navigator.pop(context, isChanged);
@@ -86,7 +87,8 @@ class _LineFieldEditState extends State<LineFieldEdit> {
           if (!didPop && _formKey.currentState!.validate()) {
             // Pop manually (bypass canPop) if validated.
             _formKey.currentState!.save();
-            final isChanged = widget.origPrefix != widget.field.prefix ||
+            final isChanged =
+                widget.origPrefix != widget.field.prefix ||
                 widget.origSuffix != widget.field.suffix ||
                 widget.origFormat != widget.field.format;
             Navigator.pop(context, isChanged);

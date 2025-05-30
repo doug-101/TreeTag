@@ -29,8 +29,9 @@ class _RuleEditState extends State<RuleEdit> {
   @override
   Widget build(BuildContext context) {
     final model = Provider.of<Structure>(context, listen: false);
-    final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.primary);
+    final contrastStyle = TextStyle(
+      color: Theme.of(context).colorScheme.primary,
+    );
     if (widget.isNew && widget.node.ruleLine.isEmpty) {
       // A new rule is empty, so it goes directly to the LineEdit.
       // Use a microtask to delay the push until after the build.
@@ -53,9 +54,7 @@ class _RuleEditState extends State<RuleEdit> {
       });
     }
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Group Node'),
-      ),
+      appBar: AppBar(title: const Text('Group Node')),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Center(
@@ -71,7 +70,9 @@ class _RuleEditState extends State<RuleEdit> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => LineEdit(
-                            line: newRuleLine, title: 'Rule Line Edit'),
+                          line: newRuleLine,
+                          title: 'Rule Line Edit',
+                        ),
                       ),
                     );
                     if (isChanged) {
@@ -85,14 +86,17 @@ class _RuleEditState extends State<RuleEdit> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text('Rule Definition',
-                            style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          'Rule Definition',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10.0),
                           child: Text.rich(
                             TextSpan(
-                              children: widget.node.ruleLine
-                                  .richLineSpans(contrastStyle),
+                              children: widget.node.ruleLine.richLineSpans(
+                                contrastStyle,
+                              ),
                             ),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
@@ -108,8 +112,10 @@ class _RuleEditState extends State<RuleEdit> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text('Group Sorting',
-                          style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        'Group Sorting',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10.0),
                         child: ToggleButtons(
@@ -121,7 +127,7 @@ class _RuleEditState extends State<RuleEdit> {
                           borderRadius: BorderRadius.circular(10.0),
                           isSelected: [
                             !widget.node.hasCustomSortFields,
-                            widget.node.hasCustomSortFields
+                            widget.node.hasCustomSortFields,
                           ],
                           onPressed: (int index) async {
                             if (index == 0) {
@@ -135,7 +141,7 @@ class _RuleEditState extends State<RuleEdit> {
                               // Custom button pushed.
                               var newSortKeys = [
                                 for (var key in widget.node.sortFields)
-                                  SortKey.copy(key)
+                                  SortKey.copy(key),
                               ];
                               var isChanged = await Navigator.push(
                                 context,
@@ -149,7 +155,9 @@ class _RuleEditState extends State<RuleEdit> {
                               if (isChanged) {
                                 setState(() {
                                   model.updateRuleSortKeys(
-                                      widget.node, newSortKeys);
+                                    widget.node,
+                                    newSortKeys,
+                                  );
                                 });
                               }
                             }
@@ -179,8 +187,10 @@ class _RuleEditState extends State<RuleEdit> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text('Child Sorting',
-                            style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          'Child Sorting',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10.0),
                           child: ToggleButtons(
@@ -192,7 +202,7 @@ class _RuleEditState extends State<RuleEdit> {
                             borderRadius: BorderRadius.circular(10.0),
                             isSelected: [
                               !widget.node.hasCustomChildSortFields,
-                              widget.node.hasCustomChildSortFields
+                              widget.node.hasCustomChildSortFields,
                             ],
                             onPressed: (int index) async {
                               if (index == 0) {
@@ -206,7 +216,7 @@ class _RuleEditState extends State<RuleEdit> {
                                 // Custom button pushed.
                                 final newSortKeys = [
                                   for (var key in widget.node.childSortFields)
-                                    SortKey.copy(key)
+                                    SortKey.copy(key),
                                 ];
                                 final isChanged = await Navigator.push(
                                   context,
@@ -218,7 +228,9 @@ class _RuleEditState extends State<RuleEdit> {
                                 if (isChanged) {
                                   setState(() {
                                     model.updateChildSortKeys(
-                                        widget.node, newSortKeys);
+                                      widget.node,
+                                      newSortKeys,
+                                    );
                                   });
                                 }
                               }

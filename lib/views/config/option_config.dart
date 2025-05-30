@@ -49,7 +49,8 @@ class _OptionConfigState extends State<OptionConfig> {
                       await common_dialogs.okDialog(
                         context: context,
                         title: 'Markdown Required',
-                        label: 'Markdwon formatting must be enabled to use '
+                        label:
+                            'Markdwon formatting must be enabled to use '
                             'file links',
                       );
                     }

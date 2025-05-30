@@ -131,7 +131,9 @@ Future<String?> filenameDialog({
             // Complete the dialog when the user presses enter.
             if (_filenameEditKey.currentState!.validate()) {
               Navigator.pop(
-                  context, _filenameEditKey.currentState!.value.trim());
+                context,
+                _filenameEditKey.currentState!.value.trim(),
+              );
             }
           },
         ),
@@ -141,7 +143,9 @@ Future<String?> filenameDialog({
             onPressed: () {
               if (_filenameEditKey.currentState!.validate()) {
                 Navigator.pop(
-                    context, _filenameEditKey.currentState!.value.trim());
+                  context,
+                  _filenameEditKey.currentState!.value.trim(),
+                );
               }
             },
           ),
@@ -208,9 +212,7 @@ Future<String?> textDialog({
   );
 }
 
-Future<void> aboutDialog({
-  required BuildContext context,
-}) async {
+Future<void> aboutDialog({required BuildContext context}) async {
   final packageInfo = await PackageInfo.fromPlatform();
   if (!context.mounted) return;
   showAboutDialog(

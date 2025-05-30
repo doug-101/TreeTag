@@ -48,10 +48,11 @@ class FrameView extends StatelessWidget {
         final detailRootNode = model.currentDetailViewNode();
         final detailViewTitle = detailRootNode != null
             ? (detailRootNode.title.isNotEmpty
-                ? detailRootNode.title
-                : emptyTitleName)
+                  ? detailRootNode.title
+                  : emptyTitleName)
             : emptyViewName;
-        final isDetailLeafNode = detailRootNode is LeafNode &&
+        final isDetailLeafNode =
+            detailRootNode is LeafNode &&
             !model.obsoleteNodes.contains(detailRootNode);
         final hasDetailViewOnly =
             !model.hasWideDisplay && detailRootNode != null;
@@ -118,7 +119,7 @@ class FrameView extends StatelessWidget {
                             for (var f in fileList)
                               if (f.nameNoExtension != fileRootName &&
                                   f.extension == fileExtension)
-                                f.filename
+                                f.filename,
                           ];
                           filenames.sort();
                           if (!context.mounted) return;
@@ -136,7 +137,8 @@ class FrameView extends StatelessWidget {
                               await common_dialogs.okDialog(
                                 context: context,
                                 title: 'Error',
-                                label: 'Could not interpret file: '
+                                label:
+                                    'Could not interpret file: '
                                     '${fileObj.nameNoExtension}',
                                 isDissmissable: false,
                               );
@@ -145,7 +147,8 @@ class FrameView extends StatelessWidget {
                               await common_dialogs.okDialog(
                                 context: context,
                                 title: 'Error',
-                                label: 'Could not read file: '
+                                label:
+                                    'Could not read file: '
                                     '${fileObj.nameNoExtension}\n$e',
                                 isDissmissable: false,
                               );
@@ -161,13 +164,15 @@ class FrameView extends StatelessWidget {
                           Navigator.pop(context);
                           final exportData = TreeLineExport(model).jsonData();
                           final fileObj = IOFile.currentType(
-                              '${model.fileObject.nameNoExtension}.trln');
+                            '${model.fileObject.nameNoExtension}.trln',
+                          );
                           if (await fileObj.exists) {
                             if (!context.mounted) return;
                             var ans = await common_dialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
-                              label: 'File ${fileObj.filename} already '
+                              label:
+                                  'File ${fileObj.filename} already '
                                   'exists.\n\nOverwrite it?',
                             );
                             if (ans == null || !ans) return;
@@ -199,16 +204,19 @@ class FrameView extends StatelessWidget {
                           );
                           if (ans == null) return;
                           final useOutput = ans == options[0];
-                          final exportData =
-                              converter.csvString(useOutput: useOutput);
+                          final exportData = converter.csvString(
+                            useOutput: useOutput,
+                          );
                           final fileObj = LocalFile(
-                              '${model.fileObject.nameNoExtension}.csv');
+                            '${model.fileObject.nameNoExtension}.csv',
+                          );
                           if (await fileObj.exists) {
                             if (!context.mounted) return;
                             final ans = await common_dialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
-                              label: 'File ${fileObj.filename} already '
+                              label:
+                                  'File ${fileObj.filename} already '
                                   'exists.\n\nOverwrite it?',
                             );
                             if (ans == null || !ans) return;
@@ -244,13 +252,15 @@ class FrameView extends StatelessWidget {
                             includeOutput: includeOutput,
                           );
                           final fileObj = LocalFile(
-                              '${model.fileObject.nameNoExtension}.txt');
+                            '${model.fileObject.nameNoExtension}.txt',
+                          );
                           if (await fileObj.exists) {
                             if (!context.mounted) return;
                             final ans = await common_dialogs.okCancelDialog(
                               context: context,
                               title: 'Confirm Overwrite',
-                              label: 'File ${fileObj.filename} already '
+                              label:
+                                  'File ${fileObj.filename} already '
                                   'exists.\n\nOverwrite it?',
                             );
                             if (ans == null || !ans) return;
@@ -329,9 +339,7 @@ class FrameView extends StatelessWidget {
               children: <Widget>[
                 // Flexible widgets are required to prevent overflow.
                 if (model.hasWideDisplay || !hasDetailViewOnly)
-                  Flexible(
-                    child: Text('$fileRootName - TreeTag'),
-                  ),
+                  Flexible(child: Text('$fileRootName - TreeTag')),
                 if (model.hasWideDisplay || hasDetailViewOnly)
                   Flexible(
                     child: model.useMarkdownOutput
@@ -341,9 +349,9 @@ class FrameView extends StatelessWidget {
                               textTheme: TextTheme(
                                 bodyMedium: TextStyle(
                                   fontSize: 20.0,
-                                  color: Theme.of(context)
-                                      .appBarTheme
-                                      .foregroundColor,
+                                  color: Theme.of(
+                                    context,
+                                  ).appBarTheme.foregroundColor,
                                 ),
                               ),
                             ),
@@ -454,7 +462,8 @@ class FrameView extends StatelessWidget {
                           final ans = await common_dialogs.okCancelDialog(
                             context: context,
                             title: 'Confirm Delete',
-                            label: 'Deleting from a title node deletes all '
+                            label:
+                                'Deleting from a title node deletes all '
                                 'leaf nodes.\n\nContinue?',
                           );
                           if (ans == null || !ans) break;
@@ -476,10 +485,7 @@ class FrameView extends StatelessWidget {
                 ),
               ] else ...[
                 // Reserve space for hidden menu icon if not present.
-                SizedBox(
-                  width: iconSize,
-                  height: 1.0,
-                ),
+                SizedBox(width: iconSize, height: 1.0),
               ],
             ],
           ),
@@ -492,8 +498,8 @@ class FrameView extends StatelessWidget {
                   ],
                 )
               : hasDetailViewOnly
-                  ? const DetailView()
-                  : TreeView(fileRootName: fileRootName),
+              ? const DetailView()
+              : TreeView(fileRootName: fileRootName),
         );
       },
     );

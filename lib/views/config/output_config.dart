@@ -88,7 +88,8 @@ class _OutputConfigState extends State<OutputConfig> {
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete a line',
-              onPressed: (selectedLine == null ||
+              onPressed:
+                  (selectedLine == null ||
                       selectedLine == model.titleLine ||
                       model.outputLines.length < 2)
                   ? null
@@ -103,7 +104,8 @@ class _OutputConfigState extends State<OutputConfig> {
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
               tooltip: 'Move a line up',
-              onPressed: (selectedLine == null ||
+              onPressed:
+                  (selectedLine == null ||
                       selectedLine == model.titleLine ||
                       model.outputLines.indexOf(selectedLine!) == 0)
                   ? null
@@ -117,7 +119,8 @@ class _OutputConfigState extends State<OutputConfig> {
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
               tooltip: 'Move a line down',
-              onPressed: (selectedLine == null ||
+              onPressed:
+                  (selectedLine == null ||
                       selectedLine == model.titleLine ||
                       model.outputLines.indexOf(selectedLine!) ==
                           model.outputLines.length - 1)
@@ -177,8 +180,9 @@ class _OutputConfigState extends State<OutputConfig> {
                 padding: const EdgeInsets.only(top: 6.0),
                 child: Text.rich(
                   TextSpan(
-                    children: line.richLineSpans(TextStyle(
-                        color: Theme.of(context).colorScheme.primary)),
+                    children: line.richLineSpans(
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
+                    ),
                   ),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),

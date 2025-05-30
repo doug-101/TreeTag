@@ -128,8 +128,9 @@ class _UndoViewState extends State<UndoView> {
         Card(
           child: ListTile(
             title: Text(model.undoList[pos].title),
-            subtitle: Text(DateFormat('MMM dd HH:mm')
-                .format(model.undoList[pos].timeStamp)),
+            subtitle: Text(
+              DateFormat('MMM dd HH:mm').format(model.undoList[pos].timeStamp),
+            ),
             enabled: isEnabled,
             selected: isSelected,
             trailing: PopupMenuButton<MenuItems>(

@@ -46,8 +46,9 @@ class _LineEditState extends State<LineEdit> {
   @override
   Widget build(BuildContext context) {
     final model = Provider.of<Structure>(context, listen: false);
-    final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.primary);
+    final contrastStyle = TextStyle(
+      color: Theme.of(context).colorScheme.primary,
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -110,7 +111,8 @@ class _LineEditState extends State<LineEdit> {
                             await common_dialogs.okDialog(
                               context: context,
                               title: 'Multiple Fields in a Line',
-                              label: 'Cannot have two fields that both allow '
+                              label:
+                                  'Cannot have two fields that both allow '
                                   'multiple entries in the same line.',
                             );
                           } else {
@@ -139,7 +141,7 @@ class _LineEditState extends State<LineEdit> {
                         PopupMenuItem(
                           value: fieldName,
                           child: Text('Add Field: $fieldName'),
-                        )
+                        ),
                     ],
                   ),
                   // Edit the selected segment.
@@ -172,12 +174,14 @@ class _LineEditState extends State<LineEdit> {
                                   // Revert to parent field format if same.
                                   _selectedSegment!.field =
                                       altField.altFormatParent;
-                                  _selectedSegment!.field!
-                                      .removeAltFormatField(altField);
+                                  _selectedSegment!.field!.removeAltFormatField(
+                                    altField,
+                                  );
                                 }
                               } else if (altCreated) {
-                                _selectedSegment!.field!
-                                    .removeAltFormatField(altField);
+                                _selectedSegment!.field!.removeAltFormatField(
+                                  altField,
+                                );
                               }
                             } else {
                               final text = await common_dialogs.textDialog(
@@ -200,7 +204,8 @@ class _LineEditState extends State<LineEdit> {
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     tooltip: 'Delete a segment',
-                    onPressed: (_selectedSegment == null ||
+                    onPressed:
+                        (_selectedSegment == null ||
                             widget.line.segments.length < 2)
                         ? null
                         : () {
@@ -215,17 +220,21 @@ class _LineEditState extends State<LineEdit> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
                     tooltip: 'Move a segment left',
-                    onPressed: (_selectedSegment == null ||
+                    onPressed:
+                        (_selectedSegment == null ||
                             widget.line.segments.indexOf(_selectedSegment!) ==
                                 0)
                         ? null
                         : () {
-                            final pos =
-                                widget.line.segments.indexOf(_selectedSegment!);
+                            final pos = widget.line.segments.indexOf(
+                              _selectedSegment!,
+                            );
                             setState(() {
                               widget.line.segments.removeAt(pos);
-                              widget.line.segments
-                                  .insert(pos - 1, _selectedSegment!);
+                              widget.line.segments.insert(
+                                pos - 1,
+                                _selectedSegment!,
+                              );
                               _isChanged = true;
                             });
                           },
@@ -234,17 +243,21 @@ class _LineEditState extends State<LineEdit> {
                   IconButton(
                     icon: const Icon(Icons.arrow_forward),
                     tooltip: 'Move a segment right',
-                    onPressed: (_selectedSegment == null ||
+                    onPressed:
+                        (_selectedSegment == null ||
                             widget.line.segments.indexOf(_selectedSegment!) ==
                                 widget.line.segments.length - 1)
                         ? null
                         : () {
-                            final pos =
-                                widget.line.segments.indexOf(_selectedSegment!);
+                            final pos = widget.line.segments.indexOf(
+                              _selectedSegment!,
+                            );
                             setState(() {
                               widget.line.segments.removeAt(pos);
-                              widget.line.segments
-                                  .insert(pos + 1, _selectedSegment!);
+                              widget.line.segments.insert(
+                                pos + 1,
+                                _selectedSegment!,
+                              );
                               _isChanged = true;
                             });
                           },
@@ -279,8 +292,10 @@ class _LineEditState extends State<LineEdit> {
                             elevation: 2.0,
                             showCheckmark: false,
                             label: segment.hasField
-                                ? Text(segment.field!.name,
-                                    style: contrastStyle)
+                                ? Text(
+                                    segment.field!.name,
+                                    style: contrastStyle,
+                                  )
                                 : Text(segment.text ?? ''),
                             selected: segment == _selectedSegment,
                             onSelected: (bool isSelected) {

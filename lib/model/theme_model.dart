@@ -43,9 +43,7 @@ class ThemeModel extends ChangeNotifier {
       backgroundColor: Colors.transparent,
       selectedColor: Colors.blueGrey.shade100,
     ),
-    cardTheme: CardTheme(
-      color: Colors.grey.shade100,
-    ),
+    cardTheme: CardThemeData(color: Colors.grey.shade100),
     listTileTheme: ListTileThemeData(
       tileColor: Colors.grey.shade100,
       textColor: Colors.black,
@@ -77,9 +75,7 @@ class ThemeModel extends ChangeNotifier {
       backgroundColor: Colors.transparent,
       selectedColor: Colors.blueGrey.shade600,
     ),
-    cardTheme: CardTheme(
-      color: Colors.grey[850],
-    ),
+    cardTheme: CardThemeData(color: Colors.grey[850]),
     listTileTheme: ListTileThemeData(
       tileColor: Colors.grey[850],
       textColor: Colors.white,

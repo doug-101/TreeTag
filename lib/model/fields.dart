@@ -14,7 +14,7 @@ const fieldTypes = [
   'AutoChoice',
   'Number',
   'Date',
-  'Time'
+  'Time',
 ];
 
 /// A stored format for a data item held within a leaf node.
@@ -218,8 +218,16 @@ abstract class Field {
 
   /// Make fields equal if they have the same settings.
   @override
-  int get hashCode => Object.hash(name, fieldType, format, initValue, prefix,
-      suffix, separator, allowMultiples);
+  int get hashCode => Object.hash(
+    name,
+    fieldType,
+    format,
+    initValue,
+    prefix,
+    suffix,
+    separator,
+    allowMultiples,
+  );
 
   /// Return a list of all text available for node titles and output lines.
   List<String> allOutputText(LeafNode node) {
@@ -314,7 +322,7 @@ abstract class Field {
   List<Field> matchingFieldDescendents(List<Field> fields) {
     return [
       for (var field in fields)
-        if (field.name == name) field
+        if (field.name == name) field,
     ];
   }
 
@@ -374,10 +382,7 @@ class RegTextField extends Field {
     super.prefix = '',
     super.suffix = '',
     super.separator = ', ',
-  }) : super(
-          fieldType: 'Text',
-          format: '',
-        );
+  }) : super(fieldType: 'Text', format: '');
 }
 
 /// A plain text field that provides more lines in editors.
@@ -388,10 +393,7 @@ class LongTextField extends Field {
     super.prefix = '',
     super.suffix = '',
     super.separator = ', ',
-  }) : super(
-          fieldType: 'LongText',
-          format: '',
-        );
+  }) : super(fieldType: 'LongText', format: '');
 }
 
 /// A field for choosing between pre-defined options.
@@ -404,9 +406,9 @@ class ChoiceField extends Field {
     super.suffix = '',
     super.separator = ', ',
   }) : super(
-          fieldType: 'Choice',
-          format: format.isNotEmpty ? format : '/1/2/3',
-        );
+         fieldType: 'Choice',
+         format: format.isNotEmpty ? format : '/1/2/3',
+       );
 
   @override
   bool isStoredTextValid(LeafNode node) {
@@ -435,10 +437,7 @@ class AutoChoiceField extends Field {
     super.prefix = '',
     super.suffix = '',
     super.separator = ', ',
-  }) : super(
-          fieldType: 'AutoChoice',
-          format: '',
-        );
+  }) : super(fieldType: 'AutoChoice', format: '');
 }
 
 /// A field that formats numbers and properly sorts them.
@@ -450,10 +449,7 @@ class NumberField extends Field {
     super.prefix = '',
     super.suffix = '',
     super.separator = ', ',
-  }) : super(
-          fieldType: 'Number',
-          format: format.isNotEmpty ? format : '#0.##',
-        );
+  }) : super(fieldType: 'Number', format: format.isNotEmpty ? format : '#0.##');
 
   @override
   String _formatOutput(String storedText) {
@@ -494,9 +490,9 @@ class DateField extends Field {
     super.suffix = '',
     super.separator = ', ',
   }) : super(
-          fieldType: 'Date',
-          format: format.isNotEmpty ? format : 'MMMM d, yyyy',
-        );
+         fieldType: 'Date',
+         format: format.isNotEmpty ? format : 'MMMM d, yyyy',
+       );
 
   DateTime _parseStored(String storedText) {
     return DateFormat('yyyy-MM-dd').parse(storedText);
@@ -546,10 +542,7 @@ class TimeField extends Field {
     super.prefix = '',
     super.suffix = '',
     super.separator = ', ',
-  }) : super(
-          fieldType: 'Time',
-          format: format.isNotEmpty ? format : 'h:mm a',
-        );
+  }) : super(fieldType: 'Time', format: format.isNotEmpty ? format : 'h:mm a');
 
   DateTime _parseStored(String storedText) {
     return DateFormat('HH:mm:ss.S').parse(storedText);

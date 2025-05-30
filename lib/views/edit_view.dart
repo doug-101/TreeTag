@@ -50,8 +50,9 @@ class _EditViewState extends State<EditView> {
   void initState() {
     super.initState();
     // A deep copy of the original data.
-    nodeData =
-        widget.node.data.map((key, value) => MapEntry(key, List.of(value)));
+    nodeData = widget.node.data.map(
+      (key, value) => MapEntry(key, List.of(value)),
+    );
   }
 
   /// Prepare to close by validating and updating.
@@ -111,17 +112,19 @@ class _EditViewState extends State<EditView> {
     if (_rowWidgetList.isEmpty) {
       _rowWidgetList = [
         for (var field in model.fieldMap.values)
-          for (var dataPos = 0;
-              dataPos < max(nodeData[field.name]?.length ?? 1, 1);
-              dataPos++)
+          for (
+            var dataPos = 0;
+            dataPos < max(nodeData[field.name]?.length ?? 1, 1);
+            dataPos++
+          )
             _tableRow(field, dataPos),
       ];
     }
     late String windowTitle;
     if (widget.editMode == EditMode.nodeChildren &&
-        model.titleLine
-            .fields()
-            .any((field) => nodeData[field.name]?.isEmpty ?? false)) {
+        model.titleLine.fields().any(
+          (field) => nodeData[field.name]?.isEmpty ?? false,
+        )) {
       windowTitle = '[title varies]';
     } else {
       windowTitle = widget.node.title;
@@ -262,7 +265,8 @@ class _EditViewState extends State<EditView> {
           label: labelString,
           minLines: 4,
           maxLines: 12,
-          isFileLinkAvail: model.useMarkdownOutput &&
+          isFileLinkAvail:
+              model.useMarkdownOutput &&
               !(Platform.isAndroid || Platform.isIOS),
           useRelativeLinks: model.useRelativeLinks,
           initialValue: initString ?? '',
@@ -286,12 +290,13 @@ class _EditViewState extends State<EditView> {
               DropdownMenuItem<String>(
                 value: str,
                 child: Text(str.isNotEmpty ? str : '[Empty Value]'),
-              )
+              ),
           ],
           decoration: InputDecoration(labelText: labelString),
           // Null value gives a blank.
-          value:
-              (initString != null && initString.isNotEmpty) ? initString : null,
+          value: (initString != null && initString.isNotEmpty)
+              ? initString
+              : null,
           onChanged: (String? value) {},
           onSaved: (String? value) {
             if (value != null) {
@@ -396,7 +401,8 @@ class _EditViewState extends State<EditView> {
         return TextForm(
           key: UniqueKey(),
           label: labelString,
-          isFileLinkAvail: model.useMarkdownOutput &&
+          isFileLinkAvail:
+              model.useMarkdownOutput &&
               !(Platform.isAndroid || Platform.isIOS),
           useRelativeLinks: model.useRelativeLinks,
           initialValue: initString ?? '',
@@ -444,64 +450,73 @@ class TextForm extends FormField<String> {
     super.validator,
     super.onSaved,
   }) : super(
-          builder: (FormFieldState<String> origState) {
-            final state = origState as TextFormState;
-            return TextField(
-              decoration: InputDecoration(labelText: label),
-              minLines: minLines,
-              maxLines: maxLines,
-              controller: state._textController,
-              spellCheckConfiguration:
-                  (prefs.getBool('enablespellcheck') ?? true)
-                      ? SpellCheckConfiguration(
-                          spellCheckService: state._spellChecker)
-                      : const SpellCheckConfiguration.disabled(),
-              contextMenuBuilder: (context, editableTextState) {
-                final buttonItems = editableTextState.contextMenuButtonItems;
-                if (isFileLinkAvail && !editableTextState.copyEnabled) {
-                  final cursorPos = editableTextState
-                      .currentTextEditingValue.selection.base.offset;
-                  buttonItems.add(
-                    ContextMenuButtonItem(
-                      label: 'Add file link',
-                      onPressed: () async {
-                        ContextMenuController.removeAny();
-                        FilePickerResult? answer =
-                            await FilePicker.platform.pickFiles(
-                          initialDirectory: prefs.getString('workdir')!,
-                          dialogTitle: 'Select Link File',
-                        );
-                        if (answer != null) {
-                          var linkPath = answer.files.single.path;
-                          if (linkPath != null) {
-                            if (useRelativeLinks) {
-                              linkPath = p.relative(linkPath,
-                                  from: prefs.getString('workdir')!);
-                            }
-                            // Convert to URI to fix path separators onWindows.
-                            var uri = p.toUri(linkPath).toString();
-                            if (!uri.startsWith('file:')) {
-                              // This is only needed for relative paths.
-                              uri = 'file:$uri';
-                            }
-                            final linkText = '[${p.basename(linkPath)}]($uri)';
-                            final text = state._textController.text
-                                .replaceRange(cursorPos, cursorPos, linkText);
-                            state._textController.text = text;
-                          }
-                        }
-                      },
-                    ),
-                  );
-                }
-                return AdaptiveTextSelectionToolbar.buttonItems(
-                  anchors: editableTextState.contextMenuAnchors,
-                  buttonItems: buttonItems,
-                );
-              },
-            );
-          },
-        );
+         builder: (FormFieldState<String> origState) {
+           final state = origState as TextFormState;
+           return TextField(
+             decoration: InputDecoration(labelText: label),
+             minLines: minLines,
+             maxLines: maxLines,
+             controller: state._textController,
+             spellCheckConfiguration:
+                 (prefs.getBool('enablespellcheck') ?? true)
+                 ? SpellCheckConfiguration(
+                     spellCheckService: state._spellChecker,
+                   )
+                 : const SpellCheckConfiguration.disabled(),
+             contextMenuBuilder: (context, editableTextState) {
+               final buttonItems = editableTextState.contextMenuButtonItems;
+               if (isFileLinkAvail && !editableTextState.copyEnabled) {
+                 final cursorPos = editableTextState
+                     .currentTextEditingValue
+                     .selection
+                     .base
+                     .offset;
+                 buttonItems.add(
+                   ContextMenuButtonItem(
+                     label: 'Add file link',
+                     onPressed: () async {
+                       ContextMenuController.removeAny();
+                       FilePickerResult? answer = await FilePicker.platform
+                           .pickFiles(
+                             initialDirectory: prefs.getString('workdir')!,
+                             dialogTitle: 'Select Link File',
+                           );
+                       if (answer != null) {
+                         var linkPath = answer.files.single.path;
+                         if (linkPath != null) {
+                           if (useRelativeLinks) {
+                             linkPath = p.relative(
+                               linkPath,
+                               from: prefs.getString('workdir')!,
+                             );
+                           }
+                           // Convert to URI to fix path separators onWindows.
+                           var uri = p.toUri(linkPath).toString();
+                           if (!uri.startsWith('file:')) {
+                             // This is only needed for relative paths.
+                             uri = 'file:$uri';
+                           }
+                           final linkText = '[${p.basename(linkPath)}]($uri)';
+                           final text = state._textController.text.replaceRange(
+                             cursorPos,
+                             cursorPos,
+                             linkText,
+                           );
+                           state._textController.text = text;
+                         }
+                       }
+                     },
+                   ),
+                 );
+               }
+               return AdaptiveTextSelectionToolbar.buttonItems(
+                 anchors: editableTextState.contextMenuAnchors,
+                 buttonItems: buttonItems,
+               );
+             },
+           );
+         },
+       );
 
   @override
   TextFormState createState() => TextFormState();
@@ -618,52 +633,53 @@ class AutoChoiceForm extends FormField<String> {
     required Set<String> initialOptions,
     super.onSaved,
   }) : super(
-          builder: (FormFieldState<String> origState) {
-            final state = origState as AutoChoiceFormState;
-            return Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          labelText: label ?? 'AutoChoice Field',
-                          border: InputBorder.none,
-                        ),
-                        controller: state._textController,
-                        spellCheckConfiguration:
-                            (prefs.getBool('enablespellcheck') ?? true)
-                                ? SpellCheckConfiguration(
-                                    spellCheckService: state._spellChecker)
-                                : const SpellCheckConfiguration.disabled(),
-                      ),
-                    ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.arrow_drop_down),
-                      onSelected: (String value) {
-                        state._textController.text = value;
-                      },
-                      itemBuilder: (BuildContext context) {
-                        final options = List.of(initialOptions);
-                        final newText = state._textController.text;
-                        if (newText.isNotEmpty &&
-                            !initialOptions.contains(newText)) {
-                          options.add(newText);
-                        }
-                        options.sort();
-                        return [
-                          for (var s in options)
-                            PopupMenuItem(value: s, child: Text(s))
-                        ];
-                      },
-                    ),
-                  ],
-                ),
-                const Divider(thickness: 3.0),
-              ],
-            );
-          },
-        );
+         builder: (FormFieldState<String> origState) {
+           final state = origState as AutoChoiceFormState;
+           return Column(
+             children: <Widget>[
+               Row(
+                 children: <Widget>[
+                   Expanded(
+                     child: TextField(
+                       decoration: InputDecoration(
+                         labelText: label ?? 'AutoChoice Field',
+                         border: InputBorder.none,
+                       ),
+                       controller: state._textController,
+                       spellCheckConfiguration:
+                           (prefs.getBool('enablespellcheck') ?? true)
+                           ? SpellCheckConfiguration(
+                               spellCheckService: state._spellChecker,
+                             )
+                           : const SpellCheckConfiguration.disabled(),
+                     ),
+                   ),
+                   PopupMenuButton<String>(
+                     icon: const Icon(Icons.arrow_drop_down),
+                     onSelected: (String value) {
+                       state._textController.text = value;
+                     },
+                     itemBuilder: (BuildContext context) {
+                       final options = List.of(initialOptions);
+                       final newText = state._textController.text;
+                       if (newText.isNotEmpty &&
+                           !initialOptions.contains(newText)) {
+                         options.add(newText);
+                       }
+                       options.sort();
+                       return [
+                         for (var s in options)
+                           PopupMenuItem(value: s, child: Text(s)),
+                       ];
+                     },
+                   ),
+                 ],
+               ),
+               const Divider(thickness: 3.0),
+             ],
+           );
+         },
+       );
 
   @override
   AutoChoiceFormState createState() => AutoChoiceFormState();
@@ -706,54 +722,56 @@ class DateFormField extends FormField<DateTime> {
     String? heading,
     super.onSaved,
   }) : super(
-          builder: (FormFieldState<DateTime> state) {
-            return InkWell(
-              onTap: () async {
-                final newDate = await showDatePicker(
-                  context: state.context,
-                  initialDate: state.value ?? DateTime.now(),
-                  firstDate: DateTime(0),
-                  lastDate: DateTime(3000),
-                );
-                if (newDate != null) {
-                  state.didChange(newDate);
-                } else if (state.value != null && state.mounted) {
-                  // Give option of removing the value after cancelling.
-                  final keepValue = await common_dialogs.okCancelDialog(
-                    context: state.context,
-                    title: 'Cancelled Date Entry',
-                    label: 'Keep the previous date value?',
-                    trueButtonText: 'KEEP',
-                    falseButtonText: 'REMOVE',
-                  );
-                  if (keepValue != null && !keepValue) {
-                    state.didChange(null);
-                  }
-                }
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Text(heading ?? 'Date',
-                        style: Theme.of(state.context).textTheme.bodySmall),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: Text(
-                      state.value != null
-                          ? DateFormat(fieldFormat).format(state.value!)
-                          : '',
-                      style: Theme.of(state.context).textTheme.titleMedium,
-                    ),
-                  ),
-                  const Divider(thickness: 3.0),
-                ],
-              ),
-            );
-          },
-        );
+         builder: (FormFieldState<DateTime> state) {
+           return InkWell(
+             onTap: () async {
+               final newDate = await showDatePicker(
+                 context: state.context,
+                 initialDate: state.value ?? DateTime.now(),
+                 firstDate: DateTime(0),
+                 lastDate: DateTime(3000),
+               );
+               if (newDate != null) {
+                 state.didChange(newDate);
+               } else if (state.value != null && state.mounted) {
+                 // Give option of removing the value after cancelling.
+                 final keepValue = await common_dialogs.okCancelDialog(
+                   context: state.context,
+                   title: 'Cancelled Date Entry',
+                   label: 'Keep the previous date value?',
+                   trueButtonText: 'KEEP',
+                   falseButtonText: 'REMOVE',
+                 );
+                 if (keepValue != null && !keepValue) {
+                   state.didChange(null);
+                 }
+               }
+             },
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: <Widget>[
+                 Padding(
+                   padding: const EdgeInsets.only(top: 10.0),
+                   child: Text(
+                     heading ?? 'Date',
+                     style: Theme.of(state.context).textTheme.bodySmall,
+                   ),
+                 ),
+                 Padding(
+                   padding: const EdgeInsets.symmetric(vertical: 5.0),
+                   child: Text(
+                     state.value != null
+                         ? DateFormat(fieldFormat).format(state.value!)
+                         : '',
+                     style: Theme.of(state.context).textTheme.titleMedium,
+                   ),
+                 ),
+                 const Divider(thickness: 3.0),
+               ],
+             ),
+           );
+         },
+       );
 }
 
 /// Editor for a [TimeField].
@@ -765,56 +783,56 @@ class TimeFormField extends FormField<DateTime> {
     String? heading,
     super.onSaved,
   }) : super(
-          builder: (FormFieldState<DateTime> state) {
-            return InkWell(
-              onTap: () async {
-                final newTime = await showTimePicker(
-                  context: state.context,
-                  initialTime: state.value != null
-                      ? TimeOfDay.fromDateTime(state.value!)
-                      : TimeOfDay.now(),
-                );
-                if (newTime != null) {
-                  state.didChange(
-                    DateTime(1970, 1, 1, newTime.hour, newTime.minute),
-                  );
-                } else if (state.value != null && state.mounted) {
-                  // Give option of removing the value after cancelling.
-                  final keepValue = await common_dialogs.okCancelDialog(
-                    context: state.context,
-                    title: 'Cancelled Time Entry',
-                    label: 'Keep the previous time value?',
-                    trueButtonText: 'KEEP',
-                    falseButtonText: 'REMOVE',
-                  );
-                  if (keepValue != null && !keepValue) {
-                    state.didChange(null);
-                  }
-                }
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Text(heading ?? 'Time',
-                        style: Theme.of(state.context).textTheme.bodySmall),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: Text(
-                      state.value != null
-                          ? DateFormat(fieldFormat).format(state.value!)
-                          : '',
-                      style: Theme.of(state.context).textTheme.titleMedium,
-                    ),
-                  ),
-                  const Divider(
-                    thickness: 3.0,
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+         builder: (FormFieldState<DateTime> state) {
+           return InkWell(
+             onTap: () async {
+               final newTime = await showTimePicker(
+                 context: state.context,
+                 initialTime: state.value != null
+                     ? TimeOfDay.fromDateTime(state.value!)
+                     : TimeOfDay.now(),
+               );
+               if (newTime != null) {
+                 state.didChange(
+                   DateTime(1970, 1, 1, newTime.hour, newTime.minute),
+                 );
+               } else if (state.value != null && state.mounted) {
+                 // Give option of removing the value after cancelling.
+                 final keepValue = await common_dialogs.okCancelDialog(
+                   context: state.context,
+                   title: 'Cancelled Time Entry',
+                   label: 'Keep the previous time value?',
+                   trueButtonText: 'KEEP',
+                   falseButtonText: 'REMOVE',
+                 );
+                 if (keepValue != null && !keepValue) {
+                   state.didChange(null);
+                 }
+               }
+             },
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: <Widget>[
+                 Padding(
+                   padding: const EdgeInsets.only(top: 10.0),
+                   child: Text(
+                     heading ?? 'Time',
+                     style: Theme.of(state.context).textTheme.bodySmall,
+                   ),
+                 ),
+                 Padding(
+                   padding: const EdgeInsets.symmetric(vertical: 5.0),
+                   child: Text(
+                     state.value != null
+                         ? DateFormat(fieldFormat).format(state.value!)
+                         : '',
+                     style: Theme.of(state.context).textTheme.titleMedium,
+                   ),
+                 ),
+                 const Divider(thickness: 3.0),
+               ],
+             ),
+           );
+         },
+       );
 }

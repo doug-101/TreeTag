@@ -65,8 +65,10 @@ class _TreeConfigState extends State<TreeConfig> {
                       });
                     }
                   case AddMenuItems.ruleChild:
-                    final newRule =
-                        RuleNode(rule: '', storedParent: selectedNode!);
+                    final newRule = RuleNode(
+                      rule: '',
+                      storedParent: selectedNode!,
+                    );
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -89,7 +91,8 @@ class _TreeConfigState extends State<TreeConfig> {
                   child: const Text('Add Title Child'),
                 ),
                 PopupMenuItem(
-                  enabled: selectedNode != null &&
+                  enabled:
+                      selectedNode != null &&
                       (selectedNode is RuleNode ||
                           !(selectedNode as TitleNode).hasChildren ||
                           (selectedNode as TitleNode).childRuleNode != null),
@@ -153,7 +156,8 @@ class _TreeConfigState extends State<TreeConfig> {
               },
               itemBuilder: (context) => [
                 PopupMenuItem(
-                  enabled: selectedNode != null &&
+                  enabled:
+                      selectedNode != null &&
                       (selectedNode is RuleNode ||
                           ((selectedNode?.storedParent != null ||
                                   model.rootNodes.length > 1) &&
@@ -167,7 +171,8 @@ class _TreeConfigState extends State<TreeConfig> {
                   child: const Text('Delete Node Only'),
                 ),
                 PopupMenuItem(
-                  enabled: selectedNode != null &&
+                  enabled:
+                      selectedNode != null &&
                       selectedNode!.storedChildren().isNotEmpty &&
                       (selectedNode?.storedParent != null ||
                           model.rootNodes.length > 1),
@@ -182,24 +187,27 @@ class _TreeConfigState extends State<TreeConfig> {
               tooltip: 'Move an item up',
               onPressed:
                   (selectedNode == null || !model.canNodeMove(selectedNode!))
-                      ? null
-                      : () {
-                          setState(() {
-                            model.moveTitleNode(selectedNode! as TitleNode);
-                          });
-                        },
+                  ? null
+                  : () {
+                      setState(() {
+                        model.moveTitleNode(selectedNode! as TitleNode);
+                      });
+                    },
             ),
             // Button to move a title node down.
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
               tooltip: 'Move an item down',
-              onPressed: (selectedNode == null ||
+              onPressed:
+                  (selectedNode == null ||
                       !model.canNodeMove(selectedNode!, up: false))
                   ? null
                   : () {
                       setState(() {
-                        model.moveTitleNode(selectedNode! as TitleNode,
-                            up: false);
+                        model.moveTitleNode(
+                          selectedNode! as TitleNode,
+                          up: false,
+                        );
                       });
                     },
             ),
@@ -209,9 +217,7 @@ class _TreeConfigState extends State<TreeConfig> {
           child: Center(
             child: SizedBox(
               width: 600.0,
-              child: ListView(
-                children: _treeRows(context),
-              ),
+              child: ListView(children: _treeRows(context)),
             ),
           ),
         ),
@@ -222,8 +228,9 @@ class _TreeConfigState extends State<TreeConfig> {
   /// Returns a list of indented tree node cards.
   List<Widget> _treeRows(BuildContext context) {
     var model = Provider.of<Structure>(context, listen: false);
-    final contrastStyle =
-        TextStyle(color: Theme.of(context).colorScheme.primary);
+    final contrastStyle = TextStyle(
+      color: Theme.of(context).colorScheme.primary,
+    );
     final items = <Widget>[];
     for (var root in model.rootNodes) {
       for (var leveledNode in storedNodeGenerator(root)) {
@@ -233,8 +240,9 @@ class _TreeConfigState extends State<TreeConfig> {
           var ruleTitleSpans = node.ruleLine.richLineSpans(contrastStyle);
           if (ruleTitleSpans.length == 1 &&
               ruleTitleSpans[0].style != contrastStyle) {
-            ruleTitleSpans
-                .add(TextSpan(text: ' <no_fields>', style: contrastStyle));
+            ruleTitleSpans.add(
+              TextSpan(text: ' <no_fields>', style: contrastStyle),
+            );
           }
           titleText = Text.rich(TextSpan(children: ruleTitleSpans));
         } else {
@@ -242,8 +250,10 @@ class _TreeConfigState extends State<TreeConfig> {
         }
         items.add(
           Padding(
-            padding:
-                EdgeInsets.only(left: 25 * leveledNode.level + 8.0, right: 8.0),
+            padding: EdgeInsets.only(
+              left: 25 * leveledNode.level + 8.0,
+              right: 8.0,
+            ),
             child: Card(
               child: ListTile(
                 selected: node == selectedNode,

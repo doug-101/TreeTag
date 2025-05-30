@@ -137,12 +137,14 @@ class _SettingEditState extends State<SettingEdit> {
                             );
                             return;
                           }
-                          final result =
-                              await serverPassDialog(context: context);
+                          final result = await serverPassDialog(
+                            context: context,
+                          );
                           if (result ?? false) {
                             // Set the form value to avoid overwriting on close.
-                            _passwordKey.currentState!
-                                .didChange(prefs.getString('netpassword'));
+                            _passwordKey.currentState!.didChange(
+                              prefs.getString('netpassword'),
+                            );
                             setState(() {});
                           }
                         },
@@ -151,10 +153,7 @@ class _SettingEditState extends State<SettingEdit> {
                           child: Text('Change Password on Network Server'),
                         ),
                       ),
-                      const Divider(
-                        thickness: 3.0,
-                        height: 6.0,
-                      ),
+                      const Divider(thickness: 3.0, height: 6.0),
                     ],
                   ),
                   BoolFormField(
@@ -176,7 +175,8 @@ class _SettingEditState extends State<SettingEdit> {
                     },
                   ),
                   BoolFormField(
-                    initialValue: prefs.getBool('linespacing') ??
+                    initialValue:
+                        prefs.getBool('linespacing') ??
                         (Platform.isLinux ||
                             Platform.isWindows ||
                             Platform.isMacOS),
@@ -185,8 +185,10 @@ class _SettingEditState extends State<SettingEdit> {
                       if (value != null) {
                         await prefs.setBool('linespacing', value);
                         if (!context.mounted) return;
-                        Provider.of<Structure>(context, listen: false)
-                            .updateViews();
+                        Provider.of<Structure>(
+                          context,
+                          listen: false,
+                        ).updateViews();
                       }
                     },
                   ),
@@ -197,8 +199,10 @@ class _SettingEditState extends State<SettingEdit> {
                       if (value != null) {
                         await prefs.setBool('darktheme', value);
                         if (!context.mounted) return;
-                        Provider.of<ThemeModel>(context, listen: false)
-                            .updateTheme();
+                        Provider.of<ThemeModel>(
+                          context,
+                          listen: false,
+                        ).updateTheme();
                       }
                     },
                   ),
@@ -232,8 +236,8 @@ class _SettingEditState extends State<SettingEdit> {
                       },
                     ),
                   TextFormField(
-                    initialValue:
-                        (prefs.getDouble('viewscale') ?? 1.0).toString(),
+                    initialValue: (prefs.getDouble('viewscale') ?? 1.0)
+                        .toString(),
                     decoration: const InputDecoration(
                       labelText: 'App view scale ratio',
                     ),
@@ -293,91 +297,79 @@ class BoolFormField extends FormField<bool> {
     super.onSaved,
     void Function(bool)? onChange,
   }) : super(
-          builder: (FormFieldState<bool> state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                InkWell(
-                  onTap: () {
-                    state.didChange(!state.value!);
-                    if (onChange != null) onChange(state.value!);
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(heading ?? 'Boolean Value'),
-                      ),
-                      Switch(
-                        value: state.value!,
-                        onChanged: (bool value) {
-                          state.didChange(!state.value!);
-                          if (onChange != null) onChange(value);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(
-                  thickness: 3.0,
-                  height: 6.0,
-                ),
-              ],
-            );
-          },
-        );
+         builder: (FormFieldState<bool> state) {
+           return Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: <Widget>[
+               InkWell(
+                 onTap: () {
+                   state.didChange(!state.value!);
+                   if (onChange != null) onChange(state.value!);
+                 },
+                 child: Row(
+                   children: <Widget>[
+                     Expanded(child: Text(heading ?? 'Boolean Value')),
+                     Switch(
+                       value: state.value!,
+                       onChanged: (bool value) {
+                         state.didChange(!state.value!);
+                         if (onChange != null) onChange(value);
+                       },
+                     ),
+                   ],
+                 ),
+               ),
+               const Divider(thickness: 3.0, height: 6.0),
+             ],
+           );
+         },
+       );
 }
 
 /// A [FormField] widget for defining the working directory.
 class PathFormField extends FormField<String> {
-  PathFormField({
-    super.initialValue,
-    String? heading,
-    super.key,
-    super.onSaved,
-  }) : super(
-          builder: (FormFieldState<String> state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                InkWell(
-                  onTap: () async {
-                    String? folder = await FilePicker.platform.getDirectoryPath(
-                      initialDirectory: state.value!,
-                      dialogTitle: 'Select Working Directory',
-                    );
-                    if (folder != null) {
-                      state.didChange(folder);
-                    }
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Text(heading ?? 'Selected Path',
-                            style: Theme.of(state.context).textTheme.bodySmall),
+  PathFormField({super.initialValue, String? heading, super.key, super.onSaved})
+    : super(
+        builder: (FormFieldState<String> state) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              InkWell(
+                onTap: () async {
+                  String? folder = await FilePicker.platform.getDirectoryPath(
+                    initialDirectory: state.value!,
+                    dialogTitle: 'Select Working Directory',
+                  );
+                  if (folder != null) {
+                    state.didChange(folder);
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        heading ?? 'Selected Path',
+                        style: Theme.of(state.context).textTheme.bodySmall,
                       ),
-                      Text(
-                        state.value!,
-                        style: Theme.of(state.context).textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
+                    ),
+                    Text(
+                      state.value!,
+                      style: Theme.of(state.context).textTheme.titleMedium,
+                    ),
+                  ],
                 ),
-                const Divider(
-                  thickness: 3.0,
-                  height: 9.0,
-                ),
-              ],
-            );
-          },
-        );
+              ),
+              const Divider(thickness: 3.0, height: 9.0),
+            ],
+          );
+        },
+      );
 }
 
 /// Dialog to change the password on the server.
-Future<bool?> serverPassDialog({
-  required BuildContext context,
-}) async {
+Future<bool?> serverPassDialog({required BuildContext context}) async {
   final currentTextKey = GlobalKey<FormFieldState>();
   final newTextKey = GlobalKey<FormFieldState>();
   final repeatedTextKey = GlobalKey<FormFieldState>();
@@ -393,17 +385,13 @@ Future<bool?> serverPassDialog({
           children: <Widget>[
             TextFormField(
               key: currentTextKey,
-              decoration: const InputDecoration(
-                labelText: 'Current Password',
-              ),
+              decoration: const InputDecoration(labelText: 'Current Password'),
               obscureText: true,
               autofocus: true,
             ),
             TextFormField(
               key: newTextKey,
-              decoration: const InputDecoration(
-                labelText: 'New Password',
-              ),
+              decoration: const InputDecoration(labelText: 'New Password'),
               obscureText: true,
             ),
             TextFormField(

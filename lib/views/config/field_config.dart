@@ -68,8 +68,9 @@ class _FieldConfigState extends State<FieldConfig> {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                FieldEdit(field: selectedField!)),
+                          builder: (context) =>
+                              FieldEdit(field: selectedField!),
+                        ),
                       );
                       setState(() {});
                     },
@@ -101,7 +102,8 @@ class _FieldConfigState extends State<FieldConfig> {
                         final ans = await common_dialogs.okCancelDialog(
                           context: context,
                           title: 'Confirm Delete',
-                          label: 'This field is used ${errorText.join()}. '
+                          label:
+                              'This field is used ${errorText.join()}. '
                               'Continue?',
                         );
                         if (ans == null || !ans) return;
@@ -116,7 +118,8 @@ class _FieldConfigState extends State<FieldConfig> {
             IconButton(
               icon: const Icon(Icons.arrow_circle_up),
               tooltip: 'Move a field up',
-              onPressed: (selectedField == null ||
+              onPressed:
+                  (selectedField == null ||
                       fieldList.indexOf(selectedField!) == 0)
                   ? null
                   : () {
@@ -129,7 +132,8 @@ class _FieldConfigState extends State<FieldConfig> {
             IconButton(
               icon: const Icon(Icons.arrow_circle_down),
               tooltip: 'Move a field down',
-              onPressed: (selectedField == null ||
+              onPressed:
+                  (selectedField == null ||
                       fieldList.indexOf(selectedField!) == fieldList.length - 1)
                   ? null
                   : () {

@@ -212,8 +212,10 @@ class NetworkFile extends IOFile {
   Future<int> get fileSize async {
     int? size;
     // Use filter on 'filesize' filter to avoid retrieving entire file.
-    final resp = await http.get(Uri.parse('$recordPath?has_filesize=true'),
-        headers: _networkHeader());
+    final resp = await http.get(
+      Uri.parse('$recordPath?has_filesize=true'),
+      headers: _networkHeader(),
+    );
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
@@ -228,8 +230,10 @@ class NetworkFile extends IOFile {
   Future<DateTime> get dataModTime async {
     int? seconds;
     // Use filter on 'modtime' filter to avoid retrieving entire file.
-    var resp = await http.get(Uri.parse('$recordPath?has_modtime=true'),
-        headers: _networkHeader());
+    var resp = await http.get(
+      Uri.parse('$recordPath?has_modtime=true'),
+      headers: _networkHeader(),
+    );
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
@@ -265,8 +269,10 @@ class NetworkFile extends IOFile {
   @override
   Future<bool> get exists async {
     try {
-      final resp =
-          await http.get(Uri.parse(fullPath), headers: _networkHeader());
+      final resp = await http.get(
+        Uri.parse(fullPath),
+        headers: _networkHeader(),
+      );
       return resp.statusCode == 200;
     } on IOException {
       return false;
@@ -276,8 +282,10 @@ class NetworkFile extends IOFile {
   /// Reads the file and returns the JSON objects.
   @override
   Future<Map<String, dynamic>> readJson() async {
-    final resp = await http.get(Uri.parse('$recordPath?has_modtime=false'),
-        headers: _networkHeader());
+    final resp = await http.get(
+      Uri.parse('$recordPath?has_modtime=false'),
+      headers: _networkHeader(),
+    );
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body)['data'];
       if (data != null && data.isNotEmpty) {
@@ -297,15 +305,22 @@ class NetworkFile extends IOFile {
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         final dataString = _jsonEncoder.convert({'data': data});
         final size = dataString.length;
-        resp = await http.post(Uri.parse(recordPath),
-            headers: _networkHeader(), body: dataString);
+        resp = await http.post(
+          Uri.parse(recordPath),
+          headers: _networkHeader(),
+          body: dataString,
+        );
         if (resp.statusCode == 201) {
-          final seconds = data['properties']?['modtime'] ??
+          final seconds =
+              data['properties']?['modtime'] ??
               DateTime.now().millisecondsSinceEpoch;
           final metaData = {'filesize': size, 'modtime': seconds};
           final metaString = _jsonEncoder.convert({'data': metaData});
-          await http.post(Uri.parse(recordPath),
-              headers: _networkHeader(), body: metaString);
+          await http.post(
+            Uri.parse(recordPath),
+            headers: _networkHeader(),
+            body: metaString,
+          );
         }
         return;
       }
@@ -352,8 +367,10 @@ class NetworkFile extends IOFile {
   /// Delete this object from the network.
   @override
   Future<void> delete() async {
-    final resp =
-        await http.delete(Uri.parse(fullPath), headers: _networkHeader());
+    final resp = await http.delete(
+      Uri.parse(fullPath),
+      headers: _networkHeader(),
+    );
     if (resp.statusCode != 200) {
       throw HttpException(resp.reasonPhrase ?? '');
     }
@@ -365,7 +382,8 @@ class NetworkFile extends IOFile {
   static Future<List<IOFile>> fileList() async {
     final fileList = <NetworkFile>[];
     final address = Uri.parse(
-        [prefs.getString('netaddress') ?? '', 'collections'].join('/'));
+      [prefs.getString('netaddress') ?? '', 'collections'].join('/'),
+    );
     final resp = await http.get(address, headers: _networkHeader());
     if (resp.statusCode == 200) {
       final objList = jsonDecode(resp.body)['data'];
@@ -375,7 +393,8 @@ class NetworkFile extends IOFile {
           if (name != null) {
             // Removes all utf8, percent and unique encoding from [fullPath].
             final origName = Uri.decodeQueryComponent(
-                name.replaceAll('-', '+').replaceAll('_', '%'));
+              name.replaceAll('-', '+').replaceAll('_', '%'),
+            );
             fileList.add(NetworkFile(origName));
           }
         }
@@ -397,8 +416,11 @@ Future<bool> changeNetworkPassword(String newPass) async {
     prefs.getString('netuser'),
   ].join('/');
   try {
-    final resp = await http.put(Uri.parse(accountPath),
-        headers: _networkHeader(), body: '{"data": {"password": "$newPass"}}');
+    final resp = await http.put(
+      Uri.parse(accountPath),
+      headers: _networkHeader(),
+      body: '{"data": {"password": "$newPass"}}',
+    );
     if (resp.statusCode == 200) return true;
   } on IOException {
     // Ignore and return false.

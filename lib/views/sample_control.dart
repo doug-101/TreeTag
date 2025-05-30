@@ -49,7 +49,8 @@ class _SampleControlState extends State<SampleControl> {
       final ans = await common_dialogs.okCancelDialog(
         context: context,
         title: 'Working File Exists',
-        label: 'Working file ${newFile.filename} already exists.\n\n'
+        label:
+            'Working file ${newFile.filename} already exists.\n\n'
             'Open it from the working directory?',
       );
       if (ans == null || !ans) return;
@@ -60,7 +61,8 @@ class _SampleControlState extends State<SampleControl> {
         await common_dialogs.okDialog(
           context: context,
           title: 'Error',
-          label: 'Could not open file: '
+          label:
+              'Could not open file: '
               '${newFile.nameNoExtension}',
           isDissmissable: false,
         );
@@ -72,9 +74,11 @@ class _SampleControlState extends State<SampleControl> {
       model.fileObject = newFile;
     }
     if (!mounted) return;
-    Navigator.pushNamed(context, '/frameView',
-            arguments: newFile.nameNoExtension)
-        .then((value) async {
+    Navigator.pushNamed(
+      context,
+      '/frameView',
+      arguments: newFile.nameNoExtension,
+    ).then((value) async {
       if (!mounted) return;
       Navigator.pop(context);
     });
@@ -83,9 +87,7 @@ class _SampleControlState extends State<SampleControl> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sample Files'),
-      ),
+      appBar: AppBar(title: const Text('Sample Files')),
       body: Padding(
         padding: const EdgeInsets.all(4),
         child: Center(

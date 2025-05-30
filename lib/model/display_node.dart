@@ -71,8 +71,10 @@ class GroupNode implements DisplayNode {
   List<DisplayNode> childNodes({bool forceUpdate = false}) {
     if (ruleRef.childRuleNode != null) {
       if (forceUpdate || _childGroups.isEmpty) {
-        final newChildren =
-            ruleRef.childRuleNode!.createGroups(matchingNodes, this);
+        final newChildren = ruleRef.childRuleNode!.createGroups(
+          matchingNodes,
+          this,
+        );
         _childGroups.clear();
         _childGroups.addAll(newChildren);
         nodeFullSort(_childGroups, ruleRef.sortFields);
@@ -133,7 +135,7 @@ class LeafNode implements DisplayNode {
   List<String> outputs() {
     final lines = [
       for (var line in DisplayNode.modelRef.outputLines)
-        line.formattedLine(this)
+        line.formattedLine(this),
     ];
     lines.removeWhere((line) => line.isEmpty);
     return lines;
@@ -160,9 +162,9 @@ class LeafNode implements DisplayNode {
     final text = searchFields.isEmpty
         ? outputs().join('\n').toLowerCase()
         : searchFields
-            .expand((f) => f.allOutputText(this))
-            .join('\n')
-            .toLowerCase();
+              .expand((f) => f.allOutputText(this))
+              .join('\n')
+              .toLowerCase();
     for (var term in searchTerms) {
       if (!text.contains(term)) return false;
     }
@@ -204,8 +206,10 @@ class LeafNode implements DisplayNode {
               segment.field!.separator.contains('\n')) {
             pos += segment.allOutput(this)[0].length;
           } else {
-            pos +=
-                segment.allOutput(this).join(segment.field!.separator).length;
+            pos += segment
+                .allOutput(this)
+                .join(segment.field!.separator)
+                .length;
           }
         }
       } else {

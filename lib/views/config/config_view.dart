@@ -40,31 +40,17 @@ class _ConfigViewState extends State<ConfigView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('File Config'),
-      ),
+      appBar: AppBar(title: const Text('File Config')),
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            label: 'Fields',
-            icon: Icon(Icons.settings),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Tree',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Output',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Options',
-          ),
+          BottomNavigationBarItem(label: 'Fields', icon: Icon(Icons.settings)),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Tree'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Output'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Options'),
         ],
       ),
     );
