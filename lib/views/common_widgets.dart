@@ -4,7 +4,7 @@
 // Free software, GPL v2 or later.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown_selectionarea/flutter_markdown.dart'
+import 'package:flutter_markdown/flutter_markdown.dart'
     as renderer;
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:path/path.dart' as p;

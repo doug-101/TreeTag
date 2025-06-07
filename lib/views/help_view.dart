@@ -6,7 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter_markdown_selectionarea/flutter_markdown.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 const pathPrefix = 'assets/help/';
 
