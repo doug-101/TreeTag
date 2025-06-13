@@ -150,7 +150,7 @@ class Structure extends ChangeNotifier {
     undoList.clear();
   }
 
-  void saveFile({doModCheck = true}) async {
+  void saveFile({bool doModCheck = true}) async {
     // Prior to saving, check for files that were externally modified.
     if (doModCheck) {
       try {

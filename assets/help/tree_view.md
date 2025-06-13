@@ -29,14 +29,16 @@ limited to the children of that group.  If the detail view is showing a title
 node or no node, all leaf nodes will be searched.  Note that searching is not
 available if a leaf node is being shown.  The search view menu can be used to
 set the search method to a phrase, keywords or regular expressions.  Note that
-only regular expressions are case sensitive.  As a string is typed in the top
-bar, matching nodes will be shown in the main view.  Tapping/clicking on a
-resulting node will select it and show its full output, with the matching text
-highlighted.  The last node selected when leaving the search view will become
-current in the detail view and expanded in the tree.  There is also a replace
-option in the menu when searching by phrase or regular expression.  When
-searching with regular expressions, adding "$1", "$2", etc. in the replacement
-string will substitute matching groups from the search results.
+only regular expressions are case sensitive.  The menu can also select between
+searching in a specific field, in all fields, or in all output.  As a string is
+typed in the top bar, matching nodes will be shown in the main view.
+Tapping/clicking on a resulting node will select it and show its full output,
+with the matching text highlighted.  The last node selected when leaving the
+search view will become current in the detail view and expanded in the tree.
+There is also a replace option in the menu when searching by phrase or regular
+expression.  When searching with regular expressions, adding "$1", "$2", etc.
+in the replacement string will substitute matching groups from the search
+results.
 
 The hamburger (three lines) menu includes commands for the configuration
 editor, the settings view and the undo list, all described in subsequent

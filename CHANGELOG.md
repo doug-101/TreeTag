@@ -1,5 +1,17 @@
 
 ---
+## June 14, 2025 - Release 0.8.2 (stable)
+
+### New Features:
+- Added separate search options for searching in node fields versus searching
+  in node outputs.
+
+### Updates:
+- Support for rendering Markdown text output is now provided by a newer
+  library.
+- Updated to support Flutter version 3.32 and Dart version 3.8.
+
+---
 ## April 23, 2025 - Release 0.8.1 (stable)
 
 ### New Features:
