@@ -1,10 +1,9 @@
 // csv_import.dart, translations to import leaf node data from CSV files.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2026, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'package:csv/csv.dart';
-import 'package:csv/csv_settings_autodetection.dart';
 import 'display_node.dart';
 import 'fields.dart';
 import 'parsed_line.dart';
@@ -19,18 +18,8 @@ class CsvImport {
 
   /// Convert the CSV data in [strData] to leaf nodes in a TreeTag file.
   void convertCsv(Structure model) {
-    // Detect the first EOL and quotation delimiters in the file.
-    const detector = FirstOccurrenceSettingsDetector(
-      eols: ['\r\n', '\n'],
-      fieldDelimiters: [',', ';', '\t'],
-      textDelimiters: ['"', "'"],
-    );
-    const converter = CsvToListConverter(
-      shouldParseNumbers: false,
-      allowInvalid: false,
-      csvSettingsDetector: detector,
-    );
-    final rows = converter.convert(strData);
+    // This newer version of the decoder should handle delimeter auto-detect.
+    final rows = csv.decode(strData);
     for (var fieldName in rows.first) {
       // Replace all illegal characters with underscores.
       fieldName = fieldName.replaceAll(RegExp(r'\W'), '_');

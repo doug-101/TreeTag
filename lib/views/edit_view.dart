@@ -1,6 +1,6 @@
 // edit_view.dart, a view to edit data for an existing or a new node.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2026, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -476,13 +476,12 @@ class TextForm extends FormField<String> {
                      label: 'Add file link',
                      onPressed: () async {
                        ContextMenuController.removeAny();
-                       FilePickerResult? answer = await FilePicker.platform
-                           .pickFiles(
-                             initialDirectory: prefs.getString('workdir')!,
-                             dialogTitle: 'Select Link File',
-                           );
-                       if (answer != null) {
-                         var linkPath = answer.files.single.path;
+                       PlatformFile? linkFile = await FilePicker.pickFile(
+                         dialogTitle: 'Select Link File',
+                         initialDirectory: prefs.getString('workdir')!,
+                       );
+                       if (linkFile != null) {
+                         var linkPath = linkFile.path;
                          if (linkPath != null) {
                            if (useRelativeLinks) {
                              linkPath = p.relative(

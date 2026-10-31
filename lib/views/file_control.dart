@@ -1,6 +1,6 @@
 // file_control.dart, a view showing options for opening a new or existing file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2026, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -502,13 +502,12 @@ class _FileControlState extends State<FileControl> with WindowListener {
                 switch (result) {
                   case MenuItems.addFromFolder:
                     // Copy file from external path.
-                    FilePickerResult? answer = await FilePicker.platform
-                        .pickFiles(
-                          initialDirectory: prefs.getString('workdir')!,
-                          dialogTitle: 'Select File to be Added',
-                        );
-                    if (answer != null) {
-                      final cachePath = answer.files.single.path;
+                    PlatformFile? addedFile = await FilePicker.pickFile(
+                      dialogTitle: 'Select File to be Added',
+                      initialDirectory: prefs.getString('workdir')!,
+                    );
+                    if (addedFile != null) {
+                      final cachePath = addedFile.path;
                       if (cachePath != null) {
                         final newFileObj = IOFile.currentType(
                           p.basename(cachePath),
@@ -523,7 +522,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                         await newFileObj.copyFromPath(cachePath);
                       }
                       if (Platform.isAndroid || Platform.isIOS) {
-                        FilePicker.platform.clearTemporaryFiles();
+                        FilePicker.clearTemporaryFiles();
                       }
                       _updateFileList();
                     }
@@ -555,9 +554,9 @@ class _FileControlState extends State<FileControl> with WindowListener {
                     }
                   case MenuItems.copyToFolder:
                     // Copy current file to an external directory.
-                    String? folder = await FilePicker.platform.getDirectoryPath(
-                      initialDirectory: prefs.getString('workdir')!,
+                    String? folder = await FilePicker.getDirectoryPath(
                       dialogTitle: 'Select Directory for Copy',
+                      initialDirectory: prefs.getString('workdir')!,
                     );
                     if (folder != null) {
                       // Removed await Permission.storage.request().isGranted
@@ -574,7 +573,7 @@ class _FileControlState extends State<FileControl> with WindowListener {
                       }
                     }
                     if (Platform.isAndroid || Platform.isIOS) {
-                      FilePicker.platform.clearTemporaryFiles();
+                      FilePicker.clearTemporaryFiles();
                     }
                   case MenuItems.uploadToNetwork:
                     // Copy current file from disk to the network.

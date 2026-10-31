@@ -1,6 +1,6 @@
 // setting_edit.dart, a view to edit the apps settings/preferences.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2026, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -336,9 +336,9 @@ class PathFormField extends FormField<String> {
             children: <Widget>[
               InkWell(
                 onTap: () async {
-                  String? folder = await FilePicker.platform.getDirectoryPath(
-                    initialDirectory: state.value!,
+                  String? folder = await FilePicker.getDirectoryPath(
                     dialogTitle: 'Select Working Directory',
+                    initialDirectory: state.value!,
                   );
                   if (folder != null) {
                     state.didChange(folder);

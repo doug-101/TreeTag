@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.8.2+19
 
 environment:
-  sdk: ^3.8.0
+  sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -30,17 +30,18 @@ dependencies:
   #cupertino_icons: ^1.0.2
 
   charset: ^2.0.1
-  csv: ^6.0.0
-  file_picker: ^10.1.2
+  csv: ^8.0.0
+  file_picker: ^13.3.0
   # flutter_markdown is discontinued, but no alternatives properly handle
   # newlines (should ignore single newlines without spaces).
   # Tried markdown_widget and gpt_markdown.
-  flutter_markdown: ^0.7.7
+  # flutter_markdown: ^0.7.7
+  flutter_markdown_plus: ^1.0.12
   html_unescape: ^2.0.0
   http: ^1.1.0
   intl: ^0.20.2
   markdown: ^7.2.2
-  package_info_plus: ^8.0.0
+  package_info_plus: ^10.2.2
   path: ^1.9.0
   path_provider: ^2.0.5
   provider: ^6.0.0
