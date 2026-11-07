@@ -37,7 +37,7 @@ class SearchView extends StatefulWidget {
 }
 
 class _SearchViewState extends State<SearchView> {
-  final TextEditingController _controller = TextEditingController();
+  final _controller = TextEditingController();
   late final List<LeafNode> availableNodes;
   var resultNodes = <LeafNode>[];
   final selectedNodes = <LeafNode>[];

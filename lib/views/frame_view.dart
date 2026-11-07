@@ -1,6 +1,6 @@
 // frame_view.dart, the main view's frame and controls.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2026 Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -35,10 +35,37 @@ enum MenuItems { editChildren, deleteChildren }
 ///
 /// It includes the drawer and icon controls, and splits the tree and detail
 /// views when on a wide screen.
-class FrameView extends StatelessWidget {
+class FrameView extends StatefulWidget {
   final String fileRootName;
 
   const FrameView({super.key, required this.fileRootName});
+
+  @override
+  State<FrameView> createState() => _FrameViewState();
+}
+
+class _FrameViewState extends State<FrameView> {
+  // Storing scroll controllers here allows access for page up/down buttons.
+  final _treeViewScrollController = ScrollController();
+  final _detailViewScrollController = ScrollController();
+
+  @override
+  void initState() {
+    _detailViewScrollController.addListener(_handleDetailScrollNotify);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _detailViewScrollController.removeListener(_handleDetailScrollNotify);
+    super.dispose();
+  }
+
+  /// Record detail view scroll positions in the model when changed.
+  void _handleDetailScrollNotify() {
+    final model = Provider.of<Structure>(context, listen: false);
+    model.addDetailScrollPos(_detailViewScrollController.offset);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +144,7 @@ class FrameView extends StatelessWidget {
                           }
                           final filenames = [
                             for (var f in fileList)
-                              if (f.nameNoExtension != fileRootName &&
+                              if (f.nameNoExtension != widget.fileRootName &&
                                   f.extension == fileExtension)
                                 f.filename,
                           ];
@@ -339,7 +366,7 @@ class FrameView extends StatelessWidget {
               children: <Widget>[
                 // Flexible widgets are required to prevent overflow.
                 if (model.hasWideDisplay || !hasDetailViewOnly)
-                  Flexible(child: Text('$fileRootName - TreeTag')),
+                  Flexible(child: Text('${widget.fileRootName} - TreeTag')),
                 if (model.hasWideDisplay || hasDetailViewOnly)
                   Flexible(
                     child: model.useMarkdownOutput
@@ -489,17 +516,75 @@ class FrameView extends StatelessWidget {
               ],
             ],
           ),
-          body: model.hasWideDisplay
-              ? SplitView(
-                  viewMode: SplitViewMode.Horizontal,
-                  children: <Widget>[
-                    TreeView(fileRootName: fileRootName),
-                    const DetailView(),
-                  ],
-                )
-              : hasDetailViewOnly
-              ? const DetailView()
-              : TreeView(fileRootName: fileRootName),
+          body: Focus(
+            autofocus: true,
+            onKeyEvent: (node, event) {
+              // Handles keyboard events.
+              if (event is KeyDownEvent) {
+                final treeScrollPos = _treeViewScrollController.position;
+                final detailScrollPos = _detailViewScrollController.position;
+                if (event.logicalKey == LogicalKeyboardKey.pageUp) {
+                  if (treeScrollPos.extentBefore > 0.0) {
+                    // Tree view can scroll up.
+                    _treeViewScrollController.animateTo(
+                      (treeScrollPos.pixels - treeScrollPos.viewportDimension)
+                          .clamp(0.0, treeScrollPos.maxScrollExtent),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  } else if (detailScrollPos.extentBefore > 0.0) {
+                   // Detail view can scroll up.
+                    _detailViewScrollController.animateTo(
+                      (detailScrollPos.pixels -
+                              detailScrollPos.viewportDimension)
+                          .clamp(0.0, detailScrollPos.maxScrollExtent),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                } else if (event.logicalKey == LogicalKeyboardKey.pageDown) {
+                  if (treeScrollPos.extentAfter > 0.0) {
+                    // Tree view can scroll down.
+                    _treeViewScrollController.animateTo(
+                      (treeScrollPos.pixels + treeScrollPos.viewportDimension)
+                          .clamp(0.0, treeScrollPos.maxScrollExtent),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  } else if (detailScrollPos.extentAfter > 0.0) {
+                    // Detail view can scroll down.
+                    _detailViewScrollController.animateTo(
+                      (detailScrollPos.pixels +
+                              detailScrollPos.viewportDimension)
+                          .clamp(0.0, detailScrollPos.maxScrollExtent),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                } else {
+                  return KeyEventResult.ignored;
+                }
+              }
+              return KeyEventResult.handled;
+            },
+            child: model.hasWideDisplay
+                ? SplitView(
+                    viewMode: SplitViewMode.Horizontal,
+                    children: <Widget>[
+                      TreeView(
+                        fileRootName: widget.fileRootName,
+                        scrollController: _treeViewScrollController,
+                      ),
+                      DetailView(scrollController: _detailViewScrollController),
+                    ],
+                  )
+                : hasDetailViewOnly
+                ? DetailView(scrollController: _detailViewScrollController)
+                : TreeView(
+                    fileRootName: widget.fileRootName,
+                    scrollController: _treeViewScrollController,
+                  ),
+          ),
         );
       },
     );

@@ -1,6 +1,6 @@
 // main.dart, the main app entry point file.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2026, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -215,19 +215,6 @@ Future<void> main(List<String> cmdLineArgs) async {
                       return MaterialPageRoute(
                         builder: (context) {
                           return FrameView(fileRootName: fileName);
-                        },
-                      );
-                    case '/treeView':
-                      final fileName = settings.arguments as String;
-                      return MaterialPageRoute(
-                        builder: (context) {
-                          return TreeView(fileRootName: fileName);
-                        },
-                      );
-                    case '/detailView':
-                      return MaterialPageRoute(
-                        builder: (context) {
-                          return const DetailView();
                         },
                       );
                     case '/configView':

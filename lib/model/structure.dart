@@ -23,8 +23,12 @@ class Structure extends ChangeNotifier {
   final rootNodes = <TitleNode>[];
   final leafNodes = <LeafNode>[];
 
-  /// The node series currently shown in the [DetailView].
-  final detailViewRecords = <({DisplayNode node, GroupNode? parent})>[];
+  /// The node series history for what's shown in the [DetailView].
+  ///
+  /// Last entry is current.
+  /// Also records detail scroll position to be restored.
+  final detailViewRecords =
+      <({DisplayNode node, GroupNode? parent, double scrollPos})>[];
 
   /// Rencently deleted nodes, used by [DetailView] to label old pages.
   final obsoleteNodes = <DisplayNode>{};
@@ -244,6 +248,26 @@ class Structure extends ChangeNotifier {
     return null;
   }
 
+  /// Return the scroll position from the last detail view record.
+  double currentDetailScrollPos() {
+    if (detailViewRecords.isNotEmpty) {
+      return detailViewRecords.last.scrollPos;
+    }
+    return 0.0;
+  }
+
+  /// Add a scroll position to the most recent detail view record.
+  void addDetailScrollPos(double position) {
+    if (detailViewRecords.isNotEmpty) {
+      final currentRecord = detailViewRecords.last;
+      detailViewRecords.last = (
+        node: currentRecord.node,
+        parent: currentRecord.parent,
+        scrollPos: position,
+      );
+    }
+  }
+
   /// Remove the last node in [detailViewRecords] and do an update.
   ///
   /// Return true if at least one node remains.
@@ -259,6 +283,7 @@ class Structure extends ChangeNotifier {
   void addDetailViewRecord(
     DisplayNode node, {
     DisplayNode? parent,
+    double scrollPos = 0.0,
     bool doClearFirst = false,
   }) {
     if (doClearFirst) detailViewRecords.clear();
@@ -266,6 +291,7 @@ class Structure extends ChangeNotifier {
     detailViewRecords.add((
       node: node,
       parent: node is LeafNode && parent is GroupNode ? parent : null,
+      scrollPos: scrollPos,
     ));
     notifyListeners();
   }
