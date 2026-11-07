@@ -1,6 +1,6 @@
 // structure.dart, top level storage for the tree model.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2025, Douglas W. Bell.
+// Copyright (c) 2026, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io';
@@ -294,6 +294,73 @@ class Structure extends ChangeNotifier {
       scrollPos: scrollPos,
     ));
     notifyListeners();
+  }
+
+  /// Progress to the next visible detail view item in the tree.
+  ///
+  /// Called from the down arrow key handler.
+  void setNextDetailViewRecord() {
+    if (detailViewRecords.isEmpty) return;
+    DisplayNode? currentNode = detailViewRecords.last.node;
+    if ((currentNode is GroupNode || currentNode is TitleNode) &&
+        currentNode.isOpen) {
+      final children = currentNode.childNodes();
+      if (children.isNotEmpty) {
+        addDetailViewRecord(
+          children.first,
+          parent: currentNode,
+          doClearFirst: true,
+        );
+        return;
+      }
+    }
+    var parent = currentNode is GroupNode
+        ? currentNode.parent
+        : detailViewRecords.last.parent;
+    while (currentNode != null) {
+      final children = parent != null ? parent.childNodes() : rootNodes;
+      if (children.isNotEmpty) {
+        final pos = children.indexOf(currentNode);
+        if (children.length > pos + 1) {
+          addDetailViewRecord(
+            children[pos + 1],
+            parent: parent,
+            doClearFirst: true,
+          );
+          return;
+        }
+      }
+      currentNode = parent;
+      parent = parent?.parent;
+    }
+  }
+
+  /// Regress to the previous visible detail view item in the tree.
+  ///
+  /// Called from the up arrow key handler.
+  void setPreviousDetailViewRecord() {
+    if (detailViewRecords.isEmpty) return;
+    var currentNode = detailViewRecords.last.node;
+    var parent = currentNode is GroupNode
+        ? currentNode.parent
+        : detailViewRecords.last.parent;
+    final children = parent != null ? parent.childNodes() : rootNodes;
+    if (children.isNotEmpty) {
+      final pos = children.indexOf(currentNode);
+      if (pos == 0) {
+        if (parent == null) return;
+        currentNode = parent;
+        parent = parent.parent;
+      } else {
+        currentNode = children[pos - 1];
+        if (currentNode is GroupNode || currentNode is TitleNode) {
+          final lastLeveledNode = leveledNodeGenerator(currentNode).last;
+          currentNode = lastLeveledNode.node;
+          parent = lastLeveledNode.parent;
+        }
+      }
+      addDetailViewRecord(currentNode, parent: parent, doClearFirst: true);
+    }
   }
 
   /// Return nodes from [availableNodes] that match the [searchTerms].

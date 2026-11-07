@@ -533,7 +533,7 @@ class _FrameViewState extends State<FrameView> {
                       curve: Curves.easeInOut,
                     );
                   } else if (detailScrollPos.extentBefore > 0.0) {
-                   // Detail view can scroll up.
+                    // Detail view can scroll up.
                     _detailViewScrollController.animateTo(
                       (detailScrollPos.pixels -
                               detailScrollPos.viewportDimension)
@@ -542,7 +542,9 @@ class _FrameViewState extends State<FrameView> {
                       curve: Curves.easeInOut,
                     );
                   }
-                } else if (event.logicalKey == LogicalKeyboardKey.pageDown) {
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.pageDown) {
                   if (treeScrollPos.extentAfter > 0.0) {
                     // Tree view can scroll down.
                     _treeViewScrollController.animateTo(
@@ -561,11 +563,48 @@ class _FrameViewState extends State<FrameView> {
                       curve: Curves.easeInOut,
                     );
                   }
-                } else {
-                  return KeyEventResult.ignored;
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                  if (model.hasWideDisplay || !hasDetailViewOnly) {
+                    model.setNextDetailViewRecord();
+                  }
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                  if (model.hasWideDisplay || !hasDetailViewOnly) {
+                    model.setPreviousDetailViewRecord();
+                  }
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                  if (model.detailViewRecords.isNotEmpty) {
+                    final currentNode = model.detailViewRecords.last.node;
+                    final currentParent = model.detailViewRecords.last.parent;
+                    if (currentNode is LeafNode &&
+                        !currentNode.isExpanded(currentParent!)) {
+                      model.toggleNodeExpanded(currentNode, currentParent!);
+                    } else if (currentNode.hasChildren && !currentNode.isOpen) {
+                      model.toggleNodeOpen(currentNode);
+                    }
+                  }
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                  if (model.detailViewRecords.isNotEmpty) {
+                    final currentNode = model.detailViewRecords.last.node;
+                    final currentParent = model.detailViewRecords.last.parent;
+                    if (currentNode is LeafNode &&
+                        currentNode.isExpanded(currentParent!)) {
+                      model.toggleNodeExpanded(currentNode, currentParent!);
+                    } else if (currentNode.hasChildren && currentNode.isOpen) {
+                      model.toggleNodeOpen(currentNode);
+                    }
+                  }
+                  return KeyEventResult.handled;
                 }
               }
-              return KeyEventResult.handled;
+              return KeyEventResult.ignored;
             },
             child: model.hasWideDisplay
                 ? SplitView(
