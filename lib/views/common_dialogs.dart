@@ -1,6 +1,6 @@
 // common_dialogs.dart, several common dialog functions.
 // TreeTag, an information storage program with an automatic tree structure.
-// Copyright (c) 2024, Douglas W. Bell.
+// Copyright (c) 2026, Douglas W. Bell.
 // Free software, GPL v2 or later.
 
 import 'dart:io' show Platform;
@@ -219,7 +219,7 @@ Future<void> aboutDialog({required BuildContext context}) async {
     context: context,
     applicationName: 'TreeTag',
     applicationVersion: 'Version ${packageInfo.version}',
-    applicationLegalese: '©2025 by Douglas W. Bell',
+    applicationLegalese: '©2026 by Douglas W. Bell',
     applicationIcon: Image.asset('assets/images/tree_icon_48.png'),
   );
 }
