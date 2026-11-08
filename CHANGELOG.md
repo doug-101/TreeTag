@@ -1,5 +1,22 @@
 
 ---
+## November 9, 2026 - Release 0.8.3 (stable)
+
+### New Features:
+- Made Page Up and Page Down keys function in tree and detail views on desktop
+  platforms.
+- Up and down arrow keys can be used to move the selected node in the tree on
+  desktop platforms.
+- Right and left arrow keys can be used to expand and collapse nodes in the
+  tree on desktop platforms.
+
+### Updates:
+- Updated to support Flutter version 3.47 and Dart version 3.13.
+
+### Bug Fixes:
+- Made scroll positions more consistent when switching between detail views.
+
+---
 ## June 14, 2025 - Release 0.8.2 (stable)
 
 ### New Features:

@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.8.2+19
+version: 0.8.3+20
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
@@ -32,10 +32,6 @@ dependencies:
   charset: ^2.0.1
   csv: ^8.0.0
   file_picker: ^13.3.0
-  # flutter_markdown is discontinued, but no alternatives properly handle
-  # newlines (should ignore single newlines without spaces).
-  # Tried markdown_widget and gpt_markdown.
-  # flutter_markdown: ^0.7.7
   flutter_markdown_plus: ^1.0.12
   html_unescape: ^2.0.0
   http: ^1.1.0
